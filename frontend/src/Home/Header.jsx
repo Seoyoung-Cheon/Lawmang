@@ -10,7 +10,7 @@ const Header = () => {
           <div className="text-white text-5xl font-normal">Lawmang</div>
           
           {/* 가운데 위치한 메뉴 리스트 (ul) - 항목 간 간격을 4로 설정 */}
-          <ul className="w-[400px] flex items-center justify-center flex-grow space-x-6 text-lg">
+          <ul className="w-[400px] flex items-center justify-center flex-grow space-x-20 text-xl -ml-[900px] mt-[10px]">
             <li className="text-neutral-200 hover:text-white cursor-pointer">
               <Link to="/consultation" className="text-neutral-200 hover:text-white">상담사례</Link>
             </li>
