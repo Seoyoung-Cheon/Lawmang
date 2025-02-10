@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -8,12 +9,17 @@ const Header = () => {
           {/* Lawmang 텍스트 */}
           <div className="text-white text-5xl font-normal">Lawmang</div>
           
-
           {/* 가운데 위치한 메뉴 리스트 (ul) - 항목 간 간격을 4로 설정 */}
           <ul className="w-[400px] flex items-center justify-center flex-grow space-x-6 text-lg">
-            <li className="text-neutral-200 hover:text-white cursor-pointer">상담사례</li>
-            <li className="text-neutral-200 hover:text-white cursor-pointer">판례</li>
-            <li className="text-neutral-200 hover:text-white cursor-pointer">법률 서식</li>
+            <li className="text-neutral-200 hover:text-white cursor-pointer">
+              <Link to="/consultation" className="text-neutral-200 hover:text-white">상담사례</Link>
+            </li>
+            <li className="text-neutral-200 hover:text-white cursor-pointer">
+              <Link to="/precedent" className="text-neutral-200 hover:text-white">판례</Link>
+            </li>
+            <li className="text-neutral-200 hover:text-white cursor-pointer">
+              <Link to="/template" className="text-neutral-200 hover:text-white">법률 서식</Link>
+            </li>
           </ul>
           
           {/* 로그인 텍스트 */}

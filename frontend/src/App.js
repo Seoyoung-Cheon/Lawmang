@@ -4,20 +4,26 @@ import Header from "./Home/Header";
 import Main from "./Home/Main";
 import Youtube from "./Home/Youtube";
 import Chatbot from "./chatbot/Chatbot";
+import Consultation from "./components/Consultation/Consultation";
+import Precedent from "./components/Precedent/Precedent";
+import Template from "./components/Template/Template";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <div className="App">
-        <Header />
-        <Chatbot />
-        <Routes>
-          <Route path="/" element={<Main />} />
-          <Route path="/youtube" element={<Youtube />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
-  );
+    return (
+        <BrowserRouter>
+            <div className="App">
+                <Header />
+                <Chatbot />
+                <Routes>
+                    <Route path="/" element={<Main />} />
+                    <Route path="/youtube" element={<Youtube />} />
+                    <Route path="/consultation" element={<Consultation />} />
+                    <Route path="/precedent" element={<Precedent />} />
+                    <Route path="/template" element={<Template />} />
+                </Routes>
+            </div>
+        </BrowserRouter>
+    );
 }
 
 export default App;
