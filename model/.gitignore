@@ -1,0 +1,15 @@
+.env
+__pycache__/
+.cache/
+model/
+vectorstore/
+
+yes.txt
+
+*.log
+*.sqlite
+*.db
+*.pkl
+*.zip
+*.tar.gz
+*.bak
