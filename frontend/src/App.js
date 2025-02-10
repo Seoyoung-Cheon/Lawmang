@@ -1,19 +1,19 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Header from "./Home/Header";
 import Main from "./Home/Main";
-import Consultation from "./components/Consultation/Consultation";
-import Precedent from "./components/Precedent/Precedent";
-import Template from "./components/Template/Template";
+import Youtube from "./Home/Youtube";
+import Chatbot from "./chatbot/Chatbot";
 
 function App() {
   return (
     <BrowserRouter>
       <div className="App">
+        <Header />
+        <Chatbot />
         <Routes>
           <Route path="/" element={<Main />} />
-          <Route path="/consultation" element={<Consultation />} />
-          <Route path="/precedent" element={<Precedent />} />
-          <Route path="/template" element={<Template />} />
+          <Route path="/youtube" element={<Youtube />} />
         </Routes>
       </div>
     </BrowserRouter>
