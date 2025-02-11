@@ -17,8 +17,8 @@ def load_llm():
         return HuggingFaceEndpoint(
             repo_id=HUGGINGFACE_REPO_ID,
             task="text-generation",
-            temperature=0.8,
-            model_kwargs={"token": HF_TOKEN, "max_length": 1024, "num_beams": 4},
+            model_kwargs={"max_length": 1024, "num_beams": 4},
+            huggingfacehub_api_token=HF_TOKEN,  # ✅ API 토큰을 올바르게 설정
         )
     except Exception as e:
         print(f"❌ [LLM 로드 오류] {e}")
@@ -57,6 +57,7 @@ class LangChainRetrieval:
     ※ 비법률 질문을 최대한 법률적으로 해석하고 불가능하면 "죄송합니다 그것은 답할수 없습니다" 출력
     
     ※;비법률 질문자 행동 유도: 최대한 법률 질문으로 해석하며 법률 질문 유도 
+    ※;비법률 질문자가 이상한 답변을 할떄 최대한 법률적 대답 불가능하면 그대로 "이해할 수 없습니다." 답변
     - 사용자가 요청하는 답은 텍스트 형식만 답변 가능합니다
 
     ※ 판례와 관련 내용을 그대로 나열하지 말고, 하나의 정리된 답변을 생성하세요.
@@ -65,20 +66,18 @@ class LangChainRetrieval:
     """,
             input_variables=["user_query", "summary"],
         )
-
     def generate_legal_answer(self, user_query, summary):
         """LLM을 사용하여 법률적 답변 생성"""
+
+        # ✅ LLM을 매번 새로 로드하여 한 번만 실행되는 문제 해결
+        self.llm = load_llm()
+
         if not self.llm:
             return "❌ LLM이 로드되지 않았습니다."
 
         try:
-            # ✅ LangChain 프롬프트 적용
             prompt = self.prompt_template.format(user_query=user_query, summary=summary)
-
-            # ✅ LangChain 실행
             response = self.llm.invoke(prompt)
-
             return response.strip()
-
         except Exception as e:
             return f"❌ LLM 오류: {str(e)}"
