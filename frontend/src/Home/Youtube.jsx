@@ -11,25 +11,42 @@ const Youtube = () => {
   const videosPerPage = 4;
 
   useEffect(() => {
+    const lastRequestTime = localStorage.getItem("lastRequestTime"); // 로컬 스토리지에서 마지막 요청 시간 가져오기
+    const currentTime = new Date().getTime(); // 현재 시간 (밀리초 단위)
+
+    // 하루가 지나지 않았다면 API 요청을 하지 않음
+    if (lastRequestTime && currentTime - lastRequestTime < 24 * 60 * 60 * 1000) {
+      // 하루가 지나지 않았으면 이전 데이터를 사용
+      setLoading(false); // 데이터를 바로 사용할 수 있도록 로딩 종료
+      return;
+    }
+
+    const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // 환경 변수에서 API 키 가져오기
+    
     axios
       .get(`https://www.googleapis.com/youtube/v3/search`, {
         params: {
           part: "snippet",
           q: "법률",
           type: "video",
-          maxResults: 20,
-          key: "AIzaSyBFf5XjiGzYkcianJbnjtAEE445B0X82E8"
+          maxResults: 4,
+          key: YOUTUBE_API_KEY,
         },
       })
       .then((response) => {
         setVideos(response.data.items); // 응답 데이터에서 영상 항목 저장
         setLoading(false); // 로딩 상태 종료
+
+        // API 요청 후 현재 시간을 로컬 스토리지에 저장
+        localStorage.setItem("lastRequestTime", currentTime);
       })
       .catch((error) => {
         setError("Failed to fetch videos."); // 오류 처리
         setLoading(false); // 로딩 종료
       });
   }, []); // 빈 배열은 컴포넌트가 마운트될 때만 실행
+
+  console.log(videos);
 
   // 현재 페이지에 표시할 영상 계산
   const indexOfLastVideo = currentPage * videosPerPage;
@@ -82,8 +99,8 @@ const Youtube = () => {
               onClick={() => handlePageChange(number)}
               className={`px-3 py-1 border rounded ${
                 currentPage === number
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-700'
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-gray-700"
               }`}
             >
               {number}
