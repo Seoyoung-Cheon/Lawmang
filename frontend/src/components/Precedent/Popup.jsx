@@ -7,20 +7,20 @@ const Popup = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div className="bg-white rounded-3xl p-8 w-[800px] h-[700px]">
         {/* 팝업 헤더 */}
-        <div className="relative flex justify-between items-center mb-6">
+        <div className="relative flex justify-between items-center mb-6 pb-4 border-b border-gray-200 shadow-sm">
           <h2 className="text-2xl font-bold text-center w-full">
             판례 요약 보기
           </h2>
           <button
             onClick={onClose}
-            className="absolute right-0 text-2xl font-bold text-black hover:text-gray-700"
+            className="absolute right-0 text-2xl text-gray-500 hover:text-gray-700"
           >
             ✕
           </button>
         </div>
 
         {/* 팝업 내용 */}
-        <div className="bg-gray-50 rounded-2xl p-6 h-[600px] overflow-y-auto">
+        <div className="bg-gray-50 rounded-2xl p-6 h-[570px] overflow-y-auto">
           <div className="space-y-6">
             <div>
               <h4 className="font-bold mb-2">1. 사건 개요</h4>

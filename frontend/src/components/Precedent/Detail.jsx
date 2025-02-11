@@ -23,12 +23,15 @@ const Detail = () => {
                 판례
               </h2>
               <button
-                onClick={handleOpenPopup}
+                onClick={() => setIsPopupOpen(true)}
                 className="px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
               >
                 요약보기
               </button>
             </div>
+
+            {/* 구분선과 그림자 */}
+            <div className="border-b border-gray-200 shadow-sm mb-6"></div>
 
             {/* 판결문 내용 */}
             <div className="h-[600px] p-6 rounded-2xl overflow-y-auto">
