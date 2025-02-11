@@ -1,5 +1,5 @@
-import React from 'react';
-import Cardnewsdata from '../constants/Cardnewsdata';
+import React from "react";
+import Cardnewsdata from "../constants/cardnewsdata";
 
 const Cardnews = () => {
   return (
@@ -25,11 +25,13 @@ const Cardnews = () => {
 
                   {subSection.paragraphs.map((para, paraIndex) => (
                     <div key={paraIndex} className="mb-3">
-                      <p className="text-gray-600 mb-2"
+                      <p
+                        className="text-gray-600 mb-2"
                         dangerouslySetInnerHTML={{ __html: para.content }}
                       />
                       {para.subcontent && (
-                        <p className="text-gray-600 pl-4"
+                        <p
+                          className="text-gray-600 pl-4"
                           dangerouslySetInnerHTML={{ __html: para.subcontent }}
                         />
                       )}

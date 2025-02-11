@@ -12,7 +12,7 @@ const Precedent = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-[120px] pb-10">
+        <div className="px-0 pt-[135px] pb-10">
           {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-[900px]">
@@ -51,7 +51,7 @@ const Precedent = () => {
             </div>
           </div>
           {/* 필터 버튼들 */}
-          <div className="flex gap-4 mb-8">
+          <div className="flex gap-4 mb-10">
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               전체
             </button>
