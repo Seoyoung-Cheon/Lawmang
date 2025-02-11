@@ -1,38 +1,44 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
+  const location = useLocation();
+  const isDarkText = location.pathname === "/";
+  const textColorClass = isDarkText ? "text-white" : "text-black";
+
   return (
     <div className="w-full">
       <div className="absolute top-0 left-0 z-50 w-full">
         <div className="px-20 py-16 w-full h-16 flex items-center justify-between">
-          {/* Lawmang 텍스트 */}
-          <div className="text-white text-5xl font-normal cursor-default">
-            Lawmang
+          {/* Lawmang 로고 */}
+          <div className="relative z-10">
+            <Link to="/" className={`${textColorClass} text-5xl font-normal`}>
+              Lawmang
+            </Link>
           </div>
 
-          {/* 가운데 위치한 메뉴 리스트 (ul)  */}
+          {/* 가운데 위치한 메뉴 리스트 (ul) */}
           <ul className="w-[400px] flex items-center justify-center flex-grow space-x-20 text-xl -ml-[900px] mt-[10px]">
-            <li className="text-neutral-200 hover:text-white cursor-pointer">
+            <li>
               <Link
                 to="/consultation"
-                className="text-neutral-200 hover:text-white"
+                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
                 상담사례
               </Link>
             </li>
-            <li className="text-neutral-200 hover:text-white cursor-pointer">
+            <li>
               <Link
                 to="/precedent"
-                className="text-neutral-200 hover:text-white"
+                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
                 판례
               </Link>
             </li>
-            <li className="text-neutral-200 hover:text-white cursor-pointer">
+            <li>
               <Link
                 to="/template"
-                className="text-neutral-200 hover:text-white"
+                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
                 법률 서식
               </Link>
@@ -40,7 +46,9 @@ const Header = () => {
           </ul>
 
           {/* 로그인 텍스트 */}
-          <div className="text-neutral-200 hover:text-white  text-lg cursor-pointer">
+          <div
+            className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+          >
             로그인
           </div>
         </div>

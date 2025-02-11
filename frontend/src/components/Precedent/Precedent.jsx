@@ -1,6 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Precedent = () => {
+  const navigate = useNavigate();
+
+  // 상세 페이지로 이동하는 함수
+  const handleDetailClick = (id) => {
+    navigate(`/precedent/detail/${id}`);
+  };
+
   return (
     <div className="container">
       <div className="left-layout">
@@ -61,7 +69,10 @@ const Precedent = () => {
             </button>
           </div>
           {/* 판례 검색 결과 영역 */}
-          <div className="border border-gray-300 rounded-lg p-4 mb-6 w-[900px] h-[px] hover:bg-gray-50 cursor-pointer">
+          <div
+            className="border border-gray-300 rounded-lg p-4 mb-6 w-[900px] hover:bg-gray-50 cursor-pointer"
+            onClick={() => handleDetailClick("1")}
+          >
             <div className="flex justify-end mb-2">
               <div className="px-3 py-1 text-sm border border-gray-300 rounded cursor-default">
                 민사

@@ -7,23 +7,25 @@ import Chatbot from "./chatbot/Chatbot";
 import Consultation from "./components/Consultation/Consultation";
 import Precedent from "./components/Precedent/Precedent";
 import Template from "./components/Template/Template";
+import Detail from "./components/Precedent/Detail";
 
 function App() {
-    return (
-        <BrowserRouter>
-            <div className="App">
-                <Header />
-                <Chatbot />
-                <Routes>
-                    <Route path="/" element={<Main />} />
-                    <Route path="/youtube" element={<Youtube />} />
-                    <Route path="/consultation" element={<Consultation />} />
-                    <Route path="/precedent" element={<Precedent />} />
-                    <Route path="/template" element={<Template />} />
-                </Routes>
-            </div>
-        </BrowserRouter>
-    );
+  return (
+    <BrowserRouter>
+      <div className="App">
+        <Header />
+        <Chatbot />
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route path="/youtube" element={<Youtube />} />
+          <Route path="/consultation" element={<Consultation />} />
+          <Route path="/precedent" element={<Precedent />} />
+          <Route path="/template" element={<Template />} />
+          <Route path="/precedent/detail/:id" element={<Detail />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
 }
 
 export default App;
