@@ -8,6 +8,7 @@ import Consultation from "./components/Consultation/Consultation";
 import Precedent from "./components/Precedent/Precedent";
 import Template from "./components/Template/Template";
 import Detail from "./components/Precedent/Detail";
+import Cardnews from "./Home/Cardnews";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/precedent" element={<Precedent />} />
           <Route path="/template" element={<Template />} />
+          <Route path="/cardnews" element={<Cardnews />} />
           <Route path="/precedent/detail/:id" element={<Detail />} />
         </Routes>
       </div>
