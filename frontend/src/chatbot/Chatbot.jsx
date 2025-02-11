@@ -3,7 +3,7 @@ import React from "react";
 const Chatbot = () => {
   return (
     <div>
-      <div className="fixed right-20 top-[53%] -translate-y-1/2 z-50">
+      <div className="fixed right-20 top-[55%] -translate-y-1/2 z-50">
         <div className="w-[600px] h-[780px] bg-white rounded-xl shadow-lg flex flex-col">
           <div className="p-6 bg-Main text-white rounded-t-xl">
             <h3 className="font-medium text-2xl">Lawmang 챗봇</h3>
