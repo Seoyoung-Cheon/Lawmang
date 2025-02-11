@@ -1,5 +1,5 @@
 import React from 'react'
-import Cardnewsdata from './constants/Cardnewsdata'
+import Cardnewsdata from '../constants/Cardnewsdata'
 
 const Cardnews = () => {
   return (
