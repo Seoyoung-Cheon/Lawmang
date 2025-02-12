@@ -11,14 +11,14 @@ const Header = () => {
       <div className="absolute top-0 left-0 z-50 w-full">
         <div className="px-20 py-16 w-full h-16 flex items-center justify-between">
           {/* Lawmang 로고 */}
-          <div className="relative z-10">
+          <div className="relative z-10 mb-4">
             <Link to="/" className={`${textColorClass} text-5xl font-normal`}>
               Lawmang
             </Link>
           </div>
 
           {/* 가운데 위치한 메뉴 리스트 (ul) */}
-          <ul className="w-[400px] flex items-center justify-center flex-grow space-x-20 text-xl -ml-[900px] mt-[10px]">
+          <ul className="flex items-center justify-center space-x-20 text-xl">
             <li>
               <Link
                 to="/consultation"

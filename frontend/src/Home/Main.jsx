@@ -1,6 +1,7 @@
 import React from "react";
 import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
+import CardList from "./CardList";
 
 const Main = () => {
   return (
@@ -27,6 +28,7 @@ const Main = () => {
         </div>
       </div>
       <Youtube />
+      <CardList />
     </div>
   );
 };

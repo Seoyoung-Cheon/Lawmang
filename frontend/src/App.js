@@ -24,6 +24,7 @@ function App() {
           <Route path="/template" element={<Template />} />
           <Route path="/cardnews" element={<Cardnews />} />
           <Route path="/precedent/detail/:id" element={<Detail />} />
+          <Route path="/cardnews/:id" element={<Cardnews />} />
         </Routes>
       </div>
     </BrowserRouter>
