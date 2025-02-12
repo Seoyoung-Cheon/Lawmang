@@ -11,38 +11,48 @@ const Youtube = () => {
   const videosPerPage = 4;
 
   useEffect(() => {
+    console.log('API KEY:', process.env.REACT_APP_YOUTUBE_API_KEY);
     const lastRequestTime = localStorage.getItem("lastRequestTime"); // 로컬 스토리지에서 마지막 요청 시간 가져오기
+    const cachedVideos = localStorage.getItem("cachedVideos");
     const currentTime = new Date().getTime(); // 현재 시간 (밀리초 단위)
 
-    // 로컬 스토리지에서 가져온 값이 없거나, 하루가 지난 경우에만 API 요청
-    if (!lastRequestTime || currentTime - Number(lastRequestTime) >= 24 * 60 * 60 * 1000) {
-      const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // 환경 변수에서 API 키 가져오기
-      
-      axios
-        .get(`https://www.googleapis.com/youtube/v3/search`, {
-          params: {
-            part: "snippet",
-            q: "법률",
-            type: "video",
-            maxResults: 4,
-            key: YOUTUBE_API_KEY,
-          },
-        })
-        .then((response) => {
-          setVideos(response.data.items); // 응답 데이터에서 영상 항목 저장
-          setLoading(false); // 로딩 상태 종료
-
-          // API 요청 후 현재 시간을 로컬 스토리지에 저장
-          localStorage.setItem("lastRequestTime", currentTime.toString());
-        })
-        .catch((error) => {
-          setError("Failed to fetch videos."); // 오류 처리
-          setLoading(false); // 로딩 종료
-        });
-    } else {
-      // 하루가 지나지 않았다면 이전 데이터를 사용
-      setLoading(false); // 데이터를 바로 사용할 수 있도록 로딩 종료
+    // 캐시된 비디오가 있고 하루가 지나지 않았다면 캐시된 데이터 사용
+    if (cachedVideos && lastRequestTime && currentTime - Number(lastRequestTime) < 24 * 60 * 60 * 1000) {
+      setVideos(JSON.parse(cachedVideos));
+      setLoading(false);
+      return;
     }
+
+    const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY; // 환경 변수에서 API 키 가져오기
+
+    if (!YOUTUBE_API_KEY) {
+      setError("YouTube API 키가 설정되지 않았습니다.");
+      setLoading(false);
+      return;
+    }
+      
+    axios
+      .get(`https://www.googleapis.com/youtube/v3/search`, {
+        params: {
+          part: "snippet",
+          q: "법률",
+          type: "video",
+          maxResults: 4,
+          key: YOUTUBE_API_KEY,
+        },
+      })
+      .then((response) => {
+        setVideos(response.data.items); // 응답 데이터에서 영상 항목 저장
+        setLoading(false); // 로딩 상태 종료
+
+        // API 요청 후 현재 시간과 데이터를 로컬 스토리지에 저장
+        localStorage.setItem("cachedVideos", JSON.stringify(response.data.items));
+        localStorage.setItem("lastRequestTime", currentTime.toString());
+      })
+      .catch((error) => {
+        setError(`동영상을 가져오는데 실패했습니다: ${error.response?.data?.error?.message || error.message}`); // 오류 처리
+        setLoading(false); // 로딩 종료
+      });
   }, []); // 빈 배열은 컴포넌트가 마운트될 때만 실행
 
   console.log(videos);
@@ -67,6 +77,21 @@ const Youtube = () => {
           <ImYoutube2 className="text-9xl text-red-500" />
           <p className="text-2xl font-medium">법률 관련 유튜브</p>
         </div>
+        
+        {/* 에러 메시지 표시 */}
+        {error && (
+          <div className="text-red-500 p-4 text-center">
+            {error}
+          </div>
+        )}
+
+        {/* 로딩 표시 */}
+        {loading && (
+          <div className="text-center p-4">
+            로딩 중...
+          </div>
+        )}
+
         <ul className="flex flex-wrap">
           {currentVideos.map((video) => (
             <li key={video.id.videoId} className="w-1/2 p-4 border-1 border-black rounded-md">
