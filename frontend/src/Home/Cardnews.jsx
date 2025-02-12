@@ -1,10 +1,9 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Cardnewsdata from "../constants/Cardnewsdata";
 
 const Cardnews = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   
   const card = Cardnewsdata.find(card => card.id === parseInt(id));
 
