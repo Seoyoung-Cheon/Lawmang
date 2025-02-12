@@ -8,7 +8,7 @@ const Youtube = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const videosPerPage = 4;
+  const videosPerPage = 20;
 
   useEffect(() => {
     console.log('API KEY:', process.env.REACT_APP_YOUTUBE_API_KEY);
@@ -16,11 +16,20 @@ const Youtube = () => {
     const cachedVideos = localStorage.getItem("cachedVideos");
     const currentTime = new Date().getTime(); // 현재 시간 (밀리초 단위)
 
+    // 디버깅을 위한 로그 추가
+    console.log('마지막 요청 시간:', new Date(Number(lastRequestTime)));
+    console.log('현재 시간:', new Date(currentTime));
+    console.log('경과 시간(시간):', (currentTime - Number(lastRequestTime)) / (1000 * 60 * 60));
+    console.log('캐시된 비디오 존재:', !!cachedVideos);
+
     // 캐시된 비디오가 있고 하루가 지나지 않았다면 캐시된 데이터 사용
     if (cachedVideos && lastRequestTime && currentTime - Number(lastRequestTime) < 24 * 60 * 60 * 1000) {
+      console.log('캐시된 데이터 사용');
       setVideos(JSON.parse(cachedVideos));
       setLoading(false);
       return;
+    } else {
+      console.log('새로운 API 요청 실행');
     }
 
     const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY; // 환경 변수에서 API 키 가져오기
