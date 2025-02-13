@@ -4,8 +4,8 @@ import Cardnewsdata from "../constants/cardnewsdata";
 
 const Cardnews = () => {
   const { id } = useParams();
-  
-  const card = Cardnewsdata.find(card => card.id === parseInt(id));
+
+  const card = Cardnewsdata.find((card) => card.id === parseInt(id));
 
   if (!card) {
     return <div>카드뉴스를 찾을 수 없습니다.</div>;
