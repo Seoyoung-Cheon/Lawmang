@@ -1,4 +1,4 @@
-const Cardnewsdata = [
+const cardnewsdata = [
 	{
 		id: 0,
 		maintitle: "지역사랑상품권 발행 및 사용",

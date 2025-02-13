@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import Cardnewsdata from "../constants/Cardnewsdata";
+import Cardnewsdata from "../constants/cardnewsdata";
 
 const Cardnews = () => {
   const { id } = useParams();

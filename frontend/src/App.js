@@ -22,6 +22,7 @@ function App() {
           <Route path="/consultation" element={<Consultation />} />
           <Route path="/precedent" element={<Precedent />} />
           <Route path="/template" element={<Template />} />
+          <Route path="/template/:category" element={<Template />} />
           <Route path="/cardnews" element={<Cardnews />} />
           <Route path="/precedent/detail/:id" element={<Detail />} />
           <Route path="/cardnews/:id" element={<Cardnews />} />

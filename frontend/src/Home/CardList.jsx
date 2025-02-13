@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { BsCardImage } from "react-icons/bs";
 import { Link } from "react-router-dom";
-import Cardnewsdata from "../constants/Cardnewsdata";
+import Cardnewsdata from "../constants/cardnewsdata";
 
 const CardList = () => {
   const [currentPage, setCurrentPage] = useState(1);

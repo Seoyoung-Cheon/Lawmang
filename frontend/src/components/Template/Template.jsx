@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import documentStructure from '../../constants/document_structure.json';
 
 const categoryMapping = {
@@ -28,16 +29,30 @@ const categoryMapping = {
 };
 
 const Template = () => {
+  const { category } = useParams();
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(category || 'all');
 
   useEffect(() => {
     setIsLoading(true);
     setDocuments(documentStructure);
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (category && categoryMapping[category]) {
+      setSelectedCategory(category);
+    }
+  }, [category]);
+
+  // 카테고리 선택 핸들러 수정
+  const handleCategorySelect = (key) => {
+    setSelectedCategory(key);
+    navigate(`/template/${key}`);
+  };
 
   // 파일명에서 숫자 제거하는 함수
   const removeLeadingNumbers = (filename) => {
@@ -61,7 +76,7 @@ const Template = () => {
         {Object.entries(categoryMapping).map(([key, value]) => (
           <button
             key={key}
-            onClick={() => setSelectedCategory(key)}
+            onClick={() => handleCategorySelect(key)}
             className={`px-4 py-2 rounded-full text-sm transition-colors duration-200
               ${selectedCategory === key 
                 ? 'bg-blue-500 text-white' 
