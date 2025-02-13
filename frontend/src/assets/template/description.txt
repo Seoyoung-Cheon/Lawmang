@@ -18,5 +18,5 @@ housing lease 주택임대차
 labor 노동
 obligation 채권
 preservative measure 보전처분
-real right 물
+real right 물권
 succession 상속
