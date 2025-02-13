@@ -111,9 +111,6 @@ const Detail = () => {
           </div>
         </div>
       </div>
-      <div className="right-layout">
-        {/* 오른쪽 영역의 컨텐츠가 추가될 예정 */}
-      </div>
 
       {/* 팝업 컴포넌트 */}
       <Popup isOpen={isPopupOpen} onClose={handleClosePopup} />
