@@ -970,4 +970,4 @@ const cardnewsdata = [
 	},
 ]
 
-export default Cardnewsdata
+export default cardnewsdata
