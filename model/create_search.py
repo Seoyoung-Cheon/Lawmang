@@ -13,7 +13,9 @@ from safetensors.torch import load_file
 from dotenv import load_dotenv
 from kobart import get_pytorch_kobart_model, get_kobart_tokenizer
 
+from functools import lru_cache
 from langchain_retriever import LangChainRetrieval
+
 
 # ✅ 환경 변수 로드
 load_dotenv()
@@ -122,6 +124,7 @@ def summarize_case(text, tokenizer, model):
         #     repetition_penalty=1.5,  # ✅ 반복 최소화 (2.0 → 1.5)
         #     length_penalty=0.8,  # ✅ 더 짧은 요약 생성 (1.0 → 0.8)
         # ) # 모델 3 속도만 빠르고 부정확 
+        
         print(f"🔎 [DEBUG] summary_ids: {summary_ids}")
 
         decoded = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
@@ -211,18 +214,15 @@ def predict_judgment(text, tokenizer, model):
     except Exception as e:
         print(f"❌ [판결 예측 오류] {e}")
         return "❌ 예측 실패"
+    
+@lru_cache(maxsize=1000)
+def get_bart_model():
+    return load_bart()
 
-# def contains_english(user_input):
-#     """입력값에 영어가 포함되어 있는지 확인"""
-#     return bool(re.search(r"[A-Za-z]", user_input))
 
-
-# def sanitize_input(user_input):
-#     """영어가 포함된 경우 차단"""
-#     if contains_english(user_input):
-#         print("❌ 영어 입력은 허용되지 않습니다. 한글로 입력해주세요.")
-#         return None
-#     return user_input  # 정상 입력 반환
+@lru_cache(maxsize=1000)
+def get_bert_model():
+    return load_bert()
 
 
 def main():

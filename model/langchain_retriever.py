@@ -15,14 +15,20 @@ def load_llm():
     """LLM 로드 (HuggingFace Inference API)"""
     try:
         return HuggingFaceEndpoint(
-            repo_id=HUGGINGFACE_REPO_ID,
+            repo_id="mistralai/Mistral-7B-Instruct-v0.3",
             task="text-generation",
-            model_kwargs={"max_length": 1024, "num_beams": 4},
-            huggingfacehub_api_token=HF_TOKEN,  # ✅ API 토큰을 올바르게 설정
+            temperature=0.3,  # ✅ 랜덤성 줄이고 일관성 높이기
+            top_p=0.85,  # ✅ 모델이 좀 더 정밀한 출력을 하도록 조정
+            model_kwargs={
+                "max_length": 1024,  # ✅ 충분한 길이 보장
+                "num_beams": 2,  # ✅ 너무 높은 beam search 방지
+            },
+            huggingfacehub_api_token=HF_TOKEN,
         )
     except Exception as e:
         print(f"❌ [LLM 로드 오류] {e}")
         return None
+
 
 
 class LangChainRetrieval:
@@ -33,15 +39,12 @@ class LangChainRetrieval:
         if not self.llm:
             print("❌ LLM이 로드되지 않았습니다.")
 
-        # ✅ LangChain 프롬프트 설정
+        # ✅ LangChain 프롬프트 설정 (최적화)
         self.prompt_template = PromptTemplate(
             template="""
-    당신은 자신의 주장을 거세게 관철하는 한국 법률 전문가입니다. 
-    사용자의 질문에 대해 정확하고 간결한 답변을 제공하세요.
-    당신은 무조건 오로지 한국 법 관련에 대해서만 대답합니다,
-    비(not)법 관련 질문이면 가볍게 무시하고 자신의 대답을 이어나가세요
-    비(not) 한국어 사용자한테 답변을 최대한 한국어로 유도하세요 
-    ※ 외국어 답변을 절대로 하지 마세요 
+    당신은 한국 법률 전문가입니다. 
+    사용자의 질문에 대해 명확하고 간결한 답변을 제공하세요.
+    법률과 관련되지 않은 질문은 "죄송합니다, 법률과 관련된 질문만 답변할 수 있습니다."라고 답변하세요.
 
     📌 [입력 정보]
     🔍 사용자 질문:
@@ -54,18 +57,13 @@ class LangChainRetrieval:
     - 질문에 대한 법률적 개요
     - 판례 요약을 반영한 핵심 내용
     - 자연스럽고 이해하기 쉬운 한국어로 정리
-    ※ 비법률 질문을 최대한 법률적으로 해석하고 불가능하면 "죄송합니다 그것은 답할수 없습니다" 출력
+    - **비정상적인 단어, 무의미한 출력, 외국어 혼합 사용을 절대 하지 마세요.**
     
-    ※;비법률 질문자 행동 유도: 최대한 법률 질문으로 해석하며 법률 질문 유도 
-    ※;비법률 질문자가 이상한 답변을 할떄 최대한 법률적 대답 불가능하면 그대로 "이해할 수 없습니다." 답변
-    - 사용자가 요청하는 답은 텍스트 형식만 답변 가능합니다
-
-    ※ 판례와 관련 내용을 그대로 나열하지 말고, 하나의 정리된 답변을 생성하세요.
-
-    📌 [최종 답변]:
+    📌 [최종 답변]:  
     """,
             input_variables=["user_query", "summary"],
         )
+
     def generate_legal_answer(self, user_query, summary):
         """LLM을 사용하여 법률적 답변 생성"""
 
@@ -77,7 +75,14 @@ class LangChainRetrieval:
 
         try:
             prompt = self.prompt_template.format(user_query=user_query, summary=summary)
-            response = self.llm.invoke(prompt)
-            return response.strip()
+            response = self.llm.invoke(prompt).strip()
+
+            # ✅ 응답이 비정상적인 경우, 재요청 (1회)
+            if not response or len(response) < 10 in response:
+                print("⚠️ [경고] 비정상적인 응답 감지 → LLM 재요청")
+                response = self.llm.invoke(prompt).strip()
+
+            # ✅ 여전히 비정상적인 경우, 오류 메시지 반환
+            return response if response else "❌ 정상적인 응답을 생성하지 못했습니다."
         except Exception as e:
             return f"❌ LLM 오류: {str(e)}"
