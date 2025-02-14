@@ -10,6 +10,7 @@ const Youtube = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const videosPerPage = 4;
+  const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
     console.log("API KEY:", process.env.REACT_APP_YOUTUBE_API_KEY);
@@ -99,13 +100,28 @@ const Youtube = () => {
   const indexOfFirstVideo = indexOfLastVideo - videosPerPage;
   const currentVideos = videos.slice(indexOfFirstVideo, indexOfLastVideo);
 
-  // 전체 페이지 수 계산
+  // 전체 페이지 수 계산 (dot의 개수를 결정)
   const totalPages = Math.ceil(videos.length / videosPerPage);
 
-  // 페이지 변경 핸들러
+  // 페이지 변경 핸들러 (dot 클릭 시 페이지를 변경)
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  // 동영상 자동 롤링을 위한 useEffect
+  useEffect(() => {
+    let interval;
+    if (autoPlay) {
+      interval = setInterval(() => {
+        setCurrentPage((prev) => (prev === totalPages ? 1 : prev + 1));
+      }, 5000); // 5초마다 변경
+    }
+    return () => clearInterval(interval);
+  }, [autoPlay, totalPages]);
+
+  // 마우스 호버 시 자동 롤링 일시 정지
+  const handleMouseEnter = () => setAutoPlay(false);
+  const handleMouseLeave = () => setAutoPlay(true);
 
   return (
     <div className="container mx-auto px-20">
@@ -121,7 +137,11 @@ const Youtube = () => {
         {/* 로딩 표시 */}
         {loading && <div className="text-center p-4">로딩 중...</div>}
 
-        <ul className="grid grid-cols-2 gap-8 ml-[-100px]">
+        <ul
+          className="grid grid-cols-2 gap-8 ml-[-100px]"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {currentVideos.map((video) => (
             <li key={video.id.videoId} className="rounded-lg p-4">
               <div className="w-full">
@@ -145,19 +165,18 @@ const Youtube = () => {
         </ul>
 
         {/* 페이지네이션 UI */}
-        <div className="pagination flex justify-center gap-2 mt-5 ml-[-100px]">
+        <div className="flex justify-center gap-3 mt-8 ml-[-100px]">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
             <button
               key={number}
               onClick={() => handlePageChange(number)}
-              className={`px-3 py-1 border rounded ${
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 currentPage === number
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-700"
+                  ? "bg-gray-700 w-6" // 현재 페이지는 더 길게
+                  : "bg-gray-300 hover:bg-gray-400"
               }`}
-            >
-              {number}
-            </button>
+              aria-label={`Page ${number}`}
+            />
           ))}
         </div>
       </div>
