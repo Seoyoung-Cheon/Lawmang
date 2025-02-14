@@ -9,7 +9,7 @@ const Youtube = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const videosPerPage = 20;
+  const videosPerPage = 4;
 
   useEffect(() => {
     console.log("API KEY:", process.env.REACT_APP_YOUTUBE_API_KEY);
@@ -26,11 +26,12 @@ const Youtube = () => {
     );
     console.log("캐시된 비디오 존재:", !!cachedVideos);
 
-    // 캐시된 비디오가 있고 하루가 지나지 않았다면 캐시된 데이터 사용
+    // 캐시된 비디오가 있고 1시간이 지나지 않았다면 캐시된 데이터 사용
     if (
       cachedVideos &&
       lastRequestTime &&
-      currentTime - Number(lastRequestTime) < 24 * 60 * 60 * 1000
+      // 시간 수정할거면 앞에 24 * 60 * 60 * 1000 넣기
+      currentTime - Number(lastRequestTime) < 60 * 60 * 1000
     ) {
       console.log("캐시된 데이터 사용");
       setVideos(JSON.parse(cachedVideos));
@@ -62,9 +63,9 @@ const Youtube = () => {
       .get(`https://www.googleapis.com/youtube/v3/search`, {
         params: {
           part: "snippet",
-          q: "법률",
+          q: "법률 상식",
           type: "video",
-          maxResults: 4,
+          maxResults: 12,
           key: YOUTUBE_API_KEY,
           order: randomOrder,
           publishedAfter: publishedAfter,
