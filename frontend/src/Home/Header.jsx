@@ -1,15 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const location = useLocation();
-  const isDarkText = location.pathname === "/";
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="w-full">
-      <div className="absolute top-0 left-0 z-50 w-full">
-        <div className="px-20 py-16 w-full h-16 flex items-center justify-between">
+      <div
+        className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${
+          isScrolled ? "bg-white/80 backdrop-blur-sm shadow-md" : ""
+        }`}
+      >
+        <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
           <div className="relative z-10 mb-4">
             <Link to="/" className={`${textColorClass} text-5xl font-normal`}>
