@@ -9,6 +9,7 @@ import Precedent from "./components/Precedent/Precedent";
 import Template from "./components/Template/Template";
 import Detail from "./components/Precedent/Detail";
 import Cardnews from "./Home/Cardnews";
+import FAQ from "./Home/FAQ";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/cardnews" element={<Cardnews />} />
           <Route path="/precedent/detail/:id" element={<Detail />} />
           <Route path="/cardnews/:id" element={<Cardnews />} />
+          <Route path="/faq/:id" element={<FAQ />} />
         </Routes>
       </div>
     </BrowserRouter>

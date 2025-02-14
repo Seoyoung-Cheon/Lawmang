@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
 import CardList from "./CardList";
+import FAQ from "./FAQ";
 
 const Main = () => {
   const videoRef = useRef(null);
@@ -41,6 +42,7 @@ const Main = () => {
       </div>
       <Youtube />
       <CardList />
+      <FAQ />
     </div>
   );
 };

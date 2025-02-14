@@ -165,7 +165,7 @@ const Youtube = () => {
         </ul>
 
         {/* 페이지네이션 UI */}
-        <div className="flex justify-center gap-3 mt-8 ml-[-100px]">
+        <div className="flex justify-center gap-3 mt-8 mb-[100px] ml-[-100px]">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
             <button
               key={number}
