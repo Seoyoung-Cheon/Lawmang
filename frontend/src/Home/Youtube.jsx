@@ -31,7 +31,7 @@ const Youtube = () => {
       cachedVideos &&
       lastRequestTime &&
       // 시간 수정할거면 앞에 24 * 60 * 60 * 1000 넣기
-      currentTime - Number(lastRequestTime) < 60 * 60 * 1000
+      currentTime - Number(lastRequestTime) < 24 * 60 * 60 * 1000
     ) {
       console.log("캐시된 데이터 사용");
       setVideos(JSON.parse(cachedVideos));
