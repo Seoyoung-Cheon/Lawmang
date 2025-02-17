@@ -155,7 +155,7 @@ const Youtube = () => {
                     alt={video.snippet.title}
                     className="w-full h-[230px] object-cover rounded-xl"
                   />
-                  <div className="mt-4 text-xl font-medium text-gray-900 line-clamp-2 hover:text-blue-600">
+                  <div className="mt-4 text-xl font-medium text-gray-900 line-clamp-2 hover:text-gray-500">
                     {he.decode(video.snippet.title)}
                   </div>
                 </a>
@@ -172,7 +172,7 @@ const Youtube = () => {
               onClick={() => handlePageChange(number)}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 currentPage === number
-                  ? "bg-gray-700 w-6" // 현재 페이지는 더 길게
+                  ? "bg-gray-500 w-6" // 현재 페이지는 더 길게
                   : "bg-gray-300 hover:bg-gray-400"
               }`}
               aria-label={`Page ${number}`}
@@ -180,7 +180,7 @@ const Youtube = () => {
           ))}
         </div>
       </div>
-      <div className="right-layout">{/* 오른쪽 영역에 들어갈 내용 */}</div>
+      <div className="right-layout"></div>
     </div>
   );
 };

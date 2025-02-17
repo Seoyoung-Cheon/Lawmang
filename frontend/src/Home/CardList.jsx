@@ -41,7 +41,7 @@ const CardList = () => {
 
           <ul className="flex flex-wrap mt-5">
             {currentCards.map((card) => (
-              <li key={card.id} className="w-[40%] p-4 rounded-md ml-[40px]">
+              <li key={card.id} className="w-[40%] p-4 rounded-md ml-[80px]">
                 <Link to={`/cardnews/${card.id}`} className="block h-full">
                   <div className="bg-white rounded-lg p-4 h-full hover:bg-gray-50 transition-colors">
                     <h3 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2">
@@ -58,7 +58,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="pagination flex justify-center gap-2 mt-5 ml-[-100px]">
+          <div className="pagination flex justify-center gap-2 mt-5 ml-[-10px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
@@ -66,7 +66,7 @@ const CardList = () => {
                   onClick={() => handlePageChange(number)}
                   className={`px-3 py-1 border rounded ${
                     currentPage === number
-                      ? "bg-blue-500 text-white"
+                      ? "bg-gray-500 text-white"
                       : "bg-white text-gray-700"
                   }`}
                 >
