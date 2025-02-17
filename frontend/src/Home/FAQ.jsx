@@ -1,5 +1,6 @@
 import React from "react";
 import { IoIosArrowDown } from "react-icons/io";
+import { GrCircleQuestion } from "react-icons/gr";
 import { useState } from "react";
 
 const FAQ = () => {
@@ -21,7 +22,8 @@ const FAQ = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="flex items-center gap-4 mt-32 mx-[-85px]">
+        <div className="flex items-center gap-4 mt-[100px] mx-[-100px]">
+          <GrCircleQuestion className="text-6xl text-black" />
           <p className="text-2xl font-medium">자주 묻는 질문</p>
         </div>
 
@@ -33,7 +35,7 @@ const FAQ = () => {
                 className="border-b border-gray-200 last:border-b-0"
               >
                 <button
-                  className="w-full py-4 flex justify-between items-center text-left hover:text-blue-600"
+                  className="w-full py-4 flex justify-between items-center text-left hover:text-gray-500"
                   onClick={() => toggleAnswer(index)}
                 >
                   <span className="text-lg font-medium">{faq.question}</span>

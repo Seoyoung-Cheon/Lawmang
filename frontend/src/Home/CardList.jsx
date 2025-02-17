@@ -58,7 +58,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="pagination flex justify-center gap-2 mt-5 ml-[-60px]">
+          <div className="pagination flex justify-center gap-2 mt-10 ml-[-60px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
