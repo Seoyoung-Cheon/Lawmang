@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BsCardImage } from "react-icons/bs";
+import { ImNewspaper } from "react-icons/im";
 import { Link } from "react-router-dom";
 import Cardnewsdata from "../constants/cardnewsdata";
 
@@ -35,7 +35,7 @@ const CardList = () => {
       <div className="left-layout ">
         <div className="bg-gray-100 mx-[-200px] pb-8">
           <div className="flex items-center gap-4 mx-[100px]  pt-8">
-            <BsCardImage className="text-6xl text-blue-500" />
+            <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
 
