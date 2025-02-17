@@ -32,18 +32,18 @@ const CardList = () => {
 
   return (
     <div className="container">
-      <div className="left-layout">
+      <div className="left-layout ">
         <div className="bg-gray-100 mx-[-200px] pb-8">
           <div className="flex items-center gap-4 mx-[100px]  pt-8">
             <BsCardImage className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
 
-          <ul className="flex flex-wrap mt-5">
+          <ul className="flex flex-wrap mt-5 mr-[50px]">
             {currentCards.map((card) => (
               <li key={card.id} className="w-[40%] p-4 rounded-md ml-[80px]">
                 <Link to={`/cardnews/${card.id}`} className="block h-full">
-                  <div className="bg-white rounded-lg p-4 h-full hover:bg-gray-50 transition-colors">
+                  <div className="bg-white rounded-lg p-4 h-full hover:bg-gray-100 transition-colors border border-gray-300">
                     <h3 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2">
                       {card.title}
                     </h3>
@@ -58,7 +58,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="pagination flex justify-center gap-2 mt-5 ml-[-10px]">
+          <div className="pagination flex justify-center gap-2 mt-5 ml-[-60px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
