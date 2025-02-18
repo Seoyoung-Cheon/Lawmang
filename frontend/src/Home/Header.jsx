@@ -64,11 +64,12 @@ const Header = () => {
           </ul>
 
           {/* 로그인 텍스트 */}
-          <div
+          <Link
+            to="/login"
             className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
           >
             로그인
-          </div>
+          </Link>
         </div>
       </div>
     </div>
