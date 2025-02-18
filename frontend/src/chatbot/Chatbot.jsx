@@ -1,6 +1,14 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 
 const Chatbot = () => {
+  const location = useLocation();
+
+  // 로그인과 회원가입 화면에서는 챗봇 숨기기
+  if (location.pathname === "/login" || location.pathname === "/signup") {
+    return null;
+  }
+
   return (
     <div>
       <div className="fixed right-[50px] 2xl:right-[120px] top-[55%] -translate-y-1/2 z-50">
