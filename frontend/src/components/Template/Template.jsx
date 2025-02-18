@@ -20,7 +20,7 @@ const categoryMapping = {
   'damage': '손해배상',
   'domestic relation': '친족',
   'etc': '기타',
-  'family lawsuit': '가사소송',
+  'family_lawsuit': '가사소송',
   'family relation registration': '가족관계등록',
   'housing lease': '주택임대차',
   'labor': '노동',
@@ -35,7 +35,7 @@ const Template = () => {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);

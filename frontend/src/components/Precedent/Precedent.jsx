@@ -51,7 +51,7 @@ const Precedent = () => {
             </div>
           </div>
           {/* 필터 버튼들 */}
-          <div className="flex gap-4 mb-10">
+          <div className="flex gap-4 mb-10 w-[900px]">
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               전체
             </button>
