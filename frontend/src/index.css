@@ -13,6 +13,11 @@
   font-family: "Oswald", "Noto Sans KR", sans-serif;
 }
 
+body{
+  overflow-y: scroll;
+}
+
+
 ol, ul {
   list-style: none;
 }
