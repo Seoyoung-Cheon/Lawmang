@@ -1,0 +1,63 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { POST_MY_MEDI_API_URL } from '../../utils/apiUrl'
+import { postRequest } from '../../utils/requestMethods'
+
+/**
+ * 비동기 Thunk 생성 함수
+ * - API 요청을 비동기적으로 처리하기 위해 사용됨
+ * - actionType: Redux 액션 타입
+ * - apiURL: 요청을 보낼 API 주소
+ */
+const postMyMediFetchThunk = (actionType, apiURL) => {
+  return createAsyncThunk(actionType, async (postData, { rejectWithValue }) => {
+    try {
+      const options = {
+        method: "POST", // HTTP 요청 방식 설정
+        body: JSON.stringify(postData), // 요청 데이터 JSON 문자열로 변환
+        headers: { "Content-Type": "application/json" } // 요청 헤더 설정
+      };
+      const response = await postRequest(apiURL, options); // API 요청 수행
+      return response; // 성공 시 응답 반환
+    } catch (error) {
+      return rejectWithValue(error.message || "Something went wrong"); // 실패 시 에러 반환
+    }
+  });
+}
+
+// 비동기 액션 생성
+export const fetchPostMyMediData = postMyMediFetchThunk(
+  'fetchPostMyMedi', // 액션 타입
+  POST_MY_MEDI_API_URL // API URL
+)
+
+/**
+ * Redux Slice 생성
+ * - Redux Toolkit의 `createSlice`를 사용해 Redux 상태를 정의
+ */
+const myMediSlice = createSlice({
+  name: 'myMedi', // Redux state 이름
+  initialState: {
+    postMyMediData: null,
+  },
+
+  extraReducers: (builder) => {
+    builder
+      /**
+       * 비동기 요청이 성공했을 때 실행되는 리듀서
+       * - `fetchPostMyMediData.fulfilled` 액션이 발생하면 실행됨
+       */
+      .addCase(fetchPostMyMediData.fulfilled, (state, action) => {
+        state.postMyMediData = action.payload; // 성공한 응답을 상태에 저장
+      })
+
+      /**
+       * 비동기 요청이 실패했을 때 실행되는 리듀서
+       * - `fetchPostMyMediData.rejected` 액션이 발생하면 실행됨
+       */
+      .addCase(fetchPostMyMediData.rejected, (state, action) => {
+        state.postMyMediData = { error: action.payload }; // 오류 메시지 저장
+      });
+  }
+});
+
+export default myMediSlice.reducer; // 리듀서 내보내기 (Redux 스토어에서 사용)
