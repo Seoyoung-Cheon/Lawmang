@@ -31,9 +31,9 @@ const CardList = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container relative">
       <div className="left-layout ">
-        <div className="bg-gray-100 mx-[-200px] pb-8">
+        <div className="mx-[-200px] pb-8">
           <div className="flex items-center gap-4 mx-[100px]  pt-8">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
@@ -78,6 +78,7 @@ const CardList = () => {
         </div>
       </div>
       <div className="right-layout"></div>
+      <span className="absolute h-full left-[50%] right-[50%] -translate-x-1/2 w-screen -z-10 bg-gray-100"></span>
     </div>
   );
 };
