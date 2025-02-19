@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from "react";
+import React, { useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import Cardnewsdata from "../constants/cardnewsdata";
 
