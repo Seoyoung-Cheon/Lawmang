@@ -13,7 +13,7 @@ const CardList = () => {
     title: card.maintitle,
     date: card.date,
     preview:
-      card.sections[0].sections[0].paragraphs[0].content.substring(0, 50) +
+      card.sections[0].sections[0].paragraphs[0].content.substring(0, 80) +
       "...",
   }));
 
@@ -34,14 +34,17 @@ const CardList = () => {
     <div className="container relative">
       <div className="left-layout ">
         <div className="mx-[-200px] pb-8">
-          <div className="flex items-center gap-4 mx-[100px]  pt-8">
+          <div className="flex items-center gap-4 mx-[110px] pt-12">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
 
           <ul className="flex flex-wrap mt-5 mr-[50px]">
-            {currentCards.map((card) => (
-              <li key={card.id} className="w-[40%] p-4 rounded-md ml-[80px]">
+            {currentCards.map((card, index) => (
+              <li 
+                key={card.id} 
+                className={`w-[40%] p-4 rounded-md ${index % 2 === 0 ? 'ml-[90px]' : ''}`}
+              >
                 <Link to={`/cardnews/${card.id}`} className="block h-full">
                   {/* 카드뉴스 호버 시 효과를 위한 그룹화 */}
                   <div className="relative group">
@@ -65,7 +68,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="pagination flex justify-center gap-2 mt-10 ml-[-60px]">
+          <div className="pagination flex justify-center gap-2 mt-10 ml-[-115px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
