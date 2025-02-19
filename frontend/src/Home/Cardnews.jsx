@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import Cardnewsdata from "../constants/cardnewsdata";
 
 const Cardnews = () => {
   const { id } = useParams();
+
+  // 페이지를 맨위에서부터 시작하게 설정
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const card = Cardnewsdata.find((card) => card.id === parseInt(id));
 
@@ -12,12 +17,14 @@ const Cardnews = () => {
   }
 
   return (
-    <div className="container h-screen">
+    <div className="container h-screen ">
       <div className="left-layout h-full">
-        <div className="max-w-4xl p-6 h-full overflow-y-auto mt-20">
+        <div className="max-w-4xl p-6 h-full overflow-y-auto mt-[100px]">
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-            <div className="mb-4">
-              <h1 className="text-2xl font-bold mb-2">{card.maintitle}</h1>
+            <div className="mb-4 flex items-center">
+              <div className="flex-1 text-center">
+                <h1 className="text-2xl font-bold mb-20">{card.maintitle}</h1>
+              </div>
               <p className="text-gray-600">{card.date}</p>
             </div>
 
