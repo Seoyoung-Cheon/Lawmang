@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { MdOutlineKeyboardDoubleArrowDown } from "react-icons/md";
 import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
 import CardList from "./CardList";
@@ -38,6 +39,11 @@ const Main = () => {
             <br />
           </h1>
           <p className="text-3xl text-gray-300">당신의 법률 파트너, 로망</p>
+        </div>
+
+        {/* 스크롤 유도 애니메이션 */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
+          <MdOutlineKeyboardDoubleArrowDown size={50} />
         </div>
       </div>
       <Youtube />
