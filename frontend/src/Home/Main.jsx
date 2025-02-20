@@ -66,9 +66,12 @@ const Main = () => {
           <HiOutlineChevronDoubleDown size={40} className="scale-x-130" />
         </div>
       </div>
-      <Youtube />
-      <CardList />
-      <FAQ />
+      {/* 왼쪽 여백만 추가 */}
+      <div className="ml-[100px]">
+        <Youtube />
+        <CardList />
+        <FAQ />
+      </div>
 
       {/* 맨위로 스크롤 버튼 */}
       {showScrollTop && (
