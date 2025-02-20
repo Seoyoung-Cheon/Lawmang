@@ -44,7 +44,7 @@ const DocumentSection = ({ documents, categoryMapping, setSelectedFile, setPrevi
   };
 
   return (
-    <div className="w-[900px] min-h-[600px]">
+    <div className="w-full max-w-[900px]">
       {Object.entries(documents).map(([category, files]) => (
         <div key={category} className="mb-6">
           <h2 className="text-lg font-semibold mb-4">

@@ -73,10 +73,10 @@ const Template = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-[135px] pb-10">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
           {/* 검색바 */}
           <div className="relative mb-8">
-            <div className="relative w-[900px]">
+            <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
                 placeholder="문서 검색..."
@@ -109,7 +109,7 @@ const Template = () => {
           </div>
 
           {/* 카테고리 버튼 그룹 */}
-          <div className="flex gap-2 mb-10 flex-wrap w-[900px] justify-between">
+          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px] justify-between">
             {Object.entries(categoryMapping).map(([key, value]) => (
               <button
                 key={key}
@@ -144,6 +144,9 @@ const Template = () => {
           onClose={handleClosePreview}
         />
       )}
+      <div className="right-layout">
+        {/* 빈 공간으로 남겨둠 */}
+      </div>
     </div>
   );
 };
