@@ -23,7 +23,9 @@ const Cardnews = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
             <div className="mb-4 flex items-center">
               <div className="flex-1 text-center">
-                <h1 className="text-2xl font-bold mb-20">{card.maintitle}</h1>
+                <h1 className="text-2xl font-bold mb-20 ml-20">
+                  {card.maintitle}
+                </h1>
               </div>
               <p className="text-gray-600">{card.date}</p>
             </div>
