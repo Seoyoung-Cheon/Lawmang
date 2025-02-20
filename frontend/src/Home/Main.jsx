@@ -4,6 +4,7 @@ import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
 import CardList from "./CardList";
 import FAQ from "./FAQ";
+import Footer from "./Footer";
 
 const Main = () => {
   const videoRef = useRef(null);
