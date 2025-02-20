@@ -19,7 +19,7 @@ const Cardnews = () => {
   return (
     <div className="container h-screen ">
       <div className="left-layout h-full">
-        <div className="max-w-4xl p-6 h-full overflow-y-auto mt-[100px]">
+        <div className="max-w-4xl p-6 h-[85vh] overflow-y-auto mt-[100px]">
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
             <div className="mb-4 flex items-center">
               <div className="flex-1 text-center">

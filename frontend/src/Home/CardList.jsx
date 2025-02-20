@@ -41,9 +41,11 @@ const CardList = () => {
 
           <ul className="flex flex-wrap mt-5 mr-[50px]">
             {currentCards.map((card, index) => (
-              <li 
-                key={card.id} 
-                className={`w-[40%] p-4 rounded-md ${index % 2 === 0 ? 'ml-[90px]' : ''}`}
+              <li
+                key={card.id}
+                className={`w-[40%] p-4 rounded-md ${
+                  index % 2 === 0 ? "ml-[90px]" : ""
+                }`}
               >
                 <Link to={`/cardnews/${card.id}`} className="block h-full">
                   {/* 카드뉴스 호버 시 효과를 위한 그룹화 */}
@@ -52,12 +54,12 @@ const CardList = () => {
                       className="absolute inset-[-2px] rounded-lg bg-gray-500 transition-all duration-200 ease-out 
                       [clip-path:polygon(0_0,0_0,0_0,0_0)] group-hover:[clip-path:polygon(0_0,100%_0,100%_100%,0_100%)]"
                     ></div>
-                    <div className="relative bg-white rounded-lg p-4 h-full border border-gray-300">
-                      <h3 className="text-lg font-bold mb-2 text-gray-900 line-clamp-2">
+                    <div className="relative bg-white rounded-lg p-6 h-full border border-gray-300">
+                      <h3 className="text-lg font-bold mb-3 text-gray-900 line-clamp-2">
                         {card.title}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-2">{card.date}</p>
-                      <p className="text-sm text-gray-700 line-clamp-3">
+                      <p className="text-sm text-gray-600 mb-3">{card.date}</p>
+                      <p className="text-sm text-gray-700 line-clamp-4">
                         {card.preview}
                       </p>
                     </div>
