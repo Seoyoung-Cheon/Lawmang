@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { MdOutlineKeyboardDoubleArrowDown } from "react-icons/md";
+import { HiOutlineChevronDoubleDown } from "react-icons/hi2";
 import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
 import CardList from "./CardList";
@@ -43,7 +43,7 @@ const Main = () => {
 
         {/* 스크롤 유도 애니메이션 */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
-          <MdOutlineKeyboardDoubleArrowDown size={50} />
+          <HiOutlineChevronDoubleDown size={40} className="scale-x-130" />
         </div>
       </div>
       <Youtube />
