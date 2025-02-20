@@ -88,7 +88,7 @@ const CardList = () => {
         </div>
       </div>
       <div className="right-layout"></div>
-      <span className="absolute h-full left-[50%] right-[50%] -translate-x-1/2 w-screen -z-10 bg-gray-100"></span>
+      <span className="absolute h-[650px] left-[50%] right-[50%] -translate-x-1/2 w-screen -z-10 bg-gray-100"></span>
     </div>
   );
 };
