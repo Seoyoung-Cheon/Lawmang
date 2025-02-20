@@ -32,8 +32,8 @@ const CardList = () => {
 
   return (
     <div className="container relative">
-      <div className="left-layout ">
-        <div className="mx-[-200px] pb-8">
+      <div className="left-layout">
+        <div className="mx-[-200px]">
           <div className="flex items-center gap-4 mx-[110px] pt-12">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
@@ -68,7 +68,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="pagination flex justify-center gap-2 mt-10 ml-[-115px]">
+          <div className="pagination flex justify-center gap-2 mt-6 ml-[-115px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button

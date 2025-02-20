@@ -20,9 +20,9 @@ const FAQ = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container !mt-[160px]">
       <div className="left-layout">
-        <div className="flex items-center gap-4 mt-[100px] mx-[-100px]">
+        <div className="flex items-center gap-4 mx-[-100px]">
           <GrCircleQuestion className="text-6xl text-black" />
           <p className="text-2xl font-medium">자주 묻는 질문</p>
         </div>
