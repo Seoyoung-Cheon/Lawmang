@@ -47,7 +47,7 @@ const Template = () => {
   }, []);
 
   useEffect(() => {
-    if (category && categoryMapping[category]) {
+    if (category) {
       setSelectedCategory(category);
     }
   }, [category]);
@@ -63,9 +63,12 @@ const Template = () => {
   };
 
   // 선택된 카테고리에 따라 문서 필터링
-  const filteredDocuments = selectedCategory === 'all'
-    ? documents
-    : { [selectedCategory]: documents[selectedCategory] };
+  const getDisplayDocuments = () => {
+    if (selectedCategory === 'all') {
+      return documentStructure;
+    }
+    return { [selectedCategory]: documentStructure[selectedCategory] };
+  };
 
   if (isLoading) return <div className="p-6 flex items-center justify-center text-gray-600">로딩 중...</div>;
   if (error) return <div className="p-6 flex items-center justify-center text-red-500 font-medium">{error}</div>;
@@ -128,10 +131,11 @@ const Template = () => {
 
           {/* 문서 섹션 */}
           <DocumentSection 
-            documents={filteredDocuments}
+            documents={getDisplayDocuments()}
             categoryMapping={categoryMapping}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
+            selectedCategory={selectedCategory}
           />
         </div>
       </div>
