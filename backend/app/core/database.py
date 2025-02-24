@@ -1,7 +1,10 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from .config import DATABASE_URL  
+from .config import DATABASE_URL
+
+# Base 클래스 정의
+Base = declarative_base()
 
 # ✅ SQLAlchemy 엔진 생성 (커넥션 풀 설정 추가)
 engine = create_engine(
@@ -41,3 +44,13 @@ def execute_sql(query: str, params: dict | None = None):
     with engine.connect() as connection:
         result = connection.execute(text(query), params)
         return result.mappings().all()  # ✅ 딕셔너리 형태로 반환
+    
+# ✅ 테이블 자동 생성 함수 (중복 생성 방지)
+def init_db():
+    inspector = inspect(engine)
+    
+    # 이미 존재하는 테이블 목록 가져오기
+    existing_tables = inspector.get_table_names()
+    
+    if "users" not in existing_tables:  # ✅ 테이블이 존재하지 않으면 생성
+        Base.metadata.create_all(bind=engine)
