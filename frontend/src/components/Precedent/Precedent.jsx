@@ -68,20 +68,22 @@ const Precedent = () => {
           </div>
           {/* 필터 버튼들 */}
           <div className="flex gap-4 mb-10 w-[900px]">
-            {["전체", "민사", "형사", "행정", "특허"].map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategorySelect(category)}
-                className={`px-4 py-2 border rounded-lg transition-colors duration-200
+            {["전체", "민사", "형사", "일반행정", "세무", "특허"].map(
+              (category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategorySelect(category)}
+                  className={`px-4 py-2 border rounded-lg transition-colors duration-200
                   ${
                     selectedCategory === category
                       ? "bg-Main text-white border-Main"
                       : "border-gray-300 hover:bg-gray-50"
                   }`}
-              >
-                {category}
-              </button>
-            ))}
+                >
+                  {category}
+                </button>
+              )
+            )}
           </div>
 
           {/* 카테고리 정보 */}
