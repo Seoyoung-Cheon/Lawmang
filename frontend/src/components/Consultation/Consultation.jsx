@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { consultationData } from "./consultationData";
 
 const Consultation = () => {
   const { category: urlCategory } = useParams();
@@ -7,25 +8,8 @@ const Consultation = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all"); // 기본값은 '전체'
 
-  // 임시 데이터 (나중에 실제 데이터로 교체)
-  const [consultations] = useState([
-    {
-      id: 1,
-      title: "임대차 계약 관련 문의",
-      category: "housing lease",
-      question:
-        "전세 계약 만료 후 보증금 반환 문제에 대해 문의드립니다. 계약 만료일이 다가오는데...",
-      date: "2024-02-20",
-    },
-    {
-      id: 2,
-      title: "교통사고 합의 관련",
-      category: "damage",
-      question:
-        "교통사고 합의 과정에서 발생한 문제로 문의드립니다. 지난주 발생한 사고에서...",
-      date: "2024-02-19",
-    },
-  ]);
+  // 임시 데이터를 consultationData의 값들로 변경
+  const [consultations] = useState(Object.values(consultationData));
 
   const categoryMapping = {
     all: "전체",
@@ -153,7 +137,7 @@ const Consultation = () => {
                 <h3 className="text-lg font-medium mb-2">
                   {consultation.title}
                 </h3>
-                <p className="text-gray-600 text-sm mb-3">
+                <p className="text-gray-600 text-sm mb-3 truncate">
                   {consultation.question}
                 </p>
                 <div className="flex justify-between items-center text-sm text-gray-500">
