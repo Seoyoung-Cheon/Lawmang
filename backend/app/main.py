@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, JSONResponse
 from .routes import auth
 from .routes import precedent
 from .routes import checkdb
@@ -8,7 +8,7 @@ from app.core.database import init_db
 import os
 
 # FastAPI 애플리케이션 생성
-app = FastAPI()
+app = FastAPI(default_response_class=JSONResponse)
 
 # CORS 설정 (React와 연결할 경우 필수)
 app.add_middleware(
@@ -43,3 +43,12 @@ def read_root():
 @app.on_event("startup")
 def on_startup():
     init_db()
+    
+# ✅ 공통 예외 처리 (404 & 500 에러 핸들러)
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return JSONResponse(status_code=404, content={"error": "해당 경로를 찾을 수 없습니다."})
+
+@app.exception_handler(500)
+async def internal_server_error_handler(request, exc):
+    return JSONResponse(status_code=500, content={"error": "서버 내부 오류가 발생했습니다."})

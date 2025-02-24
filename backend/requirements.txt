@@ -10,3 +10,4 @@ python-multipart
 PyMuPDF
 python-dotenv
 passlib[bcrypt]
+orjson
