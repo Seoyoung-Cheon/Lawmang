@@ -8,6 +8,33 @@ const ConsDetail = () => {
   const { id } = useParams();
   const [consultation, setConsultation] = useState(null);
 
+  // categoryMapping 추가
+  const categoryMapping = {
+    all: "전체",
+    administration: "행정",
+    bankruptcy: "개인회생, 파산 및 면책",
+    "civil execution": "민사집행",
+    "civil general": "민사일반",
+    "civil suit": "민사소송",
+    commercial: "상사",
+    "commercial building lease": "상가임대차",
+    constitution: "헌법",
+    contract: "계약",
+    "criminal law": "형법",
+    "criminal suit": "형사소송",
+    damage: "손해배상",
+    "domestic relation": "친족",
+    etc: "기타",
+    family_lawsuit: "가사소송",
+    "family relation registration": "가족관계등록",
+    "housing lease": "주택임대차",
+    labor: "노동",
+    obligation: "채권",
+    "preservative measure": "보전처분",
+    "real right": "물권",
+    succession: "상속",
+  };
+
   useEffect(() => {
     const fetchConsultation = () => {
       const data = consultationData[id];
@@ -33,7 +60,7 @@ const ConsDetail = () => {
             <div className="flex border-b border-gray-100 pb-4 mb-4">
               <span className="text-sm text-gray-500 w-20">구분</span>
               <span className="text-sm text-black">
-                {consultation.category}
+                {categoryMapping[consultation.category]}
               </span>
             </div>
 
