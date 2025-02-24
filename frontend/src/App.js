@@ -15,6 +15,7 @@ import Signup from "./components/Auth/Signup";
 import Footer from "./Home/Footer";
 import { AuthProvider } from "./components/Auth/AuthContext";
 import Mypage from "./components/Mypage/Mypage";
+import ConsDetail from "./components/Consultation/ConsDetail";
 
 // 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/mypage" element={<Mypage />} />
+          <Route path="/consultation/detail/:id" element={<ConsDetail />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

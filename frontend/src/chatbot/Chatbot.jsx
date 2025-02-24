@@ -46,7 +46,7 @@ const Chatbot = () => {
                 onClick={() => setShowLoginPopup(false)}
               />
               <div className="relative bg-white rounded-lg p-6 mb-10 shadow-xl max-w-sm w-full mx-4">
-                <p className="text-center text-lg mb-6">
+                <p className="text-center text-lg mb-6 font-light">
                   법률상담은 로그인이 필요한 서비스입니다.
                 </p>
                 <div className="flex gap-2">
@@ -97,7 +97,7 @@ const Chatbot = () => {
                 </button>
                 {selectedCategory === "general" && (
                   <p className="text-xs text-gray-500 ml-4 max-w-[200px] leading-4 whitespace-nowrap">
-                    ※ 구체적이고 전문적인 법률 상담이 필요하신 경우
+                    ※ 구체적이고 전문적인 '법률 상담'이 필요하신 경우
                     <br />
                     로그인 후 이용 가능합니다.
                   </p>
