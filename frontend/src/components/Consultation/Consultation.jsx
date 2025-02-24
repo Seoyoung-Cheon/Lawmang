@@ -13,14 +13,16 @@ const Consultation = () => {
       id: 1,
       title: "임대차 계약 관련 문의",
       category: "housing lease",
-      content: "전세 계약 만료 후 보증금 반환 문제...",
+      question:
+        "전세 계약 만료 후 보증금 반환 문제에 대해 문의드립니다. 계약 만료일이 다가오는데...",
       date: "2024-02-20",
     },
     {
       id: 2,
       title: "교통사고 합의 관련",
       category: "damage",
-      content: "교통사고 합의 과정에서 발생한...",
+      question:
+        "교통사고 합의 과정에서 발생한 문제로 문의드립니다. 지난주 발생한 사고에서...",
       date: "2024-02-19",
     },
   ]);
@@ -152,7 +154,7 @@ const Consultation = () => {
                   {consultation.title}
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">
-                  {consultation.content}
+                  {consultation.question}
                 </p>
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <span>{categoryMapping[consultation.category]}</span>
