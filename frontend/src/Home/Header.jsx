@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../components/Auth/AuthContext";
+import { CiLogin, CiLogout } from "react-icons/ci";
+import { GrHome } from "react-icons/gr";
 
 const Header = () => {
   const location = useLocation();
@@ -77,22 +79,25 @@ const Header = () => {
               <>
                 <Link
                   to="/mypage"
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
                 >
+                  <GrHome className="w-5 h-5" />
                   마이페이지
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
                 >
+                  <CiLogout className="w-5 h-5" />
                   로그아웃
                 </button>
               </>
             ) : (
               <Link
                 to="/login"
-                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
               >
+                <CiLogin className="w-5 h-5" />
                 로그인
               </Link>
             )}
