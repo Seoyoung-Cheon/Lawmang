@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../components/Auth/AuthContext";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isLoggedIn, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
@@ -19,6 +22,11 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="w-full">
@@ -63,13 +71,32 @@ const Header = () => {
             </li>
           </ul>
 
-          {/* 로그인 텍스트 */}
-          <Link
-            to="/login"
-            className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
-          >
-            로그인
-          </Link>
+          {/* 로그인/로그아웃 버튼 */}
+          <div className="flex items-center gap-6">
+            {isLoggedIn ? (
+              <>
+                <Link
+                  to="/mypage"
+                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+                >
+                  마이페이지
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer`}
+              >
+                로그인
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -13,6 +13,8 @@ import FAQ from "./Home/FAQ";
 import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import Footer from "./Home/Footer";
+import { AuthProvider } from "./components/Auth/AuthContext";
+import Mypage from "./components/Mypage/Mypage";
 
 // 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
@@ -37,6 +39,7 @@ function AppContent() {
           <Route path="/faq/:id" element={<FAQ />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/mypage" element={<Mypage />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}
@@ -47,7 +50,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
