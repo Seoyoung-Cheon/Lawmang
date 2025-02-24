@@ -1,37 +1,60 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
-from app.services.user_service import create_user, verify_password
+from app.services.user_service import (
+    create_user, verify_password, create_access_token, send_email_code
+)
+from app.core.dependencies import get_current_user
 
 router = APIRouter()
 
-# ✅ 회원 가입 API
-@router.post("/auth/register", response_model=UserCreate)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    # ✅ 이메일 중복 확인
+# ✅ 이메일 인증 코드 저장소 (실제 환경에서는 Redis 또는 DB 활용)
+verification_codes = {}
+
+# ✅ 이메일 인증 코드 발송 API
+@router.post("/auth/send-code")
+def send_verification_code(email: str):
+    if email in verification_codes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 인증 코드가 발송되었습니다.")
+
+    code = send_email_code(email)  # ✅ 이메일로 인증 코드 전송
+    verification_codes[email] = code  # ✅ 인증 코드 저장
+
+    return {"message": "이메일로 인증 코드가 전송되었습니다!"}
+
+# ✅ 회원가입 API (이메일 인증 코드 포함)
+@router.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def register_user(user: UserCreate, code: str, db: Session = Depends(get_db)):
+    if user.email not in verification_codes or verification_codes[user.email] != code:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="잘못된 인증 코드입니다.")
+
+    # ✅ 인증 코드 사용 후 삭제
+    del verification_codes[user.email]
+
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="이미 존재하는 이메일입니다.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 존재하는 이메일입니다.")
 
-    # ✅ 닉네임 중복 확인
-    existing_nickname = db.query(User).filter(User.nickname == user.nickname).first()
-    if existing_nickname:
-        raise HTTPException(status_code=400, detail="이미 사용 중인 닉네임입니다.")
+    new_user = create_user(db, user)
+    return new_user
 
-    return create_user(db, user)
-
-# ✅ 로그인 API
-@router.post("/auth/login", response_model=UserResponse)
+# ✅ 로그인 API (JWT 토큰 반환)
+@router.post("/auth/login")
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
-    # ✅ 이메일 존재 확인
     existing_user = db.query(User).filter(User.email == user.email).first()
     if not existing_user:
-        raise HTTPException(status_code=400, detail="존재하지 않는 이메일입니다.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="존재하지 않는 이메일입니다.")
 
-    # 비밀번호 검증
     if not verify_password(user.password, existing_user.password_hash):
-        raise HTTPException(status_code=400, detail="비밀번호가 일치하지 않습니다.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="비밀번호가 일치하지 않습니다.")
 
-    return existing_user
+    # ✅ JWT 토큰 생성
+    access_token = create_access_token(data={"sub": existing_user.email})
+
+    return {"access_token": access_token, "token_type": "Bearer"}
+
+@router.get("/auth/me")
+def read_users_me(current_user: dict = Depends(get_current_user)):
+    return {"email": current_user["sub"]}

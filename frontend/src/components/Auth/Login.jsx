@@ -1,26 +1,38 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLoginUserMutation } from "../../redux/slices/authApi"; // ✅ FastAPI 로그인 API 연동
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../redux/slices/authSlice"; // ✅ Redux에 토큰 저장
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { MdOutlinePersonOutline } from "react-icons/md";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const [credentials, setCredentialsState] = useState({ email: "", password: "" });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    login();
-    navigate("/");
+  // ✅ FastAPI 로그인 API 호출
+  const [loginUser, { isLoading, error }] = useLoginUserMutation();
+
+  // ✅ 입력값 변경 핸들러
+  const handleChange = (e) => {
+    setCredentialsState({ ...credentials, [e.target.name]: e.target.value });
   };
 
-  // 임시 로그인 처리 함수
-  const handleDemoLogin = () => {
-    login();
-    navigate("/");
+  // ✅ 로그인 요청 핸들러
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await loginUser(credentials).unwrap(); // ✅ FastAPI 로그인 요청
+      dispatch(setCredentials({ token: response.access_token })); // ✅ Redux에 토큰 저장
+      localStorage.setItem("token", response.access_token); // ✅ 로컬 스토리지에 저장
+      alert("로그인 성공!");
+      navigate("/"); // ✅ 로그인 성공 시 홈으로 이동
+    } catch (err) {
+      alert("로그인 실패: " + (err.data?.detail || "서버 오류"));
+    }
   };
 
   return (
@@ -45,10 +57,12 @@ const Login = () => {
             </span>
             <input
               type="email"
+              name="email" // ✅ name 속성 추가
               placeholder="Email ID"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={credentials.email}
+              onChange={handleChange}
               className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
+              required
             />
           </div>
 
@@ -59,20 +73,19 @@ const Login = () => {
             </span>
             <input
               type="password"
+              name="password" // ✅ name 속성 추가
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={credentials.password}
+              onChange={handleChange}
               className="w-full pl-12 pr-4 py-3 mb-10 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
+              required
             />
           </div>
 
           {/* 회원가입 링크 */}
           <div className="text-center text-gray-600">
             회원이 아니신가요?{" "}
-            <Link
-              to="/signup"
-              className="text-gray-800 hover:underline font-medium"
-            >
+            <Link to="/signup" className="text-gray-800 hover:underline font-medium">
               회원가입하기
             </Link>
           </div>
@@ -80,31 +93,14 @@ const Login = () => {
           {/* 로그인 버튼 */}
           <button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-Main text-white py-3 rounded-md hover:bg-Main_hover transition-colors"
           >
-            로그인
+            {isLoading ? "로그인 중..." : "로그인"}
           </button>
 
-          {/* 구분선 */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white/50 text-gray-500">
-                임시 입니다.
-              </span>
-            </div>
-          </div>
-
-          {/* 데모 로그인 버튼 */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="w-full bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 transition-colors text-sm"
-          >
-            데모 계정으로 로그인
-          </button>
+          {/* 로그인 에러 메시지 표시 */}
+          {error && <p className="text-red-500 text-center">로그인 실패: {error.data?.detail || "서버 오류"}</p>}
         </form>
       </div>
     </div>

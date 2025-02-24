@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { Provider } from "react-redux"; // ✅ Redux Provider 추가
+import { store } from "./redux/store"; // ✅ Redux Store 불러오기
 import Header from "./Home/Header";
 import Main from "./Home/Main";
 import Youtube from "./Home/Youtube";
@@ -17,7 +19,7 @@ import { AuthProvider } from "./components/Auth/AuthContext";
 import Mypage from "./components/Mypage/Mypage";
 import ConsDetail from "./components/Consultation/ConsDetail";
 
-// 로그인, 회원가입 화면에서는 푸터 숨김
+// ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
@@ -49,13 +51,16 @@ function AppContent() {
   );
 }
 
+// ✅ Redux Provider 추가
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <Provider store={store}> {/* Redux Store 적용 */}
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </Provider>
   );
 }
 

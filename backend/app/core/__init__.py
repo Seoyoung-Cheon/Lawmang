@@ -4,7 +4,10 @@ from .config import (
     DB_NAME,
     DB_USER,
     DB_PASSWORD,
-    DB_PORT
+    DB_PORT,
+	SECRET_KEY,
+    ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
 from .database import (
@@ -23,6 +26,9 @@ __all__ = [
     'DB_USER',
     'DB_PASSWORD',
     'DB_PORT',
+	'SECRET_KEY',
+    'ALGORITHM',
+    'ACCESS_TOKEN_EXPIRE_MINUTES'
     
     # 데이터베이스 관련
     'Base',

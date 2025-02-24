@@ -3,9 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import DATABASE_URL
 
-# Base 클래스 정의
-Base = declarative_base()
-
 # ✅ SQLAlchemy 엔진 생성 (커넥션 풀 설정 추가)
 engine = create_engine(
     DATABASE_URL,
@@ -32,19 +29,24 @@ def get_db():
     finally:
         db.close()
 
-# ✅ SQL 직접 실행을 위한 함수 (SQL Injection 방지)
+# ✅ SQL 직접 실행을 위한 함수 (SQL Injection 방지 + 오류 처리)
 def execute_sql(query: str, params: dict | None = None):
     """
     SQL 쿼리를 안전하게 실행하고 결과를 반환하는 함수.
     ORM이 필요하지 않은 판례 및 법률 데이터 조회에 사용.
+    오류 발생 시 빈 리스트를 반환합니다.
     """
     if params is None:
         params = {}
-
-    with engine.connect() as connection:
-        result = connection.execute(text(query), params)
-        return result.mappings().all()  # ✅ 딕셔너리 형태로 반환
     
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text(query), params)
+            return result.mappings().all()  # ✅ 딕셔너리 형태로 반환
+    except Exception as e:
+        print(f"SQL 실행 중 오류 발생: {e}")  # 로깅 추가 가능
+        return []
+
 # ✅ 테이블 자동 생성 함수 (중복 생성 방지)
 def init_db():
     inspector = inspect(engine)
@@ -52,5 +54,5 @@ def init_db():
     # 이미 존재하는 테이블 목록 가져오기
     existing_tables = inspector.get_table_names()
     
-    if "users" not in existing_tables:  # ✅ 테이블이 존재하지 않으면 생성
+    if "users_account" not in existing_tables:  # ✅ 테이블이 존재하지 않으면 생성
         Base.metadata.create_all(bind=engine)
