@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./Home/Header";
 import Main from "./Home/Main";
 import Youtube from "./Home/Youtube";
@@ -12,13 +12,18 @@ import Cardnews from "./Home/Cardnews";
 import FAQ from "./Home/FAQ";
 import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
+import Footer from "./Home/Footer";
 
-function App() {
+// 로그인, 회원가입 화면에서는 푸터 숨김
+function AppContent() {
+  const location = useLocation();
+  const hideFooter = ["/login", "/signup"].includes(location.pathname);
+
   return (
-    <BrowserRouter>
-      <div className="App">
-        <Header />
-        <Chatbot />
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <Chatbot />
+      <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Main />} />
           <Route path="/youtube" element={<Youtube />} />
@@ -34,6 +39,15 @@ function App() {
           <Route path="/signup" element={<Signup />} />
         </Routes>
       </div>
+      {!hideFooter && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

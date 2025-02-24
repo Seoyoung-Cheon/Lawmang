@@ -153,7 +153,7 @@ const Youtube = () => {
                   <img
                     src={video.snippet.thumbnails.medium.url}
                     alt={video.snippet.title}
-                    className="w-full h-[230px] object-cover rounded-xl"
+                    className="w-full h-[230px] object-cover rounded-xl transition-transform duration-300 hover:scale-105"
                   />
                   <div className="mt-4 text-xl font-medium text-gray-900 line-clamp-2 hover:text-gray-500">
                     {he.decode(video.snippet.title)}

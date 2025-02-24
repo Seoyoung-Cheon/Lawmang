@@ -47,7 +47,7 @@ const Template = () => {
   }, []);
 
   useEffect(() => {
-    if (category && categoryMapping[category]) {
+    if (category) {
       setSelectedCategory(category);
     }
   }, [category]);
@@ -63,9 +63,12 @@ const Template = () => {
   };
 
   // 선택된 카테고리에 따라 문서 필터링
-  const filteredDocuments = selectedCategory === 'all'
-    ? documents
-    : { [selectedCategory]: documents[selectedCategory] };
+  const getDisplayDocuments = () => {
+    if (selectedCategory === 'all') {
+      return documentStructure;
+    }
+    return { [selectedCategory]: documentStructure[selectedCategory] };
+  };
 
   if (isLoading) return <div className="p-6 flex items-center justify-center text-gray-600">로딩 중...</div>;
   if (error) return <div className="p-6 flex items-center justify-center text-red-500 font-medium">{error}</div>;
@@ -73,10 +76,10 @@ const Template = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-[135px] pb-10">
+        <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
           {/* 검색바 */}
           <div className="relative mb-8">
-            <div className="relative w-[900px]">
+            <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
                 placeholder="문서 검색..."
@@ -109,7 +112,7 @@ const Template = () => {
           </div>
 
           {/* 카테고리 버튼 그룹 */}
-          <div className="flex gap-2 mb-10 flex-wrap w-[900px] justify-between">
+          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px] justify-between">
             {Object.entries(categoryMapping).map(([key, value]) => (
               <button
                 key={key}
@@ -128,10 +131,11 @@ const Template = () => {
 
           {/* 문서 섹션 */}
           <DocumentSection 
-            documents={filteredDocuments}
+            documents={getDisplayDocuments()}
             categoryMapping={categoryMapping}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
+            selectedCategory={selectedCategory}
           />
         </div>
       </div>
@@ -144,6 +148,9 @@ const Template = () => {
           onClose={handleClosePreview}
         />
       )}
+      <div className="right-layout">
+        {/* 빈 공간으로 남겨둠 */}
+      </div>
     </div>
   );
 };
