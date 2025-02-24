@@ -1,13 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { precedentData } from "./precedentData";
 
 const Precedent = () => {
   const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState("전체"); // 카테고리 상태 추가
 
   // 상세 페이지로 이동하는 함수
   const handleDetailClick = (id) => {
     navigate(`/precedent/detail/${id}`);
   };
+
+  // 카테고리 선택 핸들러
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+  };
+
+  // 선택된 카테고리에 따라 데이터 필터링
+  const filteredPrecedents =
+    selectedCategory === "전체"
+      ? Object.values(precedentData) // 객체를 배열로 변환
+      : Object.values(precedentData).filter(
+          (item) => item.c_type === selectedCategory
+        );
 
   return (
     <div className="container">
@@ -52,34 +68,55 @@ const Precedent = () => {
           </div>
           {/* 필터 버튼들 */}
           <div className="flex gap-4 mb-10 w-[900px]">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              전체
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              민사
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              형사
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              행정
-            </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              특허
-            </button>
+            {["전체", "민사", "형사", "행정", "특허"].map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategorySelect(category)}
+                className={`px-4 py-2 border rounded-lg transition-colors duration-200
+                  ${
+                    selectedCategory === category
+                      ? "bg-Main text-white border-Main"
+                      : "border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
-          {/* 판례 검색 결과 영역 */}
-          <div
-            className="border border-gray-300 rounded-lg p-4 mb-6 w-[900px] hover:bg-gray-50 cursor-pointer"
-            onClick={() => handleDetailClick("1")}
-          >
-            <div className="flex justify-end mb-2">
-              <div className="px-3 py-1 text-sm border border-gray-300 rounded cursor-default">
-                민사
+
+          {/* 카테고리 정보 */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg font-semibold text-black">
+              {selectedCategory}
+            </span>
+            <span className="text-sm text-gray-500">
+              (총 {filteredPrecedents.length}개)
+            </span>
+          </div>
+
+          {/* 판례 리스트 */}
+          {filteredPrecedents.map((precedent) => (
+            <div
+              key={precedent.id}
+              className="border border-gray-300 rounded-lg p-4 mb-6 w-[900px] hover:bg-gray-50 cursor-pointer"
+              onClick={() => handleDetailClick(precedent.id)}
+            >
+              <div className="flex justify-between mb-2">
+                <h3 className="text-lg font-medium overflow-hidden whitespace-nowrap text-ellipsis max-w-[700px]">
+                  {precedent.c_name}
+                </h3>
+                <div className="px-3 py-1 text-sm border border-gray-300 rounded cursor-default">
+                  {precedent.c_type}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 mb-2">
+                {precedent.c_number}
+              </div>
+              <div className="text-sm text-gray-600">
+                {precedent.court} | {precedent.j_date}
               </div>
             </div>
-            <div className="h-32 bg-gray-50 rounded"></div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
