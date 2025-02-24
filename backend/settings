@@ -1,0 +1,20 @@
+- C 디렉토리에 직접 가상환경 설정
+conda create --prefix C:/conda_envs/lawmang_env python=3.11
+
+- 가상환경 활성화
+conda activate C:/conda_envs/lawmang_env
+
+- 가상환경 비활성화
+conda deactivate
+
+- 가상환경 삭제
+conda remove --prefix C:/conda_envs/lawmang_env --all
+
+- 패키지 설치
+pip install -r requirements.txt
+
+# FastAPI 터미널에서 실행 (uvicorn 사용)
+uvicorn app.main:app
+
+# 기본 api 확인
+localhost:8000
