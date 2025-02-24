@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
-from .routes import users  
+from .routes import auth
 from .routes import precedent
 from .routes import checkdb
+from app.core.database import init_db
 import os
 
 # FastAPI 애플리케이션 생성
@@ -19,9 +20,11 @@ app.add_middleware(
 )
 
 # 라우터 등록
-app.include_router(users.router, prefix="/api/users", tags=["users"])
+# app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(checkdb.router, prefix="/api/check", tags=["check"])    
 app.include_router(precedent.router, prefix="/api/search", tags=["search"])
+app.include_router(auth.router, prefix="/api", tags=["auth"])
+
 
 @app.get("/favicon.ico")
 async def favicon():
@@ -35,3 +38,8 @@ async def favicon():
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
+
+# ✅ 서버 시작 시 데이터베이스 테이블 생성
+@app.on_event("startup")
+def on_startup():
+    init_db()
