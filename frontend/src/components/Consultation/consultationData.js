@@ -1,3 +1,4 @@
+// 임시 데이터
 export const consultationData = {
   1: {
     id: 1,
