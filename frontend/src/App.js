@@ -18,6 +18,10 @@ import Footer from "./Home/Footer";
 import { AuthProvider } from "./components/Auth/AuthContext";
 import Mypage from "./components/Mypage/Mypage";
 import ConsDetail from "./components/Consultation/ConsDetail";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// ✅ QueryClient 인스턴스 생성
+const queryClient = new QueryClient();
 
 // ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
@@ -54,13 +58,17 @@ function AppContent() {
 // ✅ Redux Provider 추가
 function App() {
   return (
-    <Provider store={store}> {/* Redux Store 적용 */}
-      <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
-    </Provider>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        {" "}
+        {/* Redux Store 적용 */}
+        <BrowserRouter>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </BrowserRouter>
+      </Provider>
+    </QueryClientProvider>
   );
 }
 
