@@ -1,14 +1,12 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response, JSONResponse
-from .routes import auth
-from .routes import precedent
-from .routes import checkdb
+from fastapi.responses import ORJSONResponse
+from .routes import auth, checkdb, precedent, precedent_detail
 from app.core.database import init_db
 import os
 
-# FastAPI 애플리케이션 생성
-app = FastAPI(default_response_class=JSONResponse)
+# ✅ FastAPI 애플리케이션 생성 (기본 응답을 ORJSONResponse로 설정)
+app = FastAPI(default_response_class=ORJSONResponse)
 
 # CORS 설정 (React와 연결할 경우 필수)
 app.add_middleware(
@@ -24,15 +22,7 @@ app.add_middleware(
 app.include_router(checkdb.router, prefix="/api/check", tags=["check"])    
 app.include_router(precedent.router, prefix="/api/search", tags=["search"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
-
-
-@app.get("/favicon.ico")
-async def favicon():
-    # React가 실행되지 않을 때 기본 favicon 제공 : 404 오류 방지
-    favicon_path = "../front/public/favicon.ico"  # back 폴더에서 상위로 올라가서 front 폴더로 접근
-    if os.path.exists(favicon_path):
-        return FileResponse(favicon_path)
-    return Response(status_code=204)  # No Content
+app.include_router(precedent_detail.router, prefix="/api/detail", tags=["detail"])
 
 # 기본 엔드포인트 (테스트용)
 @app.get("/")
@@ -47,8 +37,8 @@ def on_startup():
 # ✅ 공통 예외 처리 (404 & 500 에러 핸들러)
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
-    return JSONResponse(status_code=404, content={"error": "해당 경로를 찾을 수 없습니다."})
+    return ORJSONResponse(status_code=404, content={"error": "해당 경로를 찾을 수 없습니다."})
 
 @app.exception_handler(500)
 async def internal_server_error_handler(request, exc):
-    return JSONResponse(status_code=500, content={"error": "서버 내부 오류가 발생했습니다."})
+    return ORJSONResponse(status_code=500, content={"error": "서버 내부 오류가 발생했습니다."})
