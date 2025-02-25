@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Popup from "./Popup";
 import axios from "axios";
+import loadingGif from "../../assets/loading.gif";
 
 const Detail = () => {
   const { id } = useParams();
@@ -68,8 +69,15 @@ const Detail = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-600">로딩 중...</p>
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex flex-col justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <img src={loadingGif} alt="loading" className="w-16 h-16" />
+              <p className="text-lg text-gray-600 mt-4">로딩 중...</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
