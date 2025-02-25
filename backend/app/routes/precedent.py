@@ -17,3 +17,10 @@ def fetch_precedents(keyword: str, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))  # ✅ 예외 메시지만 반환
+
+@router.get("/precedents/category/{c_type}")
+def fetch_precedents_by_category(c_type: str, db: Session = Depends(get_db)):
+    results = search_precedents_by_category(c_type)
+    if not results:
+        raise HTTPException(status_code=404, detail="검색 결과 없음")
+    return results

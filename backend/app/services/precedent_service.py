@@ -71,3 +71,28 @@ def search_precedents(keyword: str):
         return row_dict
 
     return [convert_row(row) for row in results]  # ✅ JSON 직렬화 가능하도록 변환
+
+def search_precedents_by_category(c_type: str):
+    """
+    주어진 c_type(판례 카테고리)에 해당하는 판례 데이터를 검색합니다.
+    """
+    query = """
+    SELECT id, c_number, c_type, j_date, pre_number, court, d_link, c_name
+    FROM precedent
+    WHERE c_type ILIKE :c_type
+    ORDER BY j_date DESC
+    LIMIT 80;
+    """
+    params = {"c_type": f"%{c_type}%"}
+    results = execute_sql(query, params)
+
+    def convert_row(row):
+        row_dict = dict(row)
+        j_date_value = row_dict.get("j_date")
+        if isinstance(j_date_value, (datetime.date, datetime.datetime)):
+            row_dict["j_date"] = j_date_value.isoformat()
+        else:
+            row_dict["j_date"] = None
+        return row_dict
+
+    return [convert_row(row) for row in results]

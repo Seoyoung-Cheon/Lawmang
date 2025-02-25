@@ -40,6 +40,18 @@ async function fetchData(apiUrl) {
 }
 
 /**
+ * 판례 카테고리별 검색 API 호출 함수.
+ * @param {string} category - 검색할 판례 카테고리 (예: "형사", "민사" 등).
+ * @returns {Promise<Array>} - 해당 카테고리의 판례 검색 결과 배열.
+ */
+export async function fetchCasesByCategory(category) {
+  if (!category) return [];
+  const apiUrl = `/api/search/precedents/category/${encodeURIComponent(category)}`;
+  console.log("🔹 API 요청 URL (카테고리):", apiUrl);
+  return fetchData(apiUrl);
+}
+
+/**
  * 판례 검색 API 호출 함수.
  * @param {string} query - 검색어.
  * @returns {Promise<Array>} - 판례 검색 결과 배열.
