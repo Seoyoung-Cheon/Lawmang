@@ -1,8 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Popup from "./Popup";
+import axios from "axios";
+import loadingGif from "../../assets/loading.gif";
 
 const Detail = () => {
+  const { id } = useParams();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [precedentDetail, setPrecedentDetail] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPrecedentDetail = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        console.log("Fetching detail for pre_number:", id);
+
+        const response = await axios.get(
+          `http://localhost:8000/api/detail/precedent/${id}`
+        );
+
+        console.log("API Response:", response.data);
+        setPrecedentDetail(response.data);
+      } catch (error) {
+        console.error("판례 상세 정보를 가져오는데 실패했습니다:", error);
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+          console.error("Error status:", error.response.status);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchPrecedentDetail();
+    }
+  }, [id]);
+
+  // 데이터 확인을 위한 디버깅 로그 추가
+  useEffect(() => {
+    console.log("Current precedentDetail:", precedentDetail);
+  }, [precedentDetail]);
 
   const handleOpenPopup = () => {
     setIsPopupOpen(true);
@@ -11,6 +53,42 @@ const Detail = () => {
   const handleClosePopup = () => {
     setIsPopupOpen(false);
   };
+
+  // 데이터 표시를 위한 유틸리티 함수
+  const renderContent = (content, isHtml = false) => {
+    if (!content || content.trim() === "") {
+      return <span className="text-gray-400 italic">자료가 없습니다.</span>;
+    }
+
+    if (isHtml) {
+      return <span dangerouslySetInnerHTML={{ __html: content }}></span>;
+    }
+
+    return <span>{content}</span>;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex flex-col justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <img src={loadingGif} alt="loading" className="w-16 h-16" />
+              <p className="text-lg text-gray-600 mt-4">로딩 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!precedentDetail) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-lg text-gray-600">판례를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -34,76 +112,94 @@ const Detail = () => {
             <div className="border-b border-gray-200 shadow-sm mb-6"></div>
 
             {/* 판결문 내용 */}
-            <div className="h-[600px] p-6 rounded-2xl overflow-y-auto">
+            <div className="h-[650px] p-6 rounded-2xl overflow-y-auto">
               <div className="space-y-8">
                 {/* 1. 법원명 */}
                 <div className="text-center space-y-4 mb-8">
-                  <h1 className="text-2xl tracking-widest">
-                    부 산 고 등 법 원
+                  <h1 className="text-2xl tracking-widest font-bold">
+                    {precedentDetail?.법원명 || ""}
                   </h1>
-                  <h2 className="text-xl tracking-widest">제 1 형 사 부</h2>
-                  <h2 className="text-xl tracking-widest">판 결</h2>
+                  <h2 className="text-xl tracking-widest">
+                    {precedentDetail?.선고 || ""}
+                  </h2>
                 </div>
 
                 <div className="space-y-6">
                   {/* 2. 판결유형 */}
-                  <div className="flex items-start">
+                  <div className="flex items-start pb-4 border-b border-gray-100">
                     <span className="w-24">판결유형 :</span>
-                    <span>판결</span>
+                    {renderContent(precedentDetail?.판결유형)}
                   </div>
 
                   {/* 3. 사건종류명 */}
-                  <div className="flex items-start">
+                  <div className="flex items-start pb-4 border-b border-gray-100">
                     <span className="w-24">사건종류 :</span>
-                    <span>살인미수, 총일국관리법위반</span>
+                    {renderContent(precedentDetail?.사건종류명)}
                   </div>
 
-                  {/* 4. 사건명 */}
-                  <div className="flex items-start">
+                  {/* 4. 사건번호 */}
+                  <div className="flex items-start pb-4 border-b border-gray-100">
                     <span className="w-24">사건번호 :</span>
-                    <span>2019노183</span>
+                    {renderContent(precedentDetail?.사건번호)}
                   </div>
 
                   {/* 5. 판시사항 */}
-                  <div className="flex items-start">
-                    <span className="w-24">판시사항 :</span>
-                    <span>피고인과 검사의 항소를 모두 기각한다.</span>
+                  <div className="flex items-start pb-4 border-b border-gray-100">
+                    <span className="w-24 shrink-0">판시사항 :</span>
+                    <div className="space-y-2">
+                      {renderContent(precedentDetail?.판시사항, true)}
+                    </div>
                   </div>
 
                   {/* 6. 참조조문 */}
-                  <div className="flex items-start">
-                    <span className="w-24">참조조문 :</span>
-                    <span>형법 제123조...</span>
+                  <div className="flex items-start pb-4 border-b border-gray-100">
+                    <span className="w-24 shrink-0">참조조문 :</span>
+                    {renderContent(precedentDetail?.참조조문, true)}
                   </div>
 
                   {/* 7. 판결요지 */}
-                  <div className="flex items-start">
-                    <span className="w-24">판결요지 :</span>
-                    <span>...</span>
+                  <div className="flex items-start pb-4 border-b border-gray-100">
+                    <span className="w-24 shrink-0">판결요지 :</span>
+                    <div className="space-y-2">
+                      {renderContent(precedentDetail?.판결요지, true)}
+                    </div>
                   </div>
 
                   {/* 8. 판례내용 */}
-                  <div className="flex items-start">
-                    <span className="w-24">판례내용 :</span>
-                    <div className="space-y-2">
-                      <p>1. 항소이유의 요지</p>
-                      <p className="ml-4">가. 피고인</p>
-                      <p className="ml-8">1) 사실오인</p>
+                  <div className="flex flex-col">
+                    <span className="w-24 mb-4">판례내용 :</span>
+                    <div className="space-y-4 pl-4 pt-6 bg-gray-50 rounded-lg w-full">
+                      {precedentDetail?.판례내용 ? (
+                        <span
+                          className="whitespace-pre-line text-gray-800 leading-relaxed"
+                          dangerouslySetInnerHTML={{
+                            __html: precedentDetail.판례내용
+                              .split("<br/>")
+                              .map(
+                                (text) =>
+                                  `<p class="mb-4 pb-4 last:border-b-0">${text}</p>`
+                              )
+                              .join(""),
+                          }}
+                        ></span>
+                      ) : (
+                        <p className="text-gray-400 italic pb-4">
+                          자료가 없습니다.
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* 9. 선고일자 */}
-                  <div className="flex items-start">
+                  <div className="flex items-start pb-4 border-b border-gray-100">
                     <span className="w-24">선고일자 :</span>
-                    <span>2019. 7. 18.</span>
+                    {renderContent(precedentDetail?.선고일자)}
                   </div>
 
                   {/* 10. 참조판례 */}
-                  <div className="flex items-start">
+                  <div className="flex items-start pb-4">
                     <span className="w-24">참조판례 :</span>
-                    <span className="text-blue-600 underline">
-                      부산지방법원 서부지원 2019. 3. 28. 선고 2018고합296 판결
-                    </span>
+                    {renderContent(precedentDetail?.참조판례, true)}
                   </div>
                 </div>
               </div>

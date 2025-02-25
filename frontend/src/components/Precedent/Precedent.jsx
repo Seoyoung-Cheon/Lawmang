@@ -8,6 +8,8 @@ import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
 } from "react-icons/md";
+import axios from "axios";
+import loadingGif from "../../assets/loading.gif";
 
 const Precedent = () => {
   const navigate = useNavigate();
@@ -36,7 +38,30 @@ const Precedent = () => {
     enabled: false,
   });
 
+  // 카테고리 검색을 위한 쿼리 추가
+  const {
+    data: categoryResults = [],
+    isLoading: isCategoryLoading,
+    error: categoryError,
+  } = useQuery({
+    queryKey: ["category", selectedCategory],
+    queryFn: async () => {
+      if (selectedCategory) {
+        const response = await axios.get(
+          `http://localhost:8000/api/search/precedents/category/${selectedCategory}`
+        );
+        return response.data;
+      }
+      return [];
+    },
+    enabled: !!selectedCategory, // selectedCategory가 있을 때만 쿼리 실행
+  });
+
+  // 현재 표시할 결과 데이터 결정
+  const currentResults = selectedCategory ? categoryResults : searchResults;
+
   const handleSearch = () => {
+    setSelectedCategory(""); // 검색 시 카테고리 초기화
     if (searchQuery.trim()) {
       refetch();
     }
@@ -48,9 +73,20 @@ const Precedent = () => {
     }
   };
 
+  // onChange 이벤트 핸들러 수정
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleCategoryClick = (category) => {
+    setSearchQuery(""); // 카테고리 선택 시 검색어 초기화
+    setCurrentPage(1); // 페이지 1로 리셋
+    setSelectedCategory(category === selectedCategory ? "" : category);
+  };
+
   // 페이지네이션 관련 함수들
   const getTotalPages = () => {
-    return Math.ceil((searchResults?.length || 0) / itemsPerPage);
+    return Math.ceil((currentResults?.length || 0) / itemsPerPage);
   };
 
   const getPageRange = (totalPages) => {
@@ -68,7 +104,7 @@ const Precedent = () => {
   const getCurrentItems = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return searchResults.slice(startIndex, endIndex);
+    return currentResults.slice(startIndex, endIndex);
   };
 
   const totalPages = getTotalPages();
@@ -97,7 +133,7 @@ const Precedent = () => {
                 placeholder="판례 및 키워드를 입력해주세요..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -131,7 +167,7 @@ const Precedent = () => {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryClick(category)}
                 className={`px-3 py-1.5 border rounded-lg transition-colors duration-200
                   min-w-[100px] text-center
                   ${
@@ -145,21 +181,26 @@ const Precedent = () => {
             ))}
           </div>
 
-          {/* 로딩 및 초기 메시지 중앙 정렬 */}
-          {isLoading ? (
-            <div className="flex justify-center items-center h-[400px]">
-              <p className="text-lg text-gray-600">검색 중...</p>
+          {/* 로딩 및 결과 표시 */}
+          {isLoading || isCategoryLoading ? (
+            <div className="flex flex-col justify-center items-center h-[400px] gap-4">
+              <img
+                src={loadingGif}
+                alt="loading"
+                className="w-16 h-16 text-gray-600"
+              />
+              <p className="text-lg text-gray-600">로딩 중...</p>
             </div>
-          ) : searchResults && searchResults.length > 0 ? (
+          ) : currentResults && currentResults.length > 0 ? (
             <>
               <ul className="space-y-4 w-[900px]">
                 {currentItems.map((item) => (
                   <li
-                    key={item.c_number}
+                    key={item.pre_number}
                     className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
                   >
                     <Link
-                      to={`/precedent/detail/${item.id}`}
+                      to={`/precedent/detail/${item.pre_number}`}
                       className="flex justify-between"
                     >
                       <div className="flex-1 min-w-0">
@@ -263,7 +304,9 @@ const Precedent = () => {
           ) : (
             <div className="flex justify-center items-center h-[400px]">
               <p className="text-lg text-gray-400">
-                검색어를 입력하거나 카테고리를 선택해주세요.
+                {searchQuery.trim()
+                  ? "해당하는 판례가 없습니다."
+                  : "검색어를 입력하거나 카테고리를 선택해주세요."}
               </p>
             </div>
           )}

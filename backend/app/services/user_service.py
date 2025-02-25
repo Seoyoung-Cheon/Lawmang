@@ -4,14 +4,15 @@ import smtplib
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from sqlalchemy.orm import Session
-from jose import jwt  # python-jose에서 JWT import
+from jose import jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException
 
 from app.models.user import User
-from app.schemas.user import UserCreate
 from passlib.context import CryptContext
-from app.core.config import settings  # 환경 변수에서 SECRET_KEY 가져오기
+from app.core.config import settings
+from app.models.user import EmailVerification  # ✅ 인증 코드 테이블 추가
+from app.schemas.user import UserCreate
 
 # ✅ 비밀번호 해싱 설정
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,9 +21,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30분 동안 유효한 토큰
-
-# ✅ 이메일 인증 코드 저장소 (실제 환경에서는 Redis 또는 DB 활용)
-verification_codes = {}
 
 # ✅ 비밀번호 해싱 함수
 def hash_password(password: str) -> str:
@@ -44,7 +42,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-
 # ✅ JWT 토큰 검증 함수
 def verify_access_token(token: str):
     try:
@@ -55,7 +52,6 @@ def verify_access_token(token: str):
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
 
-
 # ✅ 환경 변수 로드 (네이버 SMTP 설정)
 load_dotenv()
 
@@ -64,8 +60,9 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # ✅ SMTP 비밀번호
 SMTP_SERVER = os.getenv("SMTP_SERVER")  # ✅ 네이버 SMTP 서버 주소
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))  # ✅ 기본적으로 587 사용
 
-# ✅ 이메일 인증 코드 생성 및 발송 (예외 처리 추가)
-def send_email_code(email: str) -> str:
+# ✅ 이메일 인증 코드 생성 및 발송 (PostgreSQL 저장)
+def send_email_code(email: str, db: Session) -> str:
+    """이메일 인증 코드 생성 및 PostgreSQL에 저장"""
     try:
         code = ''.join(random.choices("0123456789", k=6))
         message = f"회원가입 인증 코드: {code}"
@@ -82,8 +79,8 @@ def send_email_code(email: str) -> str:
 
         print(f"✅ 인증 코드 {code} 이메일 발송 완료: {email}")
 
-        # ✅ 새로운 코드가 발송될 때마다 덮어쓰기
-        verification_codes[email] = {"code": code, "expires_at": datetime.utcnow() + timedelta(days=365)}
+        # ✅ PostgreSQL에 인증 코드 저장 (5분 유효)
+        save_verification_code(db, email, code, expiry_minutes=5)
 
         return code
 
@@ -94,29 +91,43 @@ def send_email_code(email: str) -> str:
     except smtplib.SMTPException as e:
         print(f"❌ 이메일 발송 실패: {e}")
         raise HTTPException(status_code=500, detail="이메일 발송 중 오류가 발생했습니다.")
-    
 
-# ✅ 이메일 인증 코드 검증 함수 (만료 기능 추가)
-def verify_email_code(email: str, code: str) -> bool:
-    if email in verification_codes:
-        data = verification_codes[email]
+# ✅ 이메일 인증 코드 저장 (PostgreSQL 사용)
+def save_verification_code(db: Session, email: str, code: str, expiry_minutes: int = 5):
+    """이메일 인증 코드를 데이터베이스에 저장"""
+    expires_at = datetime.utcnow() + timedelta(minutes=expiry_minutes)
 
-        # ✅ 코드 만료 여부 확인
-        if datetime.utcnow() > data["expires_at"]:
-            del verification_codes[email]  # ✅ 만료된 코드 삭제
-            return False
+    verification = db.query(EmailVerification).filter(EmailVerification.email == email).first()
+    if verification:
+        verification.code = code
+        verification.expires_at = expires_at
+    else:
+        verification = EmailVerification(email=email, code=code, expires_at=expires_at)
+        db.add(verification)
 
-        # ✅ 코드가 일치하는지 확인
-        if data["code"] == code:
-            del verification_codes[email]  # ✅ 인증 코드 사용 후 삭제
-            return True
+    db.commit()
 
-    return False
+# ✅ 이메일 인증 코드 검증 (PostgreSQL 사용)
+def verify_email_code(db: Session, email: str, code: str) -> bool:
+    """PostgreSQL에서 이메일 인증 코드 검증"""
+    verification = db.query(EmailVerification).filter(
+        EmailVerification.email == email,
+        EmailVerification.code == code,
+        EmailVerification.expires_at > datetime.utcnow()
+    ).first()
 
+    return verification is not None
 
-# ✅ 회원 가입 로직 (이메일 인증된 사용자만 가입 가능)
-def create_user(db: Session, user: UserCreate, code: str):
-    if not verify_email_code(user.email, code):
+# ✅ 이메일 인증 코드 삭제 (PostgreSQL 사용)
+def delete_verification_code(db: Session, email: str):
+    """사용된 인증 코드 삭제"""
+    db.query(EmailVerification).filter(EmailVerification.email == email).delete()
+    db.commit()
+
+# ✅ 회원 가입 로직 (이메일 인증된 사용자만 가입 가능, PostgreSQL 적용)
+def create_user(db: Session, user: UserCreate):
+    """PostgreSQL을 사용하여 회원가입"""
+    if not verify_email_code(db, user.email, user.code):
         raise HTTPException(status_code=400, detail="잘못된 인증 코드이거나 만료되었습니다.")
 
     hashed_password = hash_password(user.password)
@@ -126,9 +137,12 @@ def create_user(db: Session, user: UserCreate, code: str):
         nickname=user.nickname,
         is_verified=True  # ✅ 이메일 인증이 완료된 사용자
     )
-    
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
+    # ✅ 회원가입 성공 후 PostgreSQL에서 인증 코드 삭제
+    delete_verification_code(db, user.email)
+
     return new_user
