@@ -17,18 +17,20 @@ from app.schemas.user import UserCreate
 # ✅ 비밀번호 해싱 설정
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ✅ JWT 설정
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30분 동안 유효한 토큰
-
 # ✅ 비밀번호 해싱 함수
 def hash_password(password: str) -> str:
+    """비밀번호를 안전하게 해싱하는 함수"""
     return pwd_context.hash(password)
 
 # ✅ 비밀번호 검증 함수
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
+
+# ✅ JWT 설정
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30분 동안 유효한 토큰
 
 # ✅ JWT 토큰 생성 함수
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

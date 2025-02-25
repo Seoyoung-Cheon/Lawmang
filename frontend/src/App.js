@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Provider } from "react-redux"; // ✅ Redux Provider 추가
 import { store } from "./redux/store"; // ✅ Redux Store 불러오기
 import Header from "./Home/Header";
@@ -19,6 +19,9 @@ import { AuthProvider } from "./components/Auth/AuthContext";
 import Mypage from "./components/Mypage/Mypage";
 import ConsDetail from "./components/Consultation/ConsDetail";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from './redux/slices/authSlice';
+import ResetPassword from "./components/Auth/ResetPwd";
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
@@ -27,11 +30,13 @@ const queryClient = new QueryClient();
 function AppContent() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
+  // 챗봇을 숨길 경로 추가
+  const hideChatbot = ["/login", "/signup", "/reset-password"].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <Chatbot />
+      {!hideChatbot && <Chatbot />}
       <div className="flex-grow">
         <Routes>
           <Route path="/" element={<Main />} />
@@ -46,7 +51,12 @@ function AppContent() {
           <Route path="/faq/:id" element={<FAQ />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/mypage" element={<Mypage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/mypage" element={
+            <PrivateRoute>
+              <Mypage />
+            </PrivateRoute>
+          } />
           <Route path="/consultation/detail/:id" element={<ConsDetail />} />
         </Routes>
       </div>
@@ -58,18 +68,24 @@ function AppContent() {
 // ✅ Redux Provider 추가
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        {" "}
-        {/* Redux Store 적용 */}
-        <BrowserRouter>
-          <AuthProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          {" "}
+          {/* Redux Store 적용 */}
+          <BrowserRouter>
             <AppContent />
-          </AuthProvider>
-        </BrowserRouter>
-      </Provider>
-    </QueryClientProvider>
+          </BrowserRouter>
+        </Provider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
+
+const PrivateRoute = ({ children }) => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 export default App;
