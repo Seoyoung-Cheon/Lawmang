@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.services.precedent_service import search_precedents
+from app.services.precedent_service import search_precedents, search_precedents_by_category
 
 router = APIRouter()
 
