@@ -84,8 +84,14 @@ const Detail = () => {
 
   if (!precedentDetail) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-600">판례를 찾을 수 없습니다.</p>
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <p className="text-lg text-gray-600">판례를 찾을 수 없습니다.</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
