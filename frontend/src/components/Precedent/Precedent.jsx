@@ -148,18 +148,18 @@ const Precedent = () => {
           {/* 로딩 및 초기 메시지 중앙 정렬 */}
           {isLoading ? (
             <div className="flex justify-center items-center h-[400px]">
-              <p className="text-lg text-gray-600">검색 중...</p>
+              <p className="text-lg text-gray-600">잠시만 기다려주세요.</p>
             </div>
           ) : searchResults && searchResults.length > 0 ? (
             <>
               <ul className="space-y-4 w-[900px]">
                 {currentItems.map((item) => (
                   <li
-                    key={item.c_number}
+                    key={item.pre_number}
                     className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
                   >
                     <Link
-                      to={`/precedent/detail/${item.id}`}
+                      to={`/precedent/detail/${item.pre_number}`}
                       className="flex justify-between"
                     >
                       <div className="flex-1 min-w-0">
