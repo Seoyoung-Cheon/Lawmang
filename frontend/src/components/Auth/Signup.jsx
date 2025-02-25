@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSendEmailCodeMutation, useRegisterUserMutation } from "../../redux/slices/authApi";
+import { useSendEmailCodeMutation, useRegisterUserMutation, useVerifyEmailCodeMutation } from "../../redux/slices/authApi";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -13,31 +13,70 @@ const Signup = () => {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false); // ✅ 인증 코드 발송 여부 상태 추가
+  const [isCodeVerified, setIsCodeVerified] = useState(false); // ✅ 인증 코드 확인 상태 추가
 
   // ✅ 이메일 인증 코드 요청
   const [sendEmailCode, { isLoading: isSendingCode }] = useSendEmailCodeMutation();
   // ✅ 회원가입 요청
   const [registerUser, { isLoading: isRegistering }] = useRegisterUserMutation();
+  // ✅ 인증 코드 확인 API 추가
+  const [verifyEmailCode] = useVerifyEmailCodeMutation();
 
   // ✅ 입력값 변경 핸들러
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ 인증 코드 요청 핸들러
+  // ✅ 이메일 인증 코드 요청 핸들러
   const handleSendCode = async () => {
+    if (!formData.email.includes("@")) {
+      setErrorMessage("유효한 이메일 주소를 입력해주세요.");
+      return;
+    }
+    
     try {
-      await sendEmailCode(formData.email).unwrap();
-      setIsCodeSent(true); // ✅ 인증 코드 전송 완료
+      await sendEmailCode({ email: formData.email }).unwrap();
+      setIsCodeSent(true);
       alert("이메일로 인증 코드가 발송되었습니다!");
     } catch (err) {
-      setErrorMessage(err.data?.detail || "인증 코드 전송 실패");
+      console.error("인증 코드 요청 실패:", err);
+      setErrorMessage(
+        Array.isArray(err.data?.detail)
+          ? err.data.detail.map((e) => e.msg).join(", ")
+          : err.data?.detail || "인증 코드 전송 실패"
+      );
     }
   };
 
-  // ✅ 회원가입 요청 핸들러
+  // ✅ 인증 코드 확인 핸들러 추가
+  const handleVerifyCode = async () => {
+    if (!formData.code) {
+      setErrorMessage("인증 코드를 입력해주세요.");
+      return;
+    }
+
+    try {
+      await verifyEmailCode({
+        email: formData.email,
+        code: formData.code
+      }).unwrap();
+      setIsCodeVerified(true);
+      setErrorMessage("");
+      alert("이메일 인증이 완료되었습니다!");
+    } catch (err) {
+      setErrorMessage("잘못된 인증 코드입니다. 다시 확인해주세요.");
+      setIsCodeVerified(false);
+    }
+  };
+
+  // ✅ 회원가입 핸들러 수정
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isCodeVerified) {
+      setErrorMessage("이메일 인증을 완료해주세요.");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage("비밀번호가 일치하지 않습니다.");
@@ -96,15 +135,27 @@ const Signup = () => {
           {isCodeSent && (
             <div className="relative">
               <label className="block text-black mb-2 text-lg">인증 코드</label>
-              <input
-                name="code"
-                type="text"
-                value={formData.code}
-                onChange={handleChange}
-                placeholder="이메일로 받은 인증 코드를 입력하세요"
-                className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
-                required
-              />
+              <div className="flex">
+                <input
+                  name="code"
+                  type="text"
+                  value={formData.code}
+                  onChange={handleChange}
+                  placeholder="이메일로 받은 인증 코드를 입력하세요"
+                  className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  disabled={isCodeVerified}
+                  className={`ml-2 px-4 py-2 text-white rounded-md ${
+                    isCodeVerified ? "bg-green-500" : "bg-Main hover:bg-Main_hover"
+                  }`}
+                >
+                  {isCodeVerified ? "인증 완료" : "인증 확인"}
+                </button>
+              </div>
             </div>
           )}
 

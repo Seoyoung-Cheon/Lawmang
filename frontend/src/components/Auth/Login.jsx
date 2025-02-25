@@ -57,7 +57,7 @@ const Login = () => {
             </span>
             <input
               type="email"
-              name="email" // ✅ name 속성 추가
+              name="email"
               placeholder="Email ID"
               value={credentials.email}
               onChange={handleChange}
@@ -73,7 +73,7 @@ const Login = () => {
             </span>
             <input
               type="password"
-              name="password" // ✅ name 속성 추가
+              name="password"
               placeholder="Password"
               value={credentials.password}
               onChange={handleChange}

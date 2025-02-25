@@ -58,7 +58,7 @@ const Consultation = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-0 pt-[135px] pb-10">
           {/* 검색창 */}
