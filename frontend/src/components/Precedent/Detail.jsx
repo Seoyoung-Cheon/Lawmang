@@ -137,20 +137,24 @@ const Detail = () => {
 
                   {/* 5. 판시사항 */}
                   <div className="flex items-start pb-4 border-b border-gray-100">
-                    <span className="w-24">판시사항 :</span>
-                    {renderContent(precedentDetail?.판시사항, true)}
+                    <span className="w-24 shrink-0">판시사항 :</span>
+                    <div className="space-y-2">
+                      {renderContent(precedentDetail?.판시사항, true)}
+                    </div>
                   </div>
 
                   {/* 6. 참조조문 */}
                   <div className="flex items-start pb-4 border-b border-gray-100">
-                    <span className="w-24">참조조문 :</span>
+                    <span className="w-24 shrink-0">참조조문 :</span>
                     {renderContent(precedentDetail?.참조조문, true)}
                   </div>
 
                   {/* 7. 판결요지 */}
                   <div className="flex items-start pb-4 border-b border-gray-100">
-                    <span className="w-24">판결요지 :</span>
-                    {renderContent(precedentDetail?.판결요지, true)}
+                    <span className="w-24 shrink-0">판결요지 :</span>
+                    <div className="space-y-2">
+                      {renderContent(precedentDetail?.판결요지, true)}
+                    </div>
                   </div>
 
                   {/* 8. 판례내용 */}
