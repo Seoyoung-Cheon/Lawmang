@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCases } from "./precedentApi";
+import { fetchCases, fetchCasesByCategory } from "./precedentApi";
 import {
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
 } from "react-icons/md";
-import axios from "axios";
 import loadingGif from "../../assets/loading.gif";
 
 const Precedent = () => {
@@ -42,23 +41,16 @@ const Precedent = () => {
   const {
     data: categoryResults = [],
     isLoading: isCategoryLoading,
-    error: categoryError,
+    refetch: refetchCategory,
   } = useQuery({
-    queryKey: ["category", selectedCategory],
-    queryFn: async () => {
-      if (selectedCategory) {
-        const response = await axios.get(
-          `http://localhost:8000/api/search/precedents/category/${selectedCategory}`
-        );
-        return response.data;
-      }
-      return [];
-    },
-    enabled: !!selectedCategory, // selectedCategory가 있을 때만 쿼리 실행
+    queryKey: ["precedentCategory", selectedCategory],
+    queryFn: () => fetchCasesByCategory(selectedCategory),
+    enabled: selectedCategory !== "",
   });
 
   // 현재 표시할 결과 데이터 결정
-  const currentResults = selectedCategory ? categoryResults : searchResults;
+  const currentResults =
+    selectedCategory === "" ? searchResults : categoryResults;
 
   const handleSearch = () => {
     setSelectedCategory(""); // 검색 시 카테고리 초기화
@@ -78,10 +70,9 @@ const Precedent = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleCategoryClick = (category) => {
-    setSearchQuery(""); // 카테고리 선택 시 검색어 초기화
-    setCurrentPage(1); // 페이지 1로 리셋
-    setSelectedCategory(category === selectedCategory ? "" : category);
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    refetchCategory();
   };
 
   // 페이지네이션 관련 함수들
@@ -167,7 +158,7 @@ const Precedent = () => {
             {categories.map((category) => (
               <button
                 key={category}
-                onClick={() => handleCategoryClick(category)}
+                onClick={() => handleCategorySelect(category)}
                 className={`px-3 py-1.5 border rounded-lg transition-colors duration-200
                   min-w-[100px] text-center
                   ${

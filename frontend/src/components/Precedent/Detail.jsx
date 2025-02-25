@@ -203,8 +203,8 @@ const Detail = () => {
                   </div>
 
                   {/* 10. 참조판례 */}
-                  <div className="flex items-start pb-4">
-                    <span className="w-24">참조판례 :</span>
+                  <div className="flex items-start pb-4 border-b border-gray-100">
+                    <span className="w-24 shrink-0">참조판례 :</span>
                     {renderContent(precedentDetail?.참조판례, true)}
                   </div>
                 </div>
