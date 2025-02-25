@@ -50,6 +50,31 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    // ✅ 비밀번호 재설정 코드 요청 API
+    sendResetCode: builder.mutation({
+      query: (data) => ({
+        url: '/send-reset-code',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+
+    verifyResetCode: builder.mutation({
+      query: (data) => ({
+        url: '/verify-reset-code',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+
+    // ✅ 비밀번호 변경 API
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        url: '/reset-password',
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -60,4 +85,7 @@ export const {
   useLoginUserMutation,
   useGetCurrentUserQuery,
   useVerifyEmailCodeMutation,
+  useSendResetCodeMutation,
+  useVerifyResetCodeMutation,
+  useResetPasswordMutation,
 } = authApi;

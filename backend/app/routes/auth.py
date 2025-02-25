@@ -4,10 +4,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.services.user_service import (
-    create_user, verify_password, create_access_token, send_email_code
-)
-from app.services.user_service import (
-    save_verification_code, verify_email_code, delete_verification_code
+    create_user, verify_password, create_access_token, send_email_code,save_verification_code, verify_email_code, delete_verification_code, hash_password
 )
 from app.core.dependencies import get_current_user
 import re
@@ -88,3 +85,58 @@ def verify_email(payload: dict = Body(...), db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="잘못된 인증 코드입니다.")
 
     return {"message": "이메일 인증이 완료되었습니다!"}
+
+
+# ✅ 비밀번호 재설정 요청
+@router.post("/send-reset-code")
+def send_reset_code(payload: dict = Body(...), db: Session = Depends(get_db)):
+    """비밀번호 재설정 코드 이메일 발송"""
+    email = payload.get("email")
+
+    if not email:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="이메일이 필요합니다.")
+
+    # 사용자 존재 여부 확인
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return {"exists": False}
+
+    code = send_email_code(email, db)
+    return {"exists": True, "message": "비밀번호 재설정 코드가 이메일로 전송되었습니다!"}
+
+
+# ✅ 인증 코드 확인
+@router.post("/verify-reset-code")
+def verify_reset_code(payload: dict = Body(...), db: Session = Depends(get_db)):
+    """비밀번호 재설정 코드 확인"""
+    email = payload.get("email")
+    code = payload.get("code")
+
+    if not email or not code:
+        raise HTTPException(status_code=400, detail="이메일과 인증 코드가 필요합니다.")
+
+    if not verify_email_code(db, email, code):
+        raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
+
+    return {"message": "인증 코드가 확인되었습니다."}
+
+
+@router.post("/reset-password")
+def reset_password(payload: dict = Body(...), db: Session = Depends(get_db)):
+    """비밀번호 재설정"""
+    email = payload.get("email")
+    code = payload.get("code")
+    new_password = payload.get("newPassword")
+
+    if not verify_email_code(db, email, code):
+        raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="존재하지 않는 사용자입니다.")
+
+    user.password_hash = hash_password(new_password)
+    db.commit()
+
+    delete_verification_code(db, email)
+    return {"message": "비밀번호가 성공적으로 변경되었습니다!"}

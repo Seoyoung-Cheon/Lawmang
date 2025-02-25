@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../components/Auth/AuthContext";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectIsAuthenticated, logout } from '../redux/slices/authSlice';
 import { CiLogin, CiLogout } from "react-icons/ci";
 import { GrHome } from "react-icons/gr";
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const [isScrolled, setIsScrolled] = useState(false);
   const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
@@ -26,7 +28,7 @@ const Header = () => {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate("/");
   };
 
@@ -75,7 +77,7 @@ const Header = () => {
 
           {/* 로그인/로그아웃 버튼 */}
           <div className="flex items-center gap-6">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <>
                 <Link
                   to="/mypage"

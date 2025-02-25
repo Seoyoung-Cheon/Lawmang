@@ -1,17 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../../redux/slices/authApi"; // ✅ FastAPI 로그인 API 연동
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../../redux/slices/authSlice"; // ✅ Redux에 토큰 저장
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { MdOutlinePersonOutline } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { selectIsAuthenticated } from '../../redux/slices/authSlice';
+import { useAuth } from './AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [credentials, setCredentialsState] = useState({ email: "", password: "" });
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const { login } = useAuth();
 
   // ✅ FastAPI 로그인 API 호출
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
@@ -26,14 +31,22 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await loginUser(credentials).unwrap(); // ✅ FastAPI 로그인 요청
-      dispatch(setCredentials({ token: response.access_token })); // ✅ Redux에 토큰 저장
-      localStorage.setItem("token", response.access_token); // ✅ 로컬 스토리지에 저장
+      const token = response.access_token;
+      dispatch(setCredentials({ token: token })); // ✅ Redux에 토큰 저장
+      localStorage.setItem("token", token); // ✅ 로컬 스토리지에 저장
+      login(token); // AuthContext의 login 함수 호출
       alert("로그인 성공!");
       navigate("/"); // ✅ 로그인 성공 시 홈으로 이동
     } catch (err) {
       alert("로그인 실패: " + (err.data?.detail || "서버 오류"));
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
@@ -82,10 +95,11 @@ const Login = () => {
             />
           </div>
 
-          {/* 회원가입 링크 */}
+          {/* 비밀번호 재설정/회원가입 링크 */}
           <div className="text-center text-gray-600">
-            회원이 아니신가요?{" "}
-            <Link to="/signup" className="text-gray-800 hover:underline font-medium">
+            <Link to="/reset-password" className="hover:text-gray-800 hover:underline font-normal">비밀번호 찾기</Link>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <Link to="/signup" className="hover:text-gray-800 hover:underline font-normal">
               회원가입하기
             </Link>
           </div>
