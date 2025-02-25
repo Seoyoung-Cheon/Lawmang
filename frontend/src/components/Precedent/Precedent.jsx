@@ -13,7 +13,7 @@ import loadingGif from "../../assets/loading.gif";
 const Precedent = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8; // 페이지당 8개 항목
@@ -45,15 +45,15 @@ const Precedent = () => {
   } = useQuery({
     queryKey: ["precedentCategory", selectedCategory],
     queryFn: () => fetchCasesByCategory(selectedCategory),
-    enabled: selectedCategory !== "",
+    enabled: selectedCategory !== "all",
   });
 
   // 현재 표시할 결과 데이터 결정
   const currentResults =
-    selectedCategory === "" ? searchResults : categoryResults;
+    selectedCategory === "all" ? searchResults : categoryResults;
 
   const handleSearch = () => {
-    setSelectedCategory(""); // 검색 시 카테고리 초기화
+    setSelectedCategory("all");
     if (searchQuery.trim()) {
       refetch();
     }
@@ -71,6 +71,7 @@ const Precedent = () => {
   };
 
   const handleCategorySelect = (category) => {
+    setSearchQuery("");
     setSelectedCategory(category);
     refetchCategory();
   };
