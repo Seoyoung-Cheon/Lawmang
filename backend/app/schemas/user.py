@@ -8,7 +8,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     nickname: str
-    code: EmailStr
+    code: str
 
     # ✅ 비밀번호 유효성 검사 추가
     @field_validator('password')
@@ -40,6 +40,7 @@ class UserLogin(BaseModel):
     password: str
 
 # ✅ 이메일 인증 코드 확인을 위한 스키마 추가
-class EmailVerification(BaseModel):
+class EmailVerificationCreate(BaseModel):
     email: EmailStr
     code: str
+    expires_at: datetime

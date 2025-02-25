@@ -49,10 +49,16 @@ def execute_sql(query: str, params: dict | None = None):
 
 # ✅ 테이블 자동 생성 함수 (중복 생성 방지)
 def init_db():
+    from app.models.user import User, EmailVerification
     inspector = inspect(engine)
     
-    # 이미 존재하는 테이블 목록 가져오기
-    existing_tables = inspector.get_table_names()
-    
-    if "users_account" not in existing_tables:  # ✅ 테이블이 존재하지 않으면 생성
+    # 테이블이 존재하지 않는 경우에만 생성
+    if not inspector.has_table('users') and not inspector.has_table('email_verifications'):
         Base.metadata.create_all(bind=engine)
+        print("테이블이 성공적으로 생성되었습니다.")
+    else:
+        print("테이블이 이미 존재합니다. 생성을 건너뜁니다.")
+
+# 직접 실행을 위한 코드 추가
+if __name__ == "__main__":
+    init_db()

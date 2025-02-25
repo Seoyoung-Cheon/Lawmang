@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, func, ForeignKey
 from app.core.database import Base
 from datetime import datetime, timedelta
 
@@ -20,3 +20,17 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, nickname={self.nickname})>"
+
+
+class EmailVerification(Base):
+    """
+    이메일 인증 코드 저장 테이블
+    """
+    __tablename__ = "email_verifications"
+
+    email = Column(String(255), primary_key=True, unique=True, nullable=False)
+    code = Column(String(6), nullable=False)
+    expires_at = Column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(minutes=5))
+
+    def __repr__(self):
+        return f"<EmailVerification(email={self.email}, code={self.code}, expires_at={self.expires_at})>"
