@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
-from .routes import auth, checkdb, precedent, precedent_detail
+from .routes import auth, check, detail, search
 from app.core.database import init_db
 import os
 
@@ -19,10 +19,10 @@ app.add_middleware(
 
 # 라우터 등록
 # app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(checkdb.router, prefix="/api/check", tags=["check"])    
-app.include_router(precedent.router, prefix="/api/search", tags=["search"])
+app.include_router(check.router, prefix="/api/check", tags=["check"])    
+app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(precedent_detail.router, prefix="/api/detail", tags=["detail"])
+app.include_router(detail.router, prefix="/api/detail", tags=["detail"])
 
 # 기본 엔드포인트 (테스트용)
 @app.get("/")
