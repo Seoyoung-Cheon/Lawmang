@@ -14,6 +14,14 @@ const Signup = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false); // ✅ 인증 코드 발송 여부 상태 추가
   const [isCodeVerified, setIsCodeVerified] = useState(false); // ✅ 인증 코드 확인 상태 추가
+  const [passwordChecks, setPasswordChecks] = useState({
+    length: false,
+    special: false
+  });
+  const [passwordMatch, setPasswordMatch] = useState({
+    isMatching: false,
+    isDirty: false
+  });
 
   // ✅ 이메일 인증 코드 요청
   const [sendEmailCode, { isLoading: isSendingCode }] = useSendEmailCodeMutation();
@@ -24,7 +32,31 @@ const Signup = () => {
 
   // ✅ 입력값 변경 핸들러
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // 비밀번호 입력 필드일 경우 유효성 검사 실행
+    if (name === 'password') {
+      setPasswordChecks({
+        length: value.length >= 8,
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(value)
+      });
+      // 비밀번호 확인 일치 여부 체크
+      if (formData.confirmPassword) {
+        setPasswordMatch({
+          isMatching: value === formData.confirmPassword,
+          isDirty: true
+        });
+      }
+    }
+
+    // 비밀번호 확인 입력 필드일 경우 일치 여부 체크
+    if (name === 'confirmPassword') {
+      setPasswordMatch({
+        isMatching: value === formData.password,
+        isDirty: true
+      });
+    }
   };
 
   // ✅ 이메일 인증 코드 요청 핸들러
@@ -72,6 +104,12 @@ const Signup = () => {
   // ✅ 회원가입 핸들러 수정
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 비밀번호 유효성 검사
+    if (!passwordChecks.length || !passwordChecks.special) {
+      setErrorMessage("비밀번호는 8자 이상이며 특수문자를 포함해야 합니다.");
+      return;
+    }
 
     if (!isCodeVerified) {
       setErrorMessage("이메일 인증을 완료해주세요.");
@@ -185,9 +223,22 @@ const Signup = () => {
               className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
               required
             />
+            {/* 비밀번호 조건 표시 */}
+            <div className="mt-2 text-xs">
+              {!passwordChecks?.length && !passwordChecks?.special ? (
+                <p className="text-gray-500">∙ 8자 이상 및 특수문자를 포함해주세요</p>
+              ) : !passwordChecks?.length ? (
+              <p className="text-gray-500">∙ 8자 이상 입력해주세요</p>
+              ) : !passwordChecks?.special ? (
+                <p className="text-gray-500">∙ 특수문자를 포함해주세요 (!@#$%^&amp;*(),.?":{}|&lt;&gt;)</p>
+              ) : (
+                <p className="text-green-600 font-medium">✓ 사용 가능한 비밀번호입니다</p>
+              )}
+            </div>
           </div>
+          
 
-          {/* 비밀번호 확인 */}
+          {/* 비밀번호 확인 입력 및 상태 표시 */}
           <div className="relative">
             <label className="block text-black mb-2 text-lg">비밀번호 확인</label>
             <input
@@ -199,6 +250,17 @@ const Signup = () => {
               className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
               required
             />
+            {formData.confirmPassword && (
+              <div className="mt-2 text-xs">
+                {passwordMatch.isDirty && (
+                  passwordMatch.isMatching ? (
+                    <p className="text-green-600 font-medium">✓ 비밀번호가 일치합니다</p>
+                  ) : (
+                    <p className="text-red-500">∙ 비밀번호가 일치하지 않습니다</p>
+                  )
+                )}
+              </div>
+            )}
           </div>
 
           {/* 에러 메시지 표시 */}
