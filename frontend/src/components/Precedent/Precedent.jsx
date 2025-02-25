@@ -9,6 +9,7 @@ import {
   MdKeyboardArrowRight,
 } from "react-icons/md";
 import axios from "axios";
+import loadingGif from "../../assets/loading.gif";
 
 const Precedent = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const Precedent = () => {
   const currentResults = selectedCategory ? categoryResults : searchResults;
 
   const handleSearch = () => {
+    setSelectedCategory(""); // 검색 시 카테고리 초기화
     if (searchQuery.trim()) {
       refetch();
     }
@@ -69,6 +71,11 @@ const Precedent = () => {
     if (e.key === "Enter") {
       handleSearch();
     }
+  };
+
+  // onChange 이벤트 핸들러 수정
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
   const handleCategoryClick = (category) => {
@@ -126,7 +133,7 @@ const Precedent = () => {
                 placeholder="판례 및 키워드를 입력해주세요..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -176,7 +183,12 @@ const Precedent = () => {
 
           {/* 로딩 및 결과 표시 */}
           {isLoading || isCategoryLoading ? (
-            <div className="flex justify-center items-center h-[400px]">
+            <div className="flex flex-col justify-center items-center h-[400px] gap-4">
+              <img
+                src={loadingGif}
+                alt="loading"
+                className="w-16 h-16 text-gray-600"
+              />
               <p className="text-lg text-gray-600">로딩 중...</p>
             </div>
           ) : currentResults && currentResults.length > 0 ? (
@@ -292,8 +304,8 @@ const Precedent = () => {
           ) : (
             <div className="flex justify-center items-center h-[400px]">
               <p className="text-lg text-gray-400">
-                {selectedCategory
-                  ? "해당 카테고리의 판례가 없습니다."
+                {searchQuery.trim()
+                  ? "해당하는 판례가 없습니다."
                   : "검색어를 입력하거나 카테고리를 선택해주세요."}
               </p>
             </div>
