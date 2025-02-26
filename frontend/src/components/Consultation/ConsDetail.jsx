@@ -2,52 +2,73 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import openLicenseImg from "../../assets/open_license.jpg";
 import { TbCircleLetterQFilled, TbCircleLetterA } from "react-icons/tb";
-import { consultationData } from "./consultationData";
+import axios from "axios";
+import loadingGif from "../../assets/loading.gif";
 
 const ConsDetail = () => {
   const { id } = useParams();
   const [consultation, setConsultation] = useState(null);
-
-  // categoryMapping 추가
-  const categoryMapping = {
-    all: "전체",
-    administration: "행정",
-    bankruptcy: "개인회생, 파산 및 면책",
-    "civil execution": "민사집행",
-    "civil general": "민사일반",
-    "civil suit": "민사소송",
-    commercial: "상사",
-    "commercial building lease": "상가임대차",
-    constitution: "헌법",
-    contract: "계약",
-    "criminal law": "형법",
-    "criminal suit": "형사소송",
-    damage: "손해배상",
-    "domestic relation": "친족",
-    etc: "기타",
-    family_lawsuit: "가사소송",
-    "family relation registration": "가족관계등록",
-    "housing lease": "주택임대차",
-    labor: "노동",
-    obligation: "채권",
-    "preservative measure": "보전처분",
-    "real right": "물권",
-    succession: "상속",
-  };
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchConsultation = () => {
-      const data = consultationData[id];
-      if (data) {
-        setConsultation(data);
+    const fetchConsultation = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await axios.get(
+          `http://localhost:8000/api/detail/consultation/${id}`
+        );
+
+        console.log("API Response:", response.data);
+        setConsultation(response.data);
+      } catch (error) {
+        console.error("상담 상세 정보를 가져오는데 실패했습니다:", error);
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+          console.error("Error status:", error.response.status);
+        }
+        setError(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchConsultation();
+    if (id) {
+      fetchConsultation();
+    }
   }, [id]);
 
+  if (isLoading) {
+    return (
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex flex-col justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <img src={loadingGif} alt="loading" className="w-16 h-16" />
+              <p className="text-lg text-gray-600 mt-4">로딩 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!consultation) {
-    return <div>로딩중...</div>;
+    return (
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <p className="text-lg text-gray-600">
+                상담 내용을 찾을 수 없습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -60,7 +81,7 @@ const ConsDetail = () => {
             <div className="flex border-b border-gray-100 pb-4 mb-4">
               <span className="text-sm text-gray-500 w-20">구분</span>
               <span className="text-sm text-black">
-                {categoryMapping[consultation.category]}
+                {consultation.category}
               </span>
             </div>
 

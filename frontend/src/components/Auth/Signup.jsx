@@ -19,17 +19,19 @@ const Signup = () => {
   const [isCodeVerified, setIsCodeVerified] = useState(false); // ✅ 인증 코드 확인 상태 추가
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
-    special: false
+    special: false,
   });
   const [passwordMatch, setPasswordMatch] = useState({
     isMatching: false,
-    isDirty: false
+    isDirty: false,
   });
 
   // ✅ 이메일 인증 코드 요청
-  const [sendEmailCode, { isLoading: isSendingCode }] = useSendEmailCodeMutation();
+  const [sendEmailCode, { isLoading: isSendingCode }] =
+    useSendEmailCodeMutation();
   // ✅ 회원가입 요청
-  const [registerUser, { isLoading: isRegistering }] = useRegisterUserMutation();
+  const [registerUser, { isLoading: isRegistering }] =
+    useRegisterUserMutation();
   // ✅ 인증 코드 확인 API 추가
   const [verifyEmailCode] = useVerifyEmailCodeMutation();
 
@@ -37,27 +39,27 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
+
     // 비밀번호 입력 필드일 경우 유효성 검사 실행
-    if (name === 'password') {
+    if (name === "password") {
       setPasswordChecks({
         length: value.length >= 8,
-        special: /[!@#$%^&*(),.?":{}|<>]/.test(value)
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(value),
       });
       // 비밀번호 확인 일치 여부 체크
       if (formData.confirmPassword) {
         setPasswordMatch({
           isMatching: value === formData.confirmPassword,
-          isDirty: true
+          isDirty: true,
         });
       }
     }
 
     // 비밀번호 확인 입력 필드일 경우 일치 여부 체크
-    if (name === 'confirmPassword') {
+    if (name === "confirmPassword") {
       setPasswordMatch({
         isMatching: value === formData.password,
-        isDirty: true
+        isDirty: true,
       });
     }
   };
@@ -68,7 +70,7 @@ const Signup = () => {
       setErrorMessage("유효한 이메일 주소를 입력해주세요.");
       return;
     }
-    
+
     try {
       await sendEmailCode({ email: formData.email }).unwrap();
       setIsCodeSent(true);
@@ -92,7 +94,7 @@ const Signup = () => {
     try {
       await verifyEmailCode({
         email: formData.email,
-        code: formData.code
+        code: formData.code,
       }).unwrap();
       setIsCodeVerified(true);
       setErrorMessage("");
@@ -163,7 +165,11 @@ const Signup = () => {
                   isCodeSent ? "bg-gray-500" : "bg-Main hover:bg-Main_hover"
                 }`}
               >
-                {isSendingCode ? "전송 중..." : isCodeSent ? "전송 완료" : "코드 요청"}
+                {isSendingCode
+                  ? "전송 중..."
+                  : isCodeSent
+                  ? "전송 완료"
+                  : "코드 요청"}
               </button>
             </div>
           </div>
@@ -231,13 +237,19 @@ const Signup = () => {
             {/* 비밀번호 조건 표시 */}
             <div className="mt-2 text-xs">
               {!passwordChecks?.length && !passwordChecks?.special ? (
-                <p className="text-gray-500">∙ 8자 이상 및 특수문자를 포함해주세요</p>
+                <p className="text-gray-500">
+                  ∙ 8자 이상 및 특수문자를 포함해주세요
+                </p>
               ) : !passwordChecks?.length ? (
                 <p className="text-gray-500">∙ 8자 이상 입력해주세요</p>
               ) : !passwordChecks?.special ? (
-                <p className="text-gray-500">∙ 특수문자를 포함해주세요 (!@#$%^&amp;*(),.?":{}|&lt;&gt;)</p>
+                <p className="text-gray-500">
+                  ∙ 특수문자를 포함해주세요 (!@#$%^&amp;*(),.?":{}|&lt;&gt;)
+                </p>
               ) : (
-                <p className="text-green-600 font-medium">✓ 사용 가능한 비밀번호입니다</p>
+                <p className="text-green-600 font-medium">
+                  ✓ 사용 가능한 비밀번호입니다
+                </p>
               )}
             </div>
           </div>
@@ -258,13 +270,16 @@ const Signup = () => {
             />
             {formData.confirmPassword && (
               <div className="mt-2 text-xs">
-                {passwordMatch.isDirty && (
-                  passwordMatch.isMatching ? (
-                    <p className="text-green-600 font-medium">✓ 비밀번호가 일치합니다</p>
+                {passwordMatch.isDirty &&
+                  (passwordMatch.isMatching ? (
+                    <p className="text-green-600 font-medium">
+                      ✓ 비밀번호가 일치합니다
+                    </p>
                   ) : (
-                    <p className="text-red-500">∙ 비밀번호가 일치하지 않습니다</p>
-                  )
-                )}
+                    <p className="text-red-500">
+                      ∙ 비밀번호가 일치하지 않습니다
+                    </p>
+                  ))}
               </div>
             )}
           </div>
