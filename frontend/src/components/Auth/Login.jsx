@@ -35,7 +35,6 @@ const Login = () => {
       dispatch(setCredentials({ token: token })); // ✅ Redux에 토큰 저장
       localStorage.setItem("token", token); // ✅ 로컬 스토리지에 저장
       login(token); // AuthContext의 login 함수 호출
-      alert("로그인 성공!");
       navigate("/"); // ✅ 로그인 성공 시 홈으로 이동
     } catch (err) {
       alert("로그인 실패: " + (err.data?.detail || "서버 오류"));

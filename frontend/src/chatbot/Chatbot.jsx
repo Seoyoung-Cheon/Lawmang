@@ -10,11 +10,6 @@ const Chatbot = () => {
   const [selectedCategory, setSelectedCategory] = useState("general"); // 'general' or 'legal'
   const [showLoginPopup, setShowLoginPopup] = useState(false);
 
-  // 로그인과 회원가입 화면에서는 챗봇 숨기기
-  if (location.pathname === "/login" || location.pathname === "/signup") {
-    return null;
-  }
-
   const handleCategoryClick = (category) => {
     if (category === "legal" && !isLoggedIn) {
       setShowLoginPopup(true);
@@ -35,9 +30,9 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "" : "hidden lg:block"
-        } fixed right-[50px] 2xl:right-[120px] top-[55%] -translate-y-1/2 z-50`}
+        } fixed right-[50px] 2xl:right-[120px] top-[52%] -translate-y-1/2 z-50`}
       >
-        <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[800px] bg-white rounded-xl shadow-[0_0_20px_5px_rgba(0,0,0,0.2)] flex flex-col relative">
+        <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-[0_0_20px_5px_rgba(0,0,0,0.2)] flex flex-col relative">
           {/* 로그인 필요 팝업  */}
           {showLoginPopup && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl overflow-hidden">

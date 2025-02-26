@@ -69,7 +69,6 @@ const Signup = () => {
     try {
       await sendEmailCode({ email: formData.email }).unwrap();
       setIsCodeSent(true);
-      alert("이메일로 인증 코드가 발송되었습니다!");
     } catch (err) {
       console.error("인증 코드 요청 실패:", err);
       setErrorMessage(
@@ -94,7 +93,6 @@ const Signup = () => {
       }).unwrap();
       setIsCodeVerified(true);
       setErrorMessage("");
-      alert("이메일 인증이 완료되었습니다!");
     } catch (err) {
       setErrorMessage("잘못된 인증 코드입니다. 다시 확인해주세요.");
       setIsCodeVerified(false);

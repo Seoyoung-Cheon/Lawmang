@@ -16,7 +16,7 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
+      if (window.scrollY > 100) {
         setIsScrolled(true);
       } else {
         setIsScrolled(false);
@@ -41,7 +41,7 @@ const Header = () => {
       >
         <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
-          <div className="relative z-10 mb-4">
+          <div className="relative z-10 mb-4 pt-2">
             <Link to="/" className={`${textColorClass} text-5xl font-normal`}>
               Lawmang
             </Link>
