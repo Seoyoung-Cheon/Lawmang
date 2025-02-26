@@ -69,6 +69,7 @@ export const authApi = createApi({
       }),
     }),
 
+    // ✅ 비밀번호 재설정 코드 확인 API
     verifyResetCode: builder.mutation({
       query: (data) => ({
         url: '/verify-reset-code',
@@ -85,6 +86,15 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+
+    // ✅ 챗봇 API 추가
+    sendMessage: builder.mutation({
+      query: ({ message, category }) => ({
+        url: `/chatbot/${category}`,
+        method: "POST",
+        body: { message },
+      }),
+    }),
   }),
 });
 
@@ -98,5 +108,6 @@ export const {
   useSendResetCodeMutation,
   useVerifyResetCodeMutation,
   useResetPasswordMutation,
-  useLogoutUserMutation
+  useLogoutUserMutation,
+  useSendMessageMutation,
 } = authApi;
