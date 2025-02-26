@@ -1,12 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const MemoPopup = ({ isOpen, onClose, onSave, initialContent = "" }) => {
-  const [title, setTitle] = useState("");
+const MemoPopup = ({
+  isOpen,
+  onClose,
+  onSave,
+  initialContent = "",
+  initialTitle = "",
+}) => {
+  const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
+
+  // 팝업이 열릴 때마다 초기값 설정
+  useEffect(() => {
+    setTitle(initialTitle);
+    setContent(initialContent);
+  }, [initialTitle, initialContent, isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ title, content }); // title과 content를 객체로 전달
+    onSave({ title, content });
     onClose();
   };
 
