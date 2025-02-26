@@ -22,6 +22,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from './redux/slices/authSlice';
 import ResetPassword from "./components/Auth/ResetPwd";
+import Modify from "./components/Auth/Modify";  
+
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
@@ -31,7 +33,7 @@ function AppContent() {
   const location = useLocation();
   const hideFooter = ["/login", "/signup"].includes(location.pathname);
   // 챗봇을 숨길 경로 추가
-  const hideChatbot = ["/login", "/signup", "/reset-password"].includes(location.pathname);
+  const hideChatbot = ["/login", "/signup", "/reset-password", "/modify"].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,6 +57,11 @@ function AppContent() {
           <Route path="/mypage" element={
             <PrivateRoute>
               <Mypage />
+            </PrivateRoute>
+          } />
+          <Route path="/modify" element={
+            <PrivateRoute>
+              <Modify />
             </PrivateRoute>
           } />
           <Route path="/consultation/detail/:id" element={<ConsDetail />} />

@@ -30,12 +30,12 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await loginUser(credentials).unwrap(); // ✅ FastAPI 로그인 요청
-      const token = response.access_token;
-      dispatch(setCredentials({ token: token })); // ✅ Redux에 토큰 저장
-      localStorage.setItem("token", token); // ✅ 로컬 스토리지에 저장
-      login(token); // AuthContext의 login 함수 호출
-      navigate("/"); // ✅ 로그인 성공 시 홈으로 이동
+      const response = await loginUser(credentials).unwrap();
+      dispatch(setCredentials({ 
+        token: response.access_token,
+        user: response.user // 사용자 정보도 함께 저장
+      }));
+      navigate("/");
     } catch (err) {
       alert("로그인 실패: " + (err.data?.detail || "서버 오류"));
     }
