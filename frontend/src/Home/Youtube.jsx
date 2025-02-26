@@ -18,15 +18,6 @@ const Youtube = () => {
     const cachedVideos = localStorage.getItem("cachedVideos");
     const currentTime = new Date().getTime();
 
-    // 디버깅을 위한 로그 추가
-    console.log("마지막 요청 시간:", new Date(Number(lastRequestTime)));
-    console.log("현재 시간:", new Date(currentTime));
-    console.log(
-      "경과 시간(시간):",
-      (currentTime - Number(lastRequestTime)) / (1000 * 60 * 60)
-    );
-    console.log("캐시된 비디오 존재:", !!cachedVideos);
-
     // 캐시된 비디오가 있고 1시간이 지나지 않았다면 캐시된 데이터 사용
     if (
       cachedVideos &&
@@ -92,8 +83,6 @@ const Youtube = () => {
         setLoading(false);
       });
   }, []);
-
-  console.log(videos);
 
   // 현재 페이지에 표시할 영상 계산
   const indexOfLastVideo = currentPage * videosPerPage;
