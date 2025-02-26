@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { consultationData } from "./consultationData";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchConsultations,
@@ -49,9 +48,6 @@ const Consultation = () => {
     "물권",
     "상속",
   ];
-
-  // 임시 데이터를 consultationData의 값들로 변경
-  const [consultations] = useState(Object.values(consultationData));
 
   const {
     data: searchResults = [],
@@ -148,12 +144,6 @@ const Consultation = () => {
   const totalPages = getTotalPages();
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
-
-  // 선택된 카테고리에 따라 데이터 필터링
-  const filteredConsultations =
-    selectedCategory === "all"
-      ? consultations
-      : consultations.filter((item) => item.category === selectedCategory);
 
   const handleConsultationClick = (consultationId) => {
     navigate(`/consultation/detail/${consultationId}`);
