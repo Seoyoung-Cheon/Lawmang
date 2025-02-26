@@ -1,4 +1,3 @@
-// ✅ JWT 토큰 관리
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
@@ -16,6 +15,7 @@ const authSlice = createSlice({
       localStorage.setItem("token", action.payload.token); // ✅ JWT 토큰 저장
     },
     logout: (state) => {
+      console.log("🛑 Redux에서 로그아웃 실행됨!");
       state.token = null;
       state.isAuthenticated = false;
       localStorage.removeItem("token"); // ✅ 로그아웃 시 토큰 삭제
@@ -26,6 +26,6 @@ const authSlice = createSlice({
 export const { setCredentials, logout } = authSlice.actions;
 export default authSlice.reducer;
 
-// 선택자
+// ✅ Redux에서 상태를 조회하는 선택자 추가
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectToken = (state) => state.auth.token;

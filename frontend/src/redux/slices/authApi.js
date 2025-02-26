@@ -33,6 +33,16 @@ export const authApi = createApi({
       }),
     }),
 
+    // ✅ 로그아웃 API (JWT 토큰 무효화)
+    logoutUser: builder.mutation({
+      query: (token) => ({
+        url: "/auth/logout",
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      }),
+    }),
+
     // ✅ 현재 로그인한 사용자 정보 조회 API
     getCurrentUser: builder.query({
       query: ({ token }) => ({
@@ -88,4 +98,5 @@ export const {
   useSendResetCodeMutation,
   useVerifyResetCodeMutation,
   useResetPasswordMutation,
+  useLogoutUserMutation
 } = authApi;

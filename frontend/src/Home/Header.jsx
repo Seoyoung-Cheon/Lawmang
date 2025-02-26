@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { selectIsAuthenticated, logout } from '../redux/slices/authSlice';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CiLogin, CiLogout } from "react-icons/ci";
 import { GrHome } from "react-icons/gr";
+
+import { useLogoutUserMutation } from "../redux/slices/authApi";
+import { selectIsAuthenticated, selectToken, logout } from '../redux/slices/authSlice';
+
 
 const Header = () => {
   const location = useLocation();
@@ -13,6 +16,8 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
+  const token = useSelector(selectToken); // ✅ Redux에서 토큰 가져오기
+  const [logoutUser] = useLogoutUserMutation(); // ✅ RTK Query 로그아웃 훅 사용
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,10 +32,20 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/");
+
+  const handleLogout = async () => {
+    console.log("🚀 로그아웃 버튼 클릭됨!");
+
+    try {
+      await logoutUser(token); // ✅ 백엔드 로그아웃 요청
+    } catch (error) {
+      console.error("❌ 로그아웃 API 호출 실패:", error);
+    }
+
+    dispatch(logout()); // ✅ Redux 상태 변경
+    navigate("/"); // ✅ 홈으로 이동
   };
+
 
   return (
     <div className="w-full">

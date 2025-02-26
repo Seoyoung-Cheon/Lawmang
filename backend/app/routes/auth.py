@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Response, Depends, HTTPException, status, Body
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
@@ -69,6 +70,13 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
 @router.get("/auth/me")
 def read_users_me(current_user: dict = Depends(get_current_user)):
     return {"email": current_user["sub"]}
+
+
+# ✅ 로그아웃 API 추가 (JWT 토큰 무효화)
+@router.post("/auth/logout")
+def logout_user(response: Response, current_user: dict = Depends(get_current_user)):
+    response.delete_cookie(key="access_token")  # ✅ 쿠키에서 JWT 삭제
+    return {"message": "로그아웃 성공"}
 
 
 # ✅ 이메일 인증 코드 확인 엔드포인트 (PostgreSQL 사용)
