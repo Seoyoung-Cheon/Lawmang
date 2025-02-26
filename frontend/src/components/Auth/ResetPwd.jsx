@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendResetCodeMutation, useVerifyResetCodeMutation, useResetPasswordMutation } from "../../redux/slices/authApi";
+import { AiOutlineMail } from "react-icons/ai";
+import { RiLockPasswordLine } from "react-icons/ri";
+import { Link } from "react-router-dom";
 
 const ResetPwd = () => {
   const navigate = useNavigate();
@@ -70,7 +73,6 @@ const ResetPwd = () => {
       }
       setIsCodeSent(true);
       setErrorMessage("");
-      alert("이메일로 인증 코드가 발송되었습니다!");
     } catch (err) {
       setErrorMessage(err.data?.detail || "인증 코드 요청 실패");
     }
@@ -90,7 +92,6 @@ const ResetPwd = () => {
       }).unwrap();
       setIsCodeVerified(true);
       setErrorMessage("");
-      alert("이메일 인증이 완료되었습니다!");
     } catch (err) {
       setErrorMessage("잘못된 인증 코드입니다.");
     }
@@ -127,29 +128,29 @@ const ResetPwd = () => {
     <div className="min-h-screen flex items-center justify-center relative">
       <div className="absolute inset-0 bg-[#e1e0df]" />
       
-      <div className="bg-white/80 backdrop-blur-sm p-12 mt-10 rounded-lg w-[700px] h-auto shadow-lg relative border-2 border-white/50">
-        <h1 className="text-4xl font-bold text-black mb-8 text-center">
-          비밀번호 재설정
-        </h1>
+      <div className="bg-white/50 backdrop-blur-sm p-12 rounded-lg w-[600px] shadow-lg relative border-2 border-white/50 z-10">
+        <h2 className="text-4xl text-neutral-700 text-center mb-8">비밀번호 재설정</h2>
 
-        <form onSubmit={handleResetPassword} className="space-y-6">
+        <form onSubmit={handleResetPassword} className="space-y-8 mt-16">
           <div className="relative">
-            <label className="block text-black mb-2 text-lg">이메일</label>
+            <span className="absolute left-3 top-4">
+              <AiOutlineMail className="w-6 h-6 text-gray-400" />
+            </span>
             <div className="flex">
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="이메일을 입력해주세요"
-                className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                placeholder="Email ID"
+                className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                 required
               />
               <button
                 type="button"
                 onClick={handleSendCode}
                 disabled={isSendingCode || isCodeSent}
-                className={`ml-2 px-4 py-2 text-white rounded-md ${
+                className={`ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] ${
                   isCodeSent ? "bg-gray-500" : "bg-Main hover:bg-Main_hover"
                 }`}
               >
@@ -160,15 +161,17 @@ const ResetPwd = () => {
 
           {isCodeSent && (
             <div className="relative">
-              <label className="block text-black mb-2 text-lg">인증 코드</label>
+              <span className="absolute left-3 top-4">
+                <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+              </span>
               <div className="flex">
                 <input
                   type="text"
                   name="code"
                   value={formData.code}
                   onChange={handleChange}
-                  placeholder="이메일로 받은 인증 코드를 입력하세요"
-                  className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                  placeholder="인증 코드 입력"
+                  className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                   required
                   disabled={isCodeVerified}
                 />
@@ -176,7 +179,7 @@ const ResetPwd = () => {
                   type="button"
                   onClick={handleVerifyCode}
                   disabled={isCodeVerified}
-                  className={`ml-2 px-4 py-2 text-white rounded-md ${
+                  className={`ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] ${
                     isCodeVerified ? "bg-green-500" : "bg-Main hover:bg-Main_hover"
                   }`}
                 >
@@ -189,14 +192,16 @@ const ResetPwd = () => {
           {isCodeVerified && (
             <>
               <div className="relative">
-                <label className="block text-black mb-2 text-lg">새 비밀번호</label>
+                <span className="absolute left-3 top-4">
+                  <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+                </span>
                 <input
                   type="password"
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  placeholder="새 비밀번호를 입력해주세요"
-                  className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                  placeholder="새 비밀번호"
+                  className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                   required
                 />
                 <div className="mt-2 text-xs">
@@ -213,14 +218,16 @@ const ResetPwd = () => {
               </div>
 
               <div className="relative">
-                <label className="block text-black mb-2 text-lg">새 비밀번호 확인</label>
+                <span className="absolute left-3 top-4">
+                  <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+                </span>
                 <input
                   type="password"
                   name="confirmNewPassword"
                   value={formData.confirmNewPassword}
                   onChange={handleChange}
-                  placeholder="새 비밀번호를 다시 입력해주세요"
-                  className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                  placeholder="새 비밀번호 확인"
+                  className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                   required
                 />
                 {formData.confirmNewPassword && (
@@ -236,18 +243,25 @@ const ResetPwd = () => {
                 )}
               </div>
 
+              <div className="text-center text-gray-600">
+                <Link to="/login" className="hover:text-gray-800 hover:underline font-normal">
+                  로그인 페이지
+                </Link>
+                로 돌아가기
+              </div>
+
               <button
                 type="submit"
                 disabled={isResetting}
-                className="w-full bg-Main text-white py-4 rounded-md hover:bg-Main_hover transition-colors text-lg mb-[25px]"
+                className="w-full bg-Main text-white py-5 rounded-md hover:bg-Main_hover transition-colors text-lg"
               >
                 {isResetting ? "변경 중..." : "비밀번호 변경하기"}
               </button>
             </>
           )}
-        </form>
 
-        {errorMessage && <p className="text-red-500 text-center mt-2">{errorMessage}</p>}
+          {errorMessage && <p className="text-red-500 text-center mt-2">{errorMessage}</p>}
+        </form>
       </div>
     </div>
   );

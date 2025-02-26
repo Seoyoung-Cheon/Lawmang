@@ -54,13 +54,7 @@ const Login = () => {
 
       {/* 로그인 폼 */}
       <div className="bg-white/50 backdrop-blur-sm p-12 rounded-lg w-[500px] shadow-lg relative border-2 border-white/50 z-10">
-        {/* 프로필 이미지 */}
-        <div className="absolute -top-20 left-1/2 transform -translate-x-1/2">
-          <div className="w-40 h-40 bg-gray-300 rounded-full flex items-center justify-center relative">
-            <MdOutlinePersonOutline className="w-20 h-20 text-[#f5f4f2]" />
-          </div>
-        </div>
-
+        <h2 className="text-4xl text-neutral-700 text-center mb-8">로그인</h2>
         <form className="space-y-8 mt-16" onSubmit={handleSubmit}>
           {/* 이메일 입력 */}
           <div className="relative">
@@ -89,7 +83,7 @@ const Login = () => {
               placeholder="Password"
               value={credentials.password}
               onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3 mb-10 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
+              className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
               required
             />
           </div>
@@ -99,7 +93,7 @@ const Login = () => {
             <Link to="/reset-password" className="hover:text-gray-800 hover:underline font-normal">비밀번호 찾기</Link>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <Link to="/signup" className="hover:text-gray-800 hover:underline font-normal">
-              회원가입하기
+              회원가입 하기
             </Link>
           </div>
 
@@ -107,7 +101,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-Main text-white py-3 rounded-md hover:bg-Main_hover transition-colors"
+            className="w-full bg-Main text-white py-5 rounded-md hover:bg-Main_hover transition-colors text-lg"
           >
             {isLoading ? "로그인 중..." : "로그인"}
           </button>

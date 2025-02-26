@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSendEmailCodeMutation, useRegisterUserMutation, useVerifyEmailCodeMutation } from "../../redux/slices/authApi";
+import { MdOutlinePersonOutline } from "react-icons/md";
+import { AiOutlineMail } from "react-icons/ai";
+import { RiLockPasswordLine } from "react-icons/ri";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -134,31 +137,29 @@ const Signup = () => {
       <div className="absolute inset-0 bg-[#e1e0df]" />
 
       {/* 회원가입 폼 */}
-      <div className="bg-white/80 backdrop-blur-sm p-12 mt-10 rounded-lg w-[700px] h-auto shadow-lg relative border-2 border-white/50">
-        {/* 회원가입 텍스트 */}
-        <h1 className="text-4xl font-bold text-black mb-8 text-center">
-          회원가입
-        </h1>
-
-        <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="bg-white/50 backdrop-blur-sm p-12 rounded-lg w-[600px] mt-10 shadow-lg relative border-2 border-white/50 z-10">
+        <h2 className="text-4xl text-neutral-700 text-center mb-8">회원가입</h2>
+        <form className="space-y-6 mt-16" onSubmit={handleSubmit}>
           {/* 이메일 입력 및 인증 코드 요청 */}
           <div className="relative">
-            <label className="block text-black mb-2 text-lg">이메일</label>
+            <span className="absolute left-3 top-4">
+              <AiOutlineMail className="w-6 h-6 text-gray-400" />
+            </span>
             <div className="flex">
               <input
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="이메일을 입력해주세요"
-                className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                placeholder="Email ID"
+                className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                 required
               />
               <button
                 type="button"
                 onClick={handleSendCode}
                 disabled={isSendingCode || isCodeSent}
-                className={`ml-2 px-4 py-2 text-white rounded-md ${
+                className={`ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] ${
                   isCodeSent ? "bg-gray-500" : "bg-Main hover:bg-Main_hover"
                 }`}
               >
@@ -167,25 +168,27 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* 인증 코드 입력 (코드 전송 후 표시) */}
+          {/* 인증 코드 입력 */}
           {isCodeSent && (
             <div className="relative">
-              <label className="block text-black mb-2 text-lg">인증 코드</label>
+              <span className="absolute left-3 top-4">
+                <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+              </span>
               <div className="flex">
                 <input
                   name="code"
                   type="text"
                   value={formData.code}
                   onChange={handleChange}
-                  placeholder="이메일로 받은 인증 코드를 입력하세요"
-                  className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+                  placeholder="인증 코드"
+                  className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={handleVerifyCode}
                   disabled={isCodeVerified}
-                  className={`ml-2 px-4 py-2 text-white rounded-md ${
+                  className={`ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] ${
                     isCodeVerified ? "bg-green-500" : "bg-Main hover:bg-Main_hover"
                   }`}
                 >
@@ -197,28 +200,32 @@ const Signup = () => {
 
           {/* 닉네임 입력 */}
           <div className="relative">
-            <label className="block text-black mb-2 text-lg">닉네임</label>
+            <span className="absolute left-3 top-4">
+              <MdOutlinePersonOutline className="w-6 h-6 text-gray-400" />
+            </span>
             <input
               name="nickname"
               type="text"
               value={formData.nickname}
               onChange={handleChange}
-              placeholder="닉네임을 입력해주세요"
-              className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+              placeholder="닉네임"
+              className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
               required
             />
           </div>
 
           {/* 비밀번호 입력 */}
           <div className="relative">
-            <label className="block text-black mb-2 text-lg">비밀번호</label>
+            <span className="absolute left-3 top-3">
+              <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+            </span>
             <input
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="비밀번호를 입력해주세요"
-              className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+              placeholder="Password"
+              className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
               required
             />
             {/* 비밀번호 조건 표시 */}
@@ -226,7 +233,7 @@ const Signup = () => {
               {!passwordChecks?.length && !passwordChecks?.special ? (
                 <p className="text-gray-500">∙ 8자 이상 및 특수문자를 포함해주세요</p>
               ) : !passwordChecks?.length ? (
-              <p className="text-gray-500">∙ 8자 이상 입력해주세요</p>
+                <p className="text-gray-500">∙ 8자 이상 입력해주세요</p>
               ) : !passwordChecks?.special ? (
                 <p className="text-gray-500">∙ 특수문자를 포함해주세요 (!@#$%^&amp;*(),.?":{}|&lt;&gt;)</p>
               ) : (
@@ -234,18 +241,19 @@ const Signup = () => {
               )}
             </div>
           </div>
-          
 
-          {/* 비밀번호 확인 입력 및 상태 표시 */}
+          {/* 비밀번호 확인 */}
           <div className="relative">
-            <label className="block text-black mb-2 text-lg">비밀번호 확인</label>
+            <span className="absolute left-3 top-3">
+              <RiLockPasswordLine className="w-6 h-6 text-gray-400" />
+            </span>
             <input
               name="confirmPassword"
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="비밀번호를 다시 입력해주세요"
-              className="w-full pl-4 pr-4 py-3 text-sm bg-transparent border-b-2 border-gray-300 focus:border-gray-600 outline-none placeholder-gray-300"
+              placeholder="Confirm Password"
+              className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
               required
             />
             {formData.confirmPassword && (
@@ -261,16 +269,24 @@ const Signup = () => {
             )}
           </div>
 
-          {/* 에러 메시지 표시 */}
+          {/* 에러 메시지 */}
           {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
+
+          {/* 로그인 페이지 링크 */}
+          <div className="text-center text-gray-600">
+            이미 계정이 있으시다면 &nbsp;
+            <Link to="/login" className="hover:text-gray-800 underline hover:font-bold">
+              로그인 하기
+            </Link>
+          </div>
 
           {/* 회원가입 버튼 */}
           <button
             type="submit"
             disabled={isRegistering}
-            className="w-full bg-Main text-white py-4 rounded-md hover:bg-Main_hover transition-colors text-lg mb-[25px]"
+            className="w-full bg-Main text-white py-5 rounded-md hover:bg-Main_hover transition-colors text-lg"
           >
-            {isRegistering ? "회원가입 중..." : "회원가입하기"}
+            {isRegistering ? "회원가입 중..." : "회원가입"}
           </button>
         </form>
       </div>
