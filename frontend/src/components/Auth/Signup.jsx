@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useSendEmailCodeMutation, useRegisterUserMutation, useVerifyEmailCodeMutation } from "../../redux/slices/authApi";
+import { useSendEmailCodeMutation, useRegisterUserMutation, useVerifyEmailCodeMutation, useCheckNicknameQuery } from "../../redux/slices/authApi";
 import { MdOutlinePersonOutline } from "react-icons/md";
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
@@ -14,6 +14,9 @@ const Signup = () => {
     nickname: "",
     code: "", // ✅ 인증 코드 추가
   });
+
+  const [nicknameStatus, setNicknameStatus] = useState(null); // ✅ 닉네임 중복 상태
+  const [nicknameError, setNicknameError] = useState(""); // ✅ 닉네임 오류 메시지
   const [errorMessage, setErrorMessage] = useState("");
   const [isCodeSent, setIsCodeSent] = useState(false); // ✅ 인증 코드 발송 여부 상태 추가
   const [isCodeVerified, setIsCodeVerified] = useState(false); // ✅ 인증 코드 확인 상태 추가
@@ -26,6 +29,11 @@ const Signup = () => {
     isDirty: false,
   });
 
+  // ✅ 닉네임 중복 확인
+  const { data: nicknameData, error: nicknameErrorResponse } = useCheckNicknameQuery(
+    formData.nickname,
+    { skip: !formData.nickname } // 닉네임 입력 전에는 요청하지 않음
+  );
   // ✅ 이메일 인증 코드 요청
   const [sendEmailCode, { isLoading: isSendingCode }] =
     useSendEmailCodeMutation();
@@ -74,13 +82,22 @@ const Signup = () => {
     try {
       await sendEmailCode({ email: formData.email }).unwrap();
       setIsCodeSent(true);
+      setErrorMessage("");
     } catch (err) {
       console.error("인증 코드 요청 실패:", err);
-      setErrorMessage(
-        Array.isArray(err.data?.detail)
-          ? err.data.detail.map((e) => e.msg).join(", ")
-          : err.data?.detail || "인증 코드 전송 실패"
-      );
+      // 백엔드에서 오는 에러 메시지 형식에 따라 처리
+      if (err.data?.message === "Email already exists" || 
+          err.data?.detail === "Email already exists" ||
+          err.status === 400) {
+        alert("이미 가입된 이메일입니다.");
+        setErrorMessage(""); // 기존 에러 메시지 제거
+      } else {
+        setErrorMessage(
+          Array.isArray(err.data?.detail)
+            ? err.data.detail.map((e) => e.msg).join(", ")
+            : err.data?.detail || "인증 코드 전송 실패"
+        );
+      }
     }
   };
 
@@ -104,9 +121,31 @@ const Signup = () => {
     }
   };
 
+  // ✅ 닉네임 중복 확인 핸들러 추가
+  const handleCheckNickname = async () => {
+    if (!formData.nickname) {
+      setNicknameError("닉네임을 입력해주세요.");
+      return;
+    }
+
+    // nicknameData가 있으면 사용 가능한 닉네임
+    if (nicknameData) {
+      setNicknameStatus(true);
+      setNicknameError("");
+    } else {
+      setNicknameStatus(false);
+      setNicknameError("이미 사용 중인 닉네임입니다.");
+    }
+  };
+
   // ✅ 회원가입 핸들러 수정
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (nicknameStatus !== true) {
+      setErrorMessage("닉네임 중복 확인을 해주세요.");
+      return;
+    }
 
     // 비밀번호 유효성 검사
     if (!passwordChecks.length || !passwordChecks.special) {
@@ -132,6 +171,18 @@ const Signup = () => {
       setErrorMessage(err.data?.detail || "회원가입 실패");
     }
   };
+
+  // ✅ 닉네임 검사 결과 처리
+  useState(() => {
+    if (nicknameErrorResponse) {
+      setNicknameStatus(false);
+      setNicknameError("∙ 이미 사용 중인 닉네임입니다.");
+    } else if (nicknameData) {
+      setNicknameStatus(true);
+      setNicknameError("");
+    }
+  }, [nicknameData, nicknameErrorResponse]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
@@ -209,15 +260,28 @@ const Signup = () => {
             <span className="absolute left-3 top-4">
               <MdOutlinePersonOutline className="w-6 h-6 text-gray-400" />
             </span>
-            <input
-              name="nickname"
-              type="text"
-              value={formData.nickname}
-              onChange={handleChange}
-              placeholder="닉네임"
-              className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
-              required
-            />
+            <div className="flex">
+              <input
+                name="nickname"
+                type="text"
+                value={formData.nickname}
+                onChange={handleChange}
+                placeholder="닉네임"
+                className="w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 border-gray-400 focus:border-gray-600 outline-none placeholder-gray-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={handleCheckNickname}
+                className="ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] bg-Main hover:bg-Main_hover"
+              >
+                중복 확인
+              </button>
+            </div>
+            <div className="mt-2 text-xs">
+            {nicknameStatus === false && <p className="text-red-500 ">{nicknameError}</p>}
+            {nicknameStatus === true && <p className="text-green-600">✓ 사용 가능한 닉네임 입니다.</p>}
+            </div>
           </div>
 
           {/* 비밀번호 입력 */}

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CiLogin, CiLogout } from "react-icons/ci";
-import { GrHome } from "react-icons/gr";
+import { CiLogin, CiUser } from "react-icons/ci";
 
 import { useLogoutUserMutation } from "../redux/slices/authApi";
-import { selectIsAuthenticated, selectToken, logout } from '../redux/slices/authSlice';
+import { selectIsAuthenticated, selectToken, logout, selectUser } from '../redux/slices/authSlice';
 
 
 const Header = () => {
@@ -18,6 +17,8 @@ const Header = () => {
   const textColorClass = isDarkText ? "text-white" : "text-black";
   const token = useSelector(selectToken); // ✅ Redux에서 토큰 가져오기
   const [logoutUser] = useLogoutUserMutation(); // ✅ RTK Query 로그아웃 훅 사용
+  const user = useSelector(selectUser);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,22 +94,32 @@ const Header = () => {
           {/* 로그인/로그아웃 버튼 */}
           <div className="flex items-center gap-6">
             {isAuthenticated ? (
-              <>
-                <Link
-                  to="/mypage"
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
-                >
-                  <GrHome className="w-5 h-5" />
-                  마이페이지
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
-                >
-                  <CiLogout className="w-5 h-5" />
-                  로그아웃
+              <div className="relative inline-block"
+                   onMouseEnter={() => setIsProfileMenuOpen(true)}
+                   onMouseLeave={() => setIsProfileMenuOpen(false)}>
+                <button className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}>
+                  <CiUser className="w-6 h-6" />
+                  <span>{user?.nickname || '사용자'}</span>
                 </button>
-              </>
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-0 w-48 py-2 bg-white rounded-lg shadow-xl z-50">
+                    <Link to="/mypage" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                      사건 기록 페이지
+                    </Link>
+                    <Link to="/modify" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                      회원정보 수정
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link
                 to="/login"

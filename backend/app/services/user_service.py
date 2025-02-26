@@ -30,7 +30,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # ✅ JWT 설정
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30분 동안 유효한 토큰
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 # ✅ JWT 토큰 생성 함수
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

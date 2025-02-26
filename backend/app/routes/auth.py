@@ -5,10 +5,11 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
 from app.services.user_service import (
-    create_user, verify_password, create_access_token, send_email_code,save_verification_code, verify_email_code, delete_verification_code, hash_password
+    create_user, verify_password, create_access_token, send_email_code, save_verification_code, verify_email_code, delete_verification_code, hash_password
 )
 from app.core.dependencies import get_current_user
 import re
+from typing import Any
 
 router = APIRouter()
 
@@ -23,6 +24,14 @@ def send_verification_code(payload: dict = Body(...), db: Session = Depends(get_
     # ✅ 이메일 형식 검증
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="유효한 이메일을 입력하세요.")
+
+    # ✅ 이메일 중복 확인
+    existing_user = db.query(User).filter(User.email == email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이미 가입된 이메일입니다."
+        )
 
     # ✅ 이메일 인증 코드 발송
     code = send_email_code(email, db)
@@ -64,12 +73,31 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
     # ✅ JWT 토큰 생성
     access_token = create_access_token(data={"sub": existing_user.email})
 
-    return {"access_token": access_token, "token_type": "Bearer"}
+    # 사용자 정보를 포함하여 반환
+    return {
+        "access_token": access_token,
+        "token_type": "Bearer",
+        "user": {
+            "email": existing_user.email,
+            "nickname": existing_user.nickname,
+            "id": existing_user.id
+        }
+    }
 
 
+# ✅ 현재 로그인한 사용자의 이메일로 DB에서 사용자 정보 조회
 @router.get("/auth/me")
-def read_users_me(current_user: dict = Depends(get_current_user)):
-    return {"email": current_user["sub"]}
+def read_users_me(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == current_user["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+    
+    return {
+        "email": user.email,
+        "nickname": user.nickname,
+        "id": user.id
+    }
+
 
 
 # ✅ 로그아웃 API 추가 (JWT 토큰 무효화)
@@ -129,6 +157,7 @@ def verify_reset_code(payload: dict = Body(...), db: Session = Depends(get_db)):
     return {"message": "인증 코드가 확인되었습니다."}
 
 
+# ✅ 비밀번호 재설정
 @router.post("/reset-password")
 def reset_password(payload: dict = Body(...), db: Session = Depends(get_db)):
     """비밀번호 재설정"""
@@ -148,3 +177,59 @@ def reset_password(payload: dict = Body(...), db: Session = Depends(get_db)):
 
     delete_verification_code(db, email)
     return {"message": "비밀번호가 성공적으로 변경되었습니다!"}
+
+
+# ✅ 회원정보 수정 엔드포인트 추가
+@router.put("/auth/update")
+def update_user(
+    payload: dict = Body(...), 
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == current_user["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    # 비밀번호 변경 시에만 현재 비밀번호 확인
+    if payload.get("newPassword"):
+        if not payload.get("currentPassword"):
+            raise HTTPException(status_code=400, detail="현재 비밀번호를 입력해주세요.")
+        
+        if not verify_password(payload["currentPassword"], user.password_hash):
+            raise HTTPException(status_code=400, detail="현재 비밀번호가 일치하지 않습니다.")
+        
+        user.password_hash = hash_password(payload["newPassword"])
+
+    # 닉네임 업데이트 (비밀번호 확인 없이 가능)
+    if "nickname" in payload:
+        user.nickname = payload["nickname"]
+
+    db.commit()
+    return {"message": "회원정보가 성공적으로 수정되었습니다."}
+
+
+# ✅ 닉네임 중복 확인 API 추가
+@router.get("/auth/check-nickname")
+def check_nickname(nickname: str, db: Session = Depends(get_db)):
+    existing_user = db.query(User).filter(User.nickname == nickname).first()
+    if existing_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 닉네임입니다.")
+    return {"message": "사용 가능한 닉네임입니다."}
+
+
+@router.post("/auth/verify-password")
+async def verify_current_password(
+    payload: dict = Body(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == current_user["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    if not verify_password(payload.get("currentPassword"), user.password_hash):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid password"
+        )
+    return {"message": "Password verified"}

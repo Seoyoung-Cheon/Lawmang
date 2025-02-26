@@ -5,6 +5,7 @@ const BASE_URL = "http://localhost:8000/api"; // FastAPI 백엔드 URL
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
+  tagTypes: ['User'], // 캐시 태그 추가
   endpoints: (builder) => ({
     // ✅ 이메일 인증 코드 요청 API
     sendEmailCode: builder.mutation({
@@ -13,6 +14,11 @@ export const authApi = createApi({
         method: "POST",
         body: { email },
       }),
+    }),
+
+    // ✅ 닉네임 중복 확인 API 추가
+    checkNickname: builder.query({
+      query: (nickname) => `/auth/check-nickname?nickname=${nickname}`,
     }),
 
     // ✅ 회원가입 API (이메일 인증 코드 필요)
@@ -45,11 +51,28 @@ export const authApi = createApi({
 
     // ✅ 현재 로그인한 사용자 정보 조회 API
     getCurrentUser: builder.query({
-      query: ({ token }) => ({
+      query: () => ({
         url: "/auth/me",
         method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }),
+      providesTags: ['User'], // 이 쿼리가 User 태그를 제공
+    }),
+
+    // ✅ 회원정보 수정 API 추가
+    updateUser: builder.mutation({
+      query: (data) => ({
+        url: "/auth/update",
+        method: "PUT",
+        body: JSON.stringify(data), // ✅ JSON 변환 필수
+        headers: {
+          "Content-Type": "application/json", // ✅ JSON 형식 지정
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅ 인증 토큰 추가
+        },
+      }),
+      invalidatesTags: ['User'], // User 태그를 무효화하여 getCurrentUser를 다시 호출하도록 함
     }),
 
     // ✅ 이메일 인증 코드 확인 엔드포인트 추가
@@ -60,6 +83,7 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    
     // ✅ 비밀번호 재설정 코드 요청 API
     sendResetCode: builder.mutation({
       query: (data) => ({
@@ -95,6 +119,19 @@ export const authApi = createApi({
         body: { message },
       }),
     }),
+
+    // 현재 비밀번호 확인 endpoint 추가
+    verifyCurrentPassword: builder.mutation({
+      query: (credentials) => ({
+        url: "/auth/verify-password",
+        method: "POST",
+        body: credentials,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }),
+    }),
   }),
 });
 
@@ -110,4 +147,7 @@ export const {
   useResetPasswordMutation,
   useLogoutUserMutation,
   useSendMessageMutation,
+  useUpdateUserMutation,
+  useCheckNicknameQuery,
+  useVerifyCurrentPasswordMutation,
 } = authApi;
