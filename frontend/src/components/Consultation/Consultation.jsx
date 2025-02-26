@@ -1,51 +1,153 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { consultationData } from "./consultationData";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchConsultations,
+  fetchConsultationsByCategory,
+} from "./consultaionApi";
+import {
+  MdKeyboardDoubleArrowLeft,
+  MdKeyboardDoubleArrowRight,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight,
+} from "react-icons/md";
+import loadingGif from "../../assets/loading.gif";
 
 const Consultation = () => {
   const { category: urlCategory } = useParams();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); // 기본값은 '전체'
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 8; // 페이지당 8개 항목
+  const pageNumbersToShow = 5;
+
+  // 카테고리 배열만 유지
+  const categories = [
+    "행정",
+    "개인회생, 파산 및 면책",
+    "민사집행",
+    "민사일반",
+    "민사소송",
+    "상사",
+    "상가임대차",
+    "헌법",
+    "계약",
+    "형법",
+    "형사소송",
+    "손해배상",
+    "친족",
+    "기타",
+    "가사소송",
+    "가족관계등록",
+    "주택임대차",
+    "노동",
+    "채권",
+    "보전처분",
+    "물권",
+    "상속",
+  ];
 
   // 임시 데이터를 consultationData의 값들로 변경
   const [consultations] = useState(Object.values(consultationData));
 
-  const categoryMapping = {
-    all: "전체",
-    administration: "행정",
-    bankruptcy: "개인회생, 파산 및 면책",
-    "civil execution": "민사집행",
-    "civil general": "민사일반",
-    "civil suit": "민사소송",
-    commercial: "상사",
-    "commercial building lease": "상가임대차",
-    constitution: "헌법",
-    contract: "계약",
-    "criminal law": "형법",
-    "criminal suit": "형사소송",
-    damage: "손해배상",
-    "domestic relation": "친족",
-    etc: "기타",
-    family_lawsuit: "가사소송",
-    "family relation registration": "가족관계등록",
-    "housing lease": "주택임대차",
-    labor: "노동",
-    obligation: "채권",
-    "preservative measure": "보전처분",
-    "real right": "물권",
-    succession: "상속",
+  const {
+    data: searchResults = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["consultations", searchQuery],
+    queryFn: () => {
+      if (searchQuery.trim()) {
+        return fetchConsultations(searchQuery);
+      }
+      return [];
+    },
+    enabled: false,
+  });
+
+  const {
+    data: categoryResults = [],
+    isLoading: isCategoryLoading,
+    refetch: refetchCategory,
+    onSuccess: categorySuccess,
+    onError: categoryError,
+  } = useQuery({
+    queryKey: ["consultationCategory", selectedCategory],
+    queryFn: () => fetchConsultationsByCategory(selectedCategory),
+    enabled: selectedCategory !== "all",
+    onSuccess: (data) => {
+      console.log("Query success, data:", data); // 쿼리 성공시 데이터 확인
+    },
+    onError: (error) => {
+      console.error("Query error:", error); // 쿼리 에러 확인
+    },
+  });
+
+  // 현재 표시할 결과 데이터 결정
+  const currentResults = useMemo(() => {
+    console.log("selectedCategory:", selectedCategory); // 선택된 카테고리 확인
+    console.log("categoryResults:", categoryResults); // 카테고리 결과 확인
+    if (selectedCategory === "all") {
+      return searchQuery.trim() ? searchResults : categoryResults;
+    }
+    return categoryResults;
+  }, [selectedCategory, searchQuery, searchResults, categoryResults]);
+
+  // 총 개수 계산
+  const totalCount = currentResults?.length || 0;
+
+  const handleSearch = () => {
+    setSelectedCategory("all");
+    if (searchQuery.trim()) {
+      refetch();
+    }
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // 검색 로직 구현
-    console.log("Searching for:", searchTerm);
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
   };
 
-  const handleCategorySelect = (id) => {
-    setSelectedCategory(id);
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
   };
+
+  const handleCategorySelect = (category) => {
+    setSearchQuery("");
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  // 페이지네이션 관련 함수들
+  const getTotalPages = () => {
+    return Math.ceil((currentResults?.length || 0) / itemsPerPage);
+  };
+
+  const getPageRange = (totalPages) => {
+    let start = Math.max(1, currentPage - Math.floor(pageNumbersToShow / 2));
+    let end = start + pageNumbersToShow - 1;
+
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - pageNumbersToShow + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  };
+
+  const getCurrentItems = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return currentResults.slice(startIndex, endIndex);
+  };
+
+  const totalPages = getTotalPages();
+  const pageNumbers = getPageRange(totalPages);
+  const currentItems = getCurrentItems();
 
   // 선택된 카테고리에 따라 데이터 필터링
   const filteredConsultations =
@@ -70,6 +172,9 @@ const Consultation = () => {
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
                          focus:outline-none focus:ring-2 focus:ring-sage focus:border-sage
                          transition-all duration-200 bg-gray-50/50 hover:bg-white"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onKeyDown={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
@@ -91,62 +196,169 @@ const Consultation = () => {
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 px-5 py-2 
                                text-sm text-white bg-Main hover:bg-Main_hover 
                                rounded-lg transition-colors duration-200"
+                onClick={handleSearch}
               >
                 검색
               </button>
             </div>
           </div>
 
-          {/* 카테고리 */}
-          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px] justify-between">
-            {Object.entries(categoryMapping).map(([id, name]) => (
+          {/* 카테고리 필터 */}
+          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px]">
+            {categories.map((category) => (
               <button
-                key={id}
-                onClick={() => handleCategorySelect(id)}
+                key={category}
+                onClick={() => handleCategorySelect(category)}
                 className={`px-3 py-1.5 border rounded-lg transition-colors duration-200
                   min-w-[100px] text-center
                   ${
-                    selectedCategory === id
+                    selectedCategory === category
                       ? "bg-Main text-white border-Main"
                       : "border-gray-300 hover:bg-gray-50"
                   }`}
               >
-                {name}
+                {category}
               </button>
             ))}
           </div>
 
           {/* 카테고리 정보 */}
-          <div className="flex items-center gap-2  mb-4">
-            <span className="text-lg font-semibold text-black">
-              {categoryMapping[selectedCategory]}
-            </span>
-            <span className="text-sm text-gray-500">
-              (총 {filteredConsultations.length}개)
-            </span>
-          </div>
+          {selectedCategory !== "all" && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg font-semibold text-black">
+                {selectedCategory}
+              </span>
+              <span className="text-sm text-gray-500">(총 {totalCount}개)</span>
+            </div>
+          )}
 
-          {/* 상담사례 목록 */}
-          <div className="space-y-4">
-            {filteredConsultations.map((consultation) => (
-              <div
-                key={consultation.id}
-                onClick={() => handleConsultationClick(consultation.id)}
-                className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-Main transition-colors cursor-pointer"
-              >
-                <h3 className="text-lg font-medium mb-2">
-                  {consultation.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 truncate">
-                  {consultation.question}
-                </p>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{categoryMapping[consultation.category]}</span>
-                  <span>{consultation.date}</span>
+          {/* 로딩 및 결과 표시 */}
+          {isLoading || isCategoryLoading ? (
+            <div className="flex flex-col justify-center items-center h-[400px] gap-4">
+              <img
+                src={loadingGif}
+                alt="loading"
+                className="w-16 h-16 text-gray-600"
+              />
+              <p className="text-lg text-gray-600">로딩 중...</p>
+            </div>
+          ) : currentResults && currentResults.length > 0 ? (
+            <>
+              <ul className="space-y-4 w-[900px]">
+                {currentItems.map((consultation) => (
+                  <li
+                    key={consultation.id}
+                    className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
+                  >
+                    <Link
+                      to={`/consultation/detail/${consultation.id}`}
+                      className="flex justify-between"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-medium truncate mb-4">
+                          {consultation.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm mb-3 truncate">
+                          {consultation.question}
+                        </p>
+                        <div className="flex justify-between items-center text-sm text-gray-500">
+                          <span>{consultation.category}</span>
+                          <span>{consultation.date}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              {/* 페이지네이션 UI */}
+              {getTotalPages() > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded ${
+                      currentPage === 1
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <MdKeyboardDoubleArrowLeft className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded ${
+                      currentPage === 1
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <MdKeyboardArrowLeft className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex gap-1">
+                    {pageNumbers.map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 flex items-center justify-center rounded ${
+                          currentPage === pageNum
+                            ? "bg-Main text-white"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(prev + 1, getTotalPages())
+                      )
+                    }
+                    disabled={currentPage === getTotalPages()}
+                    className={`p-2 rounded ${
+                      currentPage === getTotalPages()
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <MdKeyboardArrowRight className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage(getTotalPages())}
+                    disabled={currentPage === getTotalPages()}
+                    className={`p-2 rounded ${
+                      currentPage === getTotalPages()
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    <MdKeyboardDoubleArrowRight className="w-5 h-5" />
+                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </>
+          ) : searchQuery.trim() || selectedCategory !== "all" ? (
+            <div className="flex justify-center items-center h-[400px]">
+              <p className="text-lg text-gray-400">
+                해당하는 상담사례가 없습니다.
+              </p>
+            </div>
+          ) : (
+            <div className="flex justify-center items-center h-[400px]">
+              <p className="text-lg text-gray-400">
+                검색어를 입력하거나 카테고리를 선택해주세요.
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <div className="right-layout">{/* 빈 공간으로 남겨둠 */}</div>
