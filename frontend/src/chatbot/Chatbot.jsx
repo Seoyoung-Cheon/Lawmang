@@ -143,9 +143,9 @@ const Chatbot = () => {
                 <p
                   className={`${
                     msg.role === "user"
-                      ? "bg-blue-500 text-white"
+                      ? "bg-[#a7a28f] text-white"
                       : "bg-gray-200 text-black"
-                  } inline-block px-4 py-2 rounded-lg`}
+                  } inline-block px-4 py-2 rounded-xl`}
                 >
                   {msg.text}
                 </p>
