@@ -28,14 +28,23 @@ const Detail = () => {
           `http://localhost:8000/api/detail/precedent/${id}`
         );
 
-        console.log("API Response:", response.data);
-        setPrecedentDetail(response.data);
+        // HTML 타입 응답 처리
+        if (response.data.type === "html") {
+          setPrecedentDetail({
+            type: "html",
+            content: response.data.content
+          });
+        } else {
+          // JSON 응답 처리
+          setPrecedentDetail(response.data);
+        }
       } catch (error) {
         console.error("판례 상세 정보를 가져오는데 실패했습니다:", error);
         if (error.response) {
           console.error("Error response:", error.response.data);
           console.error("Error status:", error.response.status);
         }
+        setError("판례 정보를 불러오는데 실패했습니다.");
       } finally {
         setIsLoading(false);
       }
@@ -100,6 +109,26 @@ const Detail = () => {
       </div>
     );
   }
+
+  // HTML 컨텐츠일 경우 다른 레이아웃 사용
+if (precedentDetail?.type === "html") {
+  return (
+    <div className="container">
+      <div className="left-layout">
+        <div className="px-0 pt-32 pb-10">
+          <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
+            <div className="h-[750px] overflow-hidden bg-white">
+              <div 
+                dangerouslySetInnerHTML={{ __html: precedentDetail.content }}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="container">
