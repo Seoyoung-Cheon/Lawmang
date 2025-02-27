@@ -6,8 +6,6 @@ psycopg2-binary
 watchfiles
 langchain
 openai
-python-multipart
-PyMuPDF
 python-dotenv
 passlib[bcrypt]
 python-jose[cryptography]
