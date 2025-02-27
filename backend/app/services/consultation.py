@@ -43,8 +43,7 @@ def search_consultations_by_category(category: str):
     SELECT id, category, sub_category, title, question, answer
     FROM legal_consultation
     WHERE category ILIKE :category
-    ORDER BY sub_category
-    LIMIT 100;
+    ORDER BY sub_category;
     """
     params = {"category": f"%{category}%"}
     results = execute_sql(query, params)
