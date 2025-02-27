@@ -242,3 +242,25 @@ async def verify_current_password(
             detail="Invalid password"
         )
     return {"message": "Password verified"}
+
+
+@router.delete("/withdraw", response_model=dict)
+async def withdraw_user(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        # 현재 사용자 조회
+        user = db.query(User).filter(User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다")
+        
+        # 사용자 삭제
+        db.delete(user)
+        db.commit()
+        
+        return {"message": "회원 탈퇴가 완료되었습니다"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="회원 탈퇴 처리 중 오류가 발생했습니다")
