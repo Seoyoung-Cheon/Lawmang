@@ -1,0 +1,29 @@
+# ✅ CrewAI 관련 패키지
+
+
+# ✅ 환경 변수 로드 관련
+python-dotenv
+dotenv
+numpy
+
+# ✅ LangChain 및 벡터 DB 관련
+langchain-huggingface
+langchain-core
+langchain
+langchain-community
+faiss-cpu
+jsonpatch
+# ✅ NLP 및 모델 관련
+torch
+transformers
+pandas
+
+sentence-transformers
+safetensors
+
+# torch==2.5.1+cu121
+torchvision
+torchaudio
+
+# ✅ 추가 최적화 패키지
+accelerate

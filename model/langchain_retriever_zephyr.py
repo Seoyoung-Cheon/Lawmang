@@ -9,7 +9,7 @@ load_dotenv()
 
 # ✅ LLM 모델 설정 (DeepSeek 적용)
 HF_TOKEN = os.environ.get("HF_TOKEN")
-HUGGINGFACE_REPO_ID = "meta-llama/Llama-3.3-70B-Instruct"
+HUGGINGFACE_REPO_ID = "HuggingFaceH4/zephyr-7b-beta"
 
 
 def load_llm():
@@ -58,7 +58,6 @@ The user's question is:
 
 Relevant case summary:
 {summary}
-
 
 Now, provide your answer in fluent Korean:
 """,

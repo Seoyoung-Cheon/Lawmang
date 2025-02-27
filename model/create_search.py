@@ -37,11 +37,14 @@ def load_faiss():
         print(f"❌ [FAISS 로드 오류] {e}")
         return None
 
+
 langchain_retriever = LangChainRetrieval()
 
 
 # ✅ BART 판례 요약 모델 로드
 MODEL_PATH = "./model/1.판례요약모델/checkpoint-26606"
+
+
 def load_bart():
     """KoBART 모델 로드"""
     try:
@@ -54,15 +57,15 @@ def load_bart():
         tokenizer = get_kobart_tokenizer()
         tokenizer.pad_token_id = tokenizer.eos_token_id
         tokenizer.model_max_length = 1024
-        
+
         # ✅ `model.safetensors`에서 가중치 로드
         state_dict = load_file(os.path.join(MODEL_PATH, "model.safetensors"))
 
         # ✅ 모델 가중치 적용
         model.load_state_dict(state_dict, strict=False)
         # 주의사항 누락된 키가 존재 하지만 모델에 직접적인 성능을 주지 않기에 무시
-        # 오히려 성능이 좋아짐 
-            
+        # 오히려 성능이 좋아짐
+
         # ✅ 모델 평가 모드 전환
         model.eval()
         print("✅ KoBART 모델 로드 성공")
@@ -71,6 +74,7 @@ def load_bart():
     except Exception as e:
         print(f"❌ [KoBART 로드 오류] {e}")
         return None, None
+
 
 def summarize_case(text, tokenizer, model):
     """판례 요약: 입력 텍스트가 충분히 길어야 요약을 수행하도록 함"""
@@ -113,7 +117,7 @@ def summarize_case(text, tokenizer, model):
             no_repeat_ngram_size=3,
             repetition_penalty=1.8,
             length_penalty=1,
-        )    # 모델 2 (속도 + 정확) 사용 
+        )  # 모델 2 (속도 + 정확) 사용
         # summary_ids = model.generate(
         #     input_ids,
         #     max_length=150,  # ✅ 응답 속도를 높이기 위해 짧게 설정 (200 → 150)
@@ -123,8 +127,7 @@ def summarize_case(text, tokenizer, model):
         #     no_repeat_ngram_size=3,
         #     repetition_penalty=1.5,  # ✅ 반복 최소화 (2.0 → 1.5)
         #     length_penalty=0.8,  # ✅ 더 짧은 요약 생성 (1.0 → 0.8)
-        # ) # 모델 3 속도만 빠르고 부정확 
-        
+        # ) # 모델 3 속도만 빠르고 부정확
         print(f"🔎 [DEBUG] summary_ids: {summary_ids}")
 
         decoded = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
@@ -192,15 +195,15 @@ def predict_judgment(text, tokenizer, model):
         #     max_length=512,
         #     truncation=True,
         #     padding="max_length",
-        # ) # 기본설정 
+        # ) # 기본설정
         inputs = tokenizer(
             text,
             return_tensors="pt",
             max_length=300,  # ✅ 불필요한 연산 줄이기 위해 300으로 설정
             truncation=True,
             padding="longest",  # ✅ 불필요한 패딩 최소화
-        ) # 2차 조정 
-        
+        )  # 2차 조정
+
         inputs["attention_mask"] = torch.ones_like(inputs["input_ids"])
 
         with torch.no_grad():
@@ -208,13 +211,13 @@ def predict_judgment(text, tokenizer, model):
             print(f"🔎 [DEBUG] BERT logits: {logits}")
             probabilities = torch.nn.functional.softmax(logits, dim=1)
 
-
         return probabilities.tolist()
 
     except Exception as e:
         print(f"❌ [판결 예측 오류] {e}")
         return "❌ 예측 실패"
-    
+
+
 @lru_cache(maxsize=1000)
 def get_bart_model():
     return load_bart()
@@ -228,19 +231,15 @@ def get_bert_model():
 def main():
     print("✅ [시작] 법률 AI 실행")
 
-    ##FAISS, BART, BERT 로드
+    ## FAISS, BART, BERT 로드
     db = load_faiss()
-    summarizer_tokenizer, summarizer_model = load_bart()
+    summarizer_tokenizer, summarizer_model = get_bart_model()
     load_bert()
 
     while True:
         user_query = input("\n❓ 질문을 입력하세요 (종료: exit): ")
         if user_query.lower() == "exit":
             break
-
-        # if bool(re.search(r"[A-Za-z]", user_query)):
-        #     print("❌ 영어 입력은 허용되지 않습니다. 한글로 입력해주세요.")
-        #     continue
 
         response = "법률 정보를 찾을 수 없습니다."
         retrieved_text = ""
@@ -258,22 +257,15 @@ def main():
             summary = summarize_case(
                 retrieved_text, summarizer_tokenizer, summarizer_model
             )
-        # ✅ LangChain을 활용한 최종 답변 생성
-        final_answer = langchain_retriever.generate_legal_answer(
-            user_query, summary
-        )
+
+        # ✅ LangChain을 활용한 최종 답변 생성 (DeepSeek 적용)
+        final_answer = langchain_retriever.generate_legal_answer(user_query, summary)
 
         # ✅ 최종 출력
         print("\n📌 기본 검색 답변:", response)
         print("📌 판례 요약:", summary)
         print("\n🤖 LLM 최종 답변:", final_answer)
 
+
 if __name__ == "__main__":
     main()
-
-
-# 데이터 뽑고 넣어서 다시 측정 
-# 지금 상황 : 기본 답변이 상당히 많이 답변하고 반응에 5~6초 정도 걸림 
-#  LLM 비활성화 , faiss 검색 -> bart/bert -> 입력 
-
-# 그래서 어캐됨? faiss 에서 검색해서 유사한것을 답해서 영어 출력 문제를 해결했지만 예외처리가 필요 

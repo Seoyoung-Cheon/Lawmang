@@ -2,26 +2,28 @@
 .env
 
 # 모델 관련 파일
-model/
+/model/
 *.safetensors
 *.onnx
 *.pth
 *.bin
 
 # 캐시 및 임시 파일
-.cache/
+/.cache/
 __pycache__/
 *.log
 *.out
 *.tmp
 
 # FAISS 벡터 저장소
-vectorstore/
+/vectorstore/
 
 # IDE 및 OS 관련 파일
-.vscode/
+/vscode/
 *.swp
 .DS_Store
 Thumbs.db
 
 # Python 가상환경
+venv/
+*.venv/

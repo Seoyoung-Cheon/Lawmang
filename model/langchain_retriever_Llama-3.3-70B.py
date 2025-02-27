@@ -59,7 +59,6 @@ The user's question is:
 Relevant case summary:
 {summary}
 
-
 Now, provide your answer in fluent Korean:
 """,
             input_variables=["chat_history", "user_query", "summary"],

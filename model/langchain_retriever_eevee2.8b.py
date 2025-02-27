@@ -9,7 +9,7 @@ load_dotenv()
 
 # ✅ LLM 모델 설정 (DeepSeek 적용)
 HF_TOKEN = os.environ.get("HF_TOKEN")
-HUGGINGFACE_REPO_ID = "meta-llama/Llama-3.3-70B-Instruct"
+HUGGINGFACE_REPO_ID = "yanolja/EEVE-Korean-Instruct-2.8B-v1.0"
 
 
 def load_llm():
@@ -23,7 +23,7 @@ def load_llm():
             top_p=0.9,  # ✅ 다양한 출력 유도
             repetition_penalty=1.2,  # ✅ 반복 방지 추가
             model_kwargs={
-                "max_length": 256,  # ✅ 출력 길이 늘리기 (기존 150 → 256)   // (입력 토큰 + 출력 토큰)값
+                "max_length": 256,  # ✅ 출력 길이 늘리기 (기존 150 → 256)   // (입력 토큰 + 출력 토큰)값 
                 "num_beams": 3,  # ✅ 탐색 다양성 증가 (기존 2 → 3)
             },
             huggingfacehub_api_token=HF_TOKEN,
@@ -58,7 +58,6 @@ The user's question is:
 
 Relevant case summary:
 {summary}
-
 
 Now, provide your answer in fluent Korean:
 """,
