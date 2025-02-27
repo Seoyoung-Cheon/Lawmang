@@ -14,7 +14,7 @@ from typing import Any
 router = APIRouter()
 
 # ✅ 이메일 인증 코드 발송 API (PostgreSQL 저장)
-@router.post("/auth/send-code")
+@router.post("/send-code")
 def send_verification_code(payload: dict = Body(...), db: Session = Depends(get_db)):
     email = payload.get("email")
 
@@ -40,7 +40,7 @@ def send_verification_code(payload: dict = Body(...), db: Session = Depends(get_
 
 
 # ✅ 회원가입 API (이메일 인증 코드 포함, PostgreSQL 사용)
-@router.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """회원가입 API (이메일 인증 코드 포함)"""
     
@@ -61,7 +61,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 # ✅ 로그인 API (JWT 토큰 반환)
-@router.post("/auth/login")
+@router.post("/login")
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if not existing_user:
@@ -95,7 +95,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
 
 
 # ✅ 현재 로그인한 사용자의 이메일로 DB에서 사용자 정보 조회
-@router.get("/auth/me")
+@router.get("/me")
 def read_users_me(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == current_user["sub"]).first()
     if not user:
@@ -110,14 +110,14 @@ def read_users_me(current_user: dict = Depends(get_current_user), db: Session = 
 
 
 # ✅ 로그아웃 API 추가 (JWT 토큰 무효화)
-@router.post("/auth/logout")
+@router.post("/logout")
 def logout_user(response: Response, current_user: dict = Depends(get_current_user)):
     response.delete_cookie(key="access_token")  # ✅ 쿠키에서 JWT 삭제
     return {"message": "로그아웃 성공"}
 
 
 # ✅ 이메일 인증 코드 확인 엔드포인트 (PostgreSQL 사용)
-@router.post("/auth/verify-email")
+@router.post("/verify-email")
 def verify_email(payload: dict = Body(...), db: Session = Depends(get_db)):
     """이메일 인증 코드 검증 (PostgreSQL 사용)"""
     email = payload.get("email")
@@ -189,7 +189,7 @@ def reset_password(payload: dict = Body(...), db: Session = Depends(get_db)):
 
 
 # ✅ 회원정보 수정 엔드포인트 추가
-@router.put("/auth/update")
+@router.put("/update")
 def update_user(
     payload: dict = Body(...), 
     current_user: dict = Depends(get_current_user),
@@ -218,7 +218,7 @@ def update_user(
 
 
 # ✅ 닉네임 중복 확인 API 추가
-@router.get("/auth/check-nickname")
+@router.get("/check-nickname")
 def check_nickname(nickname: str, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.nickname == nickname).first()
     if existing_user:
@@ -226,7 +226,7 @@ def check_nickname(nickname: str, db: Session = Depends(get_db)):
     return {"message": "사용 가능한 닉네임입니다."}
 
 
-@router.post("/auth/verify-password")
+@router.post("/verify-password")
 async def verify_current_password(
     payload: dict = Body(...),
     current_user: User = Depends(get_current_user),
