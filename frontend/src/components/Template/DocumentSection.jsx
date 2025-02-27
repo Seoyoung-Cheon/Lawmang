@@ -5,11 +5,12 @@ import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
 } from "react-icons/md";
+import PreviewModal from './PreviewModal';
 
 const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewUrl, setPreviewUrl] = useState(null); // ✅ 미리보기 URL 상태 추가
-  const [selectedFile, setSelectedFile] = useState(null); // ✅ 선택된 파일명 상태 추가
+  const [previewData, setPreviewData] = useState(null); // 미리보기 데이터 상태 추가
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false); // 모달 상태 추가
   const itemsPerPage = 10;
   const pageNumbersToShow = 5;
 
@@ -49,45 +50,24 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
   // 미리보기 핸들러 수정
   const handlePreview = async (category, file) => {
     try {
-      // 확장자가 .hwp인 경우 .pdf로 변경
       let formattedFile = file.endsWith(".hwp")
         ? file.replace(".hwp", ".pdf")
         : file;
-
-      // 파일명과 카테고리에 한글이 포함되어 있으므로 인코딩 처리
+  
       const encodedCategory = encodeURIComponent(category);
       const encodedFile = encodeURIComponent(formattedFile);
-
-      // URL 객체를 사용하여 경로 생성
       const pdfUrl = `/template_pdfs/${encodedCategory}/${encodedFile}`;
-
-      console.log(pdfUrl);
-
-      // 파일 존재 여부 확인
-      try {
-        const checkResponse = await fetch(pdfUrl, {
-          method: "HEAD",
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        });
-
-        if (!checkResponse.ok) {
-          throw new Error(
-            `PDF 파일을 찾을 수 없습니다. (${checkResponse.status})`
-          );
-        }
-
-        // 파일이 존재하면 미리보기 URL 설정
-        setSelectedFile(formattedFile);
-        setPreviewUrl(pdfUrl);
-      } catch (error) {
-        console.error("PDF 로드 실패:", error);
-        alert(
-          "미리보기를 불러올 수 없습니다. 파일이 존재하지 않거나 접근할 수 없습니다."
-        );
-      }
+  
+      console.log('미리보기 URL:', pdfUrl);
+  
+      // 바로 미리보기 데이터 설정 및 모달 열기
+      setPreviewData({
+        url: pdfUrl,
+        fileName: formattedFile,
+        category: category
+      });
+      setIsPreviewOpen(true);
+  
     } catch (error) {
       console.error("미리보기 오류:", error);
       alert("미리보기 처리 중 오류가 발생했습니다.");
@@ -196,35 +176,18 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
           ))}
         </div>
 
-        {/* 🔹 PDF 미리보기 영역 */}
-        {previewUrl && (
-          <div className="mt-4 border rounded-lg shadow-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">
-                📄 {selectedFile} 미리보기
-              </h3>
-              <button
-                onClick={() => setPreviewUrl(null)}
-                className="px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-              >
-                닫기
-              </button>
-            </div>
-            <iframe
-              src={previewUrl}
-              width="100%"
-              height="600px"
-              title="PDF 미리보기"
-              className="border rounded-lg"
-              style={{ backgroundColor: "#f5f5f5" }}
-              onError={(e) => {
-                console.error("iframe 로딩 오류:", e);
-                alert("PDF 파일을 표시하는 중 오류가 발생했습니다.");
-              }}
-            />
-          </div>
-        )}
-
+        {/* PreviewModal 컴포넌트 추가 */}
+        {isPreviewOpen && (
+          <PreviewModal
+            file={previewData.fileName}  // 파일명
+            previewUrl={previewData.url} // PDF 미리보기 URL
+            onClose={() => {
+            setIsPreviewOpen(false);
+            setPreviewData(null);
+            }}
+          />
+        )}  
+              
         {/* 페이지네이션 UI */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-6">
