@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Auth/AuthContext";
 import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
+import DeleteConfirmPopup from "./DeleteConfirmPopup";
+import MemoDetailPopup from "./MemoDetailPopup";
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -10,6 +12,10 @@ const Mypage = () => {
   const [memos, setMemos] = useState([]); // 빈 배열로 시작
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState(null);
+  const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+  const [memoToDelete, setMemoToDelete] = useState(null);
+  const [selectedMemo, setSelectedMemo] = useState(null);
+  const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
 
   // 새 메모 추가
   const handleAddMemo = () => {
@@ -54,10 +60,27 @@ const Mypage = () => {
   };
 
   // 메모 삭제
-  const handleDeleteMemo = (memoId) => {
-    if (window.confirm("메모를 삭제하시겠습니까?")) {
-      setMemos(memos.filter((memo) => memo.id !== memoId));
-    }
+  const handleDeleteClick = (memo) => {
+    setMemoToDelete(memo);
+    setIsDeletePopupOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setMemos(memos.filter((memo) => memo.id !== memoToDelete.id));
+    setIsDeletePopupOpen(false);
+    setMemoToDelete(null);
+  };
+
+  // 메모 클릭 핸들러
+  const handleMemoClick = (memo) => {
+    setSelectedMemo(memo);
+    setIsDetailPopupOpen(true);
+  };
+
+  // 상세보기에서 수정 버튼 클릭 시
+  const handleDetailEdit = () => {
+    setIsDetailPopupOpen(false);
+    handleEditClick(selectedMemo);
   };
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
@@ -78,8 +101,8 @@ const Mypage = () => {
           <div className="px-0 pt-[120px] pb-10">
             {/* 메모장 섹션 */}
             <div className="mb-8">
-              <div className="border border-gray-300 rounded-lg bg-[#efeeed] overflow-hidden">
-                <div className="border-b border-gray-300 p-2 flex justify-between items-center bg-[#87857d]">
+              <div className="border border-gray-300 rounded-lg  overflow-hidden bg-[#f5f4f2]">
+                <div className="border-b border-gray-300 p-2 flex justify-between items-center bg-[#a7a28f]">
                   <h2 className="font-medium flex-1 text-center text-white">
                     메모장
                   </h2>
@@ -101,7 +124,8 @@ const Mypage = () => {
                       memos.map((memo) => (
                         <div
                           key={memo.id}
-                          className="group relative bg-[#f6e491] border-b-4 border-r-4 border-gray-300 rounded-sm h-[150px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md"
+                          onClick={() => handleMemoClick(memo)}
+                          className="group relative bg-[#f3d984] border-b-4 border-r-4 border-gray-200 rounded-sm h-[150px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer"
                           style={{
                             boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
                           }}
@@ -123,15 +147,21 @@ const Mypage = () => {
                             {/* 버튼 그룹 */}
                             <div className="opacity-0 group-hover:opacity-100 absolute bottom-2 right-2 flex items-center gap-2">
                               <button
-                                onClick={() => handleEditClick(memo)}
-                                className="p-1 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#fffaf0] transition-all duration-200 flex items-center gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // 이벤트 전파 중지
+                                  handleEditClick(memo);
+                                }}
+                                className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
                               >
                                 <span className="text-sm">수정하기</span>
                                 <FiEdit2 size={14} />
                               </button>
                               <button
-                                onClick={() => handleDeleteMemo(memo.id)}
-                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-red-100 transition-all duration-200"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // 이벤트 전파 중지
+                                  handleDeleteClick(memo);
+                                }}
+                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-all duration-200"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -159,8 +189,8 @@ const Mypage = () => {
 
             {/* 열람목록 섹션 */}
             <div>
-              <div className="border border-gray-300 rounded-lg bg-[#efeeed] overflow-hidden">
-                <div className="border-b border-gray-300 p-2 bg-[#87857d] text-white">
+              <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">
+                <div className="border-b border-gray-300 p-2 bg-[#a7a28f] text-white">
                   <h2 className="text-center font-medium">열람목록</h2>
                 </div>
                 <div className="h-[250px] p-4 overflow-y-auto">
@@ -189,6 +219,23 @@ const Mypage = () => {
           onSave={handleSaveMemo}
           initialTitle={editingMemo?.title || ""}
           initialContent={editingMemo?.content || ""}
+        />
+        <DeleteConfirmPopup
+          isOpen={isDeletePopupOpen}
+          onClose={() => {
+            setIsDeletePopupOpen(false);
+            setMemoToDelete(null);
+          }}
+          onConfirm={handleDeleteConfirm}
+        />
+        <MemoDetailPopup
+          isOpen={isDetailPopupOpen}
+          memo={selectedMemo}
+          onClose={() => {
+            setIsDetailPopupOpen(false);
+            setSelectedMemo(null);
+          }}
+          onEdit={handleDetailEdit}
         />
       </div>
     </div>
