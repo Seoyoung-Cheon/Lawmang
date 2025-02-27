@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetCurrentUserQuery, useUpdateUserMutation, useCheckNicknameQuery, useVerifyCurrentPasswordMutation } from "../../redux/slices/authApi";
+import { useGetCurrentUserQuery, useUpdateUserMutation, useCheckNicknameQuery, useVerifyCurrentPasswordMutation, useDeleteUserMutation } from "../../redux/slices/authApi";
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { CiUser } from "react-icons/ci";
@@ -42,6 +42,8 @@ const Modify = () => {
   const [verifyCurrentPassword] = useVerifyCurrentPasswordMutation();
 
   const dispatch = useDispatch();
+
+  const [deleteUser] = useDeleteUserMutation();
 
   useEffect(() => {
     if (user) {
@@ -194,6 +196,26 @@ const Modify = () => {
       alert(err.data?.detail || "회원정보 수정 실패");
     }
   };
+
+  // 회원탈퇴 핸들러 추가
+  const handleWithdraw = async () => {
+    const confirmed = window.confirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
+    
+    if (confirmed) {
+      try {
+        await deleteUser().unwrap();
+        alert("회원탈퇴가 완료되었습니다.");
+        
+        // ✅ 탈퇴 후 홈 화면으로 리디렉트
+        navigate("/");
+  
+      } catch (err) {
+        console.error("회원탈퇴 실패:", err);
+        alert(err.data?.detail || "회원탈퇴 처리 중 오류가 발생했습니다.");
+      }
+    }
+  };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
@@ -354,14 +376,26 @@ const Modify = () => {
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={isUpdating}
-            className="w-full bg-Main text-white py-5 rounded-md hover:bg-Main_hover transition-colors text-lg"
-          >
-            {isUpdating ? "수정 중..." : "회원정보 수정하기"}
-          </button>
+          <div className="flex justify-between gap-4">
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="w-full bg-Main text-white py-5 rounded-md hover:bg-Main_hover transition-colors text-lg"
+            >
+              {isUpdating ? "수정 중..." : "회원정보 수정하기"}
+            </button>
+          </div>
         </form>
+        
+        {/* 회원탈퇴 버튼 추가 */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={handleWithdraw}
+            className="text-red-500 hover:text-red-700 text-sm underline"
+          >
+            회원탈퇴
+          </button>
+        </div>
       </div>
     </div>
   );

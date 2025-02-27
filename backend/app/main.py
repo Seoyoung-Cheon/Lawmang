@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
-from .routes import auth, check, detail, search
-from app.core.database import init_db
+from app.routes import auth, check, detail, search, mylog
+from app.core.database import init_db, Base, engine
 import os
 
 # ✅ FastAPI 애플리케이션 생성 (기본 응답을 ORJSONResponse로 설정)
@@ -23,6 +23,7 @@ app.include_router(check.router, prefix="/api/check", tags=["check"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(detail.router, prefix="/api/detail", tags=["detail"])
+app.include_router(mylog.router, prefix="/api/mylog", tags=["mylog"])
 
 # 기본 엔드포인트 (테스트용)
 @app.get("/")
@@ -33,6 +34,7 @@ def read_root():
 @app.on_event("startup")
 def on_startup():
     init_db()
+    Base.metadata.create_all(bind=engine)
     
 # ✅ 공통 예외 처리 (404 & 500 에러 핸들러)
 @app.exception_handler(404)

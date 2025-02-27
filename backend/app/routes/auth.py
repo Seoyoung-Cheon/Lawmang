@@ -10,6 +10,7 @@ from app.services.user_service import (
 from app.core.dependencies import get_current_user
 import re
 from typing import Any
+from app.models.mylog import UserActivityLog
 
 router = APIRouter()
 
@@ -242,3 +243,32 @@ async def verify_current_password(
             detail="Invalid password"
         )
     return {"message": "Password verified"}
+
+
+# ✅ 회원탈퇴 API
+@router.delete("/withdraw", status_code=status.HTTP_200_OK)
+async def withdraw_user(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        user = db.query(User).filter(User.email == current_user["sub"]).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="사용자를 찾을 수 없습니다."
+            )
+        
+        # 사용자 삭제
+        db.delete(user)
+        db.commit()
+        
+        return {"message": "회원탈퇴가 완료되었습니다."}
+        
+    except Exception as e:
+        db.rollback()
+        print(f"회원탈퇴 처리 중 오류 발생: {str(e)}")  # 디버깅을 위한 로그 추가
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="회원탈퇴 처리 중 오류가 발생했습니다."
+        )
