@@ -21,7 +21,7 @@ app.add_middleware(
 # app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(check.router, prefix="/api/check", tags=["check"])    
 app.include_router(search.router, prefix="/api/search", tags=["search"])
-app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(detail.router, prefix="/api/detail", tags=["detail"])
 
 # 기본 엔드포인트 (테스트용)
