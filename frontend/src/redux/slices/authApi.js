@@ -1,4 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { logout } from "../slices/authSlice";
+
 
 const BASE_URL = "http://localhost:8000/api"; // FastAPI 백엔드 URL
 
@@ -142,6 +144,34 @@ export const authApi = createApi({
         },
       }),
     }),
+
+    deleteUser: builder.mutation({
+      query: () => ({
+        url: '/auth/withdraw',
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }),
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          console.log('회원탈퇴 요청 시작');
+          await queryFulfilled;
+          console.log('회원탈퇴 응답 성공');
+          
+          // ✅ Redux 상태 초기화
+          dispatch(logout());
+    
+          // ✅ localStorage에서 사용자 정보 삭제
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+    
+        } catch (err) {
+          console.error('회원탈퇴 실패:', err);
+        }
+      },
+      invalidatesTags: ['User'], // ✅ User 태그 무효화 -> getCurrentUser 다시 호출
+    }),
   }),
 });
 
@@ -160,4 +190,5 @@ export const {
   useUpdateUserMutation,
   useCheckNicknameQuery,
   useVerifyCurrentPasswordMutation,
+  useDeleteUserMutation,
 } = authApi;
