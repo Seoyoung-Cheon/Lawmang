@@ -74,7 +74,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": existing_user.email})
 
     # 사용자 정보를 포함하여 반환
-    return {
+    response = JSONResponse({
         "access_token": access_token,
         "token_type": "Bearer",
         "user": {
@@ -82,7 +82,16 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
             "nickname": existing_user.nickname,
             "id": existing_user.id
         }
-    }
+    })
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,  # HTTPS에서만 전송
+        samesite='strict',
+        max_age=3600  # 1시간
+    )
+    return response
 
 
 # ✅ 현재 로그인한 사용자의 이메일로 DB에서 사용자 정보 조회

@@ -4,7 +4,17 @@ const BASE_URL = "http://localhost:8000/api"; // FastAPI 백엔드 URL
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: BASE_URL,
+    credentials: 'include',  // 쿠키 포함
+    prepareHeaders: (headers) => {
+      const token = document.cookie.match(/access_token=(.*?)(;|$)/)?.[1];
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
   tagTypes: ['User'], // 캐시 태그 추가
   endpoints: (builder) => ({
     // ✅ 이메일 인증 코드 요청 API
