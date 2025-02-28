@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Auth/AuthContext";
+import { useSelector } from "react-redux";
 import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
 import DeleteConfirmPopup from "./DeleteConfirmPopup";
 import MemoDetailPopup from "./MemoDetailPopup";
+import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 const Mypage = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const isAuthenticated = useSelector(selectIsAuthenticated); // Redux 인증 상태 사용
   const [memos, setMemos] = useState([]); // 빈 배열로 시작
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState(null);
@@ -85,12 +86,12 @@ const Mypage = () => {
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   React.useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       navigate("/login");
     }
-  }, [isLoggedIn, navigate]);
+  }, [!isAuthenticated, navigate]);
 
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return null;
   }
 
