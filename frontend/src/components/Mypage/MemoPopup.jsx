@@ -46,9 +46,14 @@ const MemoPopup = ({
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 45) {
+                    setTitle(e.target.value);
+                  }
+                }}
+                maxLength={45}
                 className="w-full p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg"
-                placeholder="제목을 입력하세요..."
+                placeholder="제목을 입력해주세요. (45자 이내)"
                 autoFocus
               />
             </div>
@@ -60,7 +65,7 @@ const MemoPopup = ({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full h-[450px] p-6 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg"
-                placeholder="내용을 입력하세요..."
+                placeholder="내용을 입력해주세요."
               />
             </div>
 

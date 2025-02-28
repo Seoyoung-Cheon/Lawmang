@@ -5,6 +5,7 @@ import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
 import DeleteConfirmPopup from "./DeleteConfirmPopup";
 import MemoDetailPopup from "./MemoDetailPopup";
+import { FaRegBell, FaBell } from "react-icons/fa";
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Mypage = () => {
   const [memoToDelete, setMemoToDelete] = useState(null);
   const [selectedMemo, setSelectedMemo] = useState(null);
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
+  const [notifiedMemos, setNotifiedMemos] = useState(new Set());
 
   // 새 메모 추가
   const handleAddMemo = () => {
@@ -83,6 +85,19 @@ const Mypage = () => {
     handleEditClick(selectedMemo);
   };
 
+  const handleNotificationToggle = (memoId, e) => {
+    e.stopPropagation(); // 메모 클릭 이벤트 전파 방지
+    setNotifiedMemos((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(memoId)) {
+        newSet.delete(memoId);
+      } else {
+        newSet.add(memoId);
+      }
+      return newSet;
+    });
+  };
+
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   React.useEffect(() => {
     if (!isLoggedIn) {
@@ -115,7 +130,7 @@ const Mypage = () => {
                 </div>
                 <div className="h-[400px] p-4 overflow-y-auto">
                   {/* 메모 카드 리스트 */}
-                  <div className="grid grid-cols-4 gap-6">
+                  <div className="grid grid-cols-3 gap-6">
                     {memos.length === 0 ? (
                       <div className="col-span-4 text-center text-gray-500 mt-[150px]">
                         메모가 없습니다. 새 메모를 추가해보세요!
@@ -130,6 +145,20 @@ const Mypage = () => {
                             boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
                           }}
                         >
+                          {/* 알림 아이콘 */}
+                          <button
+                            onClick={(e) =>
+                              handleNotificationToggle(memo.id, e)
+                            }
+                            className="absolute top-1 right-1 p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full transition-all duration-200"
+                          >
+                            {notifiedMemos.has(memo.id) ? (
+                              <FaBell size={16} />
+                            ) : (
+                              <FaRegBell size={16} />
+                            )}
+                          </button>
+
                           {/* 메모 핀 장식 */}
                           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6  bg-[#bd0000]  rounded-full shadow-md z-10">
                             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#9d0000] rounded-full"></div>
@@ -137,23 +166,22 @@ const Mypage = () => {
 
                           {/* 메모 내용 */}
                           <div className="h-full flex flex-col p-4 pt-5">
-                            <h3 className="font-bold text-[#5d4d40] truncate mb-2">
+                            <h3 className="font-bold text-[#5d4d40] mb-2 text-md">
                               {memo.title}
                             </h3>
-                            <div className="flex-1 text-sm text-[#5d4d40] line-clamp-3 max-h-[4.5em] overflow-hidden">
+                            <div className="flex-1 text-xs text-[#5d4d40] truncate">
                               {memo.content}
                             </div>
 
                             {/* 버튼 그룹 */}
-                            <div className="opacity-0 group-hover:opacity-100 absolute bottom-2 right-2 flex items-center gap-2">
+                            <div className="opacity-0 group-hover:opacity-100 absolute bottom-1 right-2 flex items-center gap-2">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation(); // 이벤트 전파 중지
                                   handleEditClick(memo);
                                 }}
-                                className="p-1 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
+                                className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
                               >
-                                <span className="text-sm">수정하기</span>
                                 <FiEdit2 size={14} />
                               </button>
                               <button
@@ -161,7 +189,7 @@ const Mypage = () => {
                                   e.stopPropagation(); // 이벤트 전파 중지
                                   handleDeleteClick(memo);
                                 }}
-                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-all duration-200"
+                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffb9a3] transition-all duration-200"
                               >
                                 <svg
                                   className="w-4 h-4"
