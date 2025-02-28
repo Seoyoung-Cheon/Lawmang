@@ -132,7 +132,7 @@ const Mypage = () => {
     <div className="min-h-screen w-full">
       <div className="container min-h-[100vh]">
         <div className="left-layout">
-          <div className="px-0 pt-[110px] pb-10">
+          <div className="px-0 pt-[135px] pb-10">
             {/* 메모장 섹션 */}
             <div className="mb-8">
               <div className="border border-gray-300 rounded-lg overflow-hidden bg-[#f5f4f2]">
