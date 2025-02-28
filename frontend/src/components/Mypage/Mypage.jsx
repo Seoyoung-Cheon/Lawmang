@@ -35,7 +35,7 @@ const Mypage = () => {
   // 팝업에서 메모 저장
   const handleSaveMemo = (memoData) => {
     if (editingMemo) {
-      // 기존 메모 수정
+      // 기존 메모 수정 시 수정 날짜 업데이트
       setMemos(
         memos.map((memo) =>
           memo.id === editingMemo.id
@@ -43,6 +43,7 @@ const Mypage = () => {
                 ...memo,
                 title: memoData.title,
                 content: memoData.content,
+                updatedAt: new Date().toISOString(), // 수정 날짜 업데이트
               }
             : memo
         )
@@ -55,11 +56,22 @@ const Mypage = () => {
           id: Date.now(),
           title: memoData.title,
           content: memoData.content,
+          createdAt: new Date().toISOString(), // 생성 날짜 추가
+          updatedAt: new Date().toISOString(), // 수정 날짜 추가
         },
       ]);
     }
     setIsPopupOpen(false);
     setEditingMemo(null);
+  };
+
+  // 날짜 포맷 함수
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}.${String(date.getDate()).padStart(2, "0")}`;
   };
 
   // 메모 삭제
@@ -137,11 +149,20 @@ const Mypage = () => {
                         <div
                           key={memo.id}
                           onClick={() => handleMemoClick(memo)}
-                          className="group relative bg-[#f3d984] border-b-4 border-r-4 border-gray-300 rounded-sm h-[150px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer"
+                          className={`group relative ${
+                            notifiedMemos.has(memo.id)
+                              ? "bg-[#ffb9a3]"
+                              : "bg-[#f3d984]"
+                          } border-b-4 border-r-4 border-gray-300 rounded-sm h-[170px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer`}
                           style={{
                             boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
                           }}
                         >
+                          {/* 날짜 표시 추가 */}
+                          <div className="absolute top-2 left-4 text-[13px] text-[#828282] font-thin">
+                            {formatDate(memo.updatedAt)}
+                          </div>
+
                           {/* 알림 아이콘 */}
                           <button
                             onClick={(e) =>
@@ -162,7 +183,7 @@ const Mypage = () => {
                           </div>
 
                           {/* 메모 내용 */}
-                          <div className="h-full flex flex-col p-4 pt-5">
+                          <div className="h-full flex flex-col p-4 pt-9">
                             <h3 className="font-bold text-[#5d4d40] mb-2 text-md">
                               {memo.title}
                             </h3>
@@ -179,17 +200,17 @@ const Mypage = () => {
                                 }}
                                 className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
                               >
-                                <FiEdit2 size={14} />
+                                <FiEdit2 size={16} />
                               </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation(); // 이벤트 전파 중지
                                   handleDeleteClick(memo);
                                 }}
-                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffb9a3] transition-all duration-200"
+                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffe4b8] transition-all duration-200"
                               >
                                 <svg
-                                  className="w-4 h-4"
+                                  className="w-5 h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
