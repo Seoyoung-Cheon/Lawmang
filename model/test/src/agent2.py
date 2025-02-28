@@ -7,23 +7,20 @@ from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
 from agents_system_prompts import assistant  # ✅ 기존 시스템 프롬프트 구조 유지
 
-
-
-
-# ✅ 2. 환경 변수 로드
+# ✅ 1. 환경 변수 로드
 load_dotenv()
 
-# ✅ 3. LLM 모델 설정
+# ✅ 2. LLM 모델 설정
 HF_TOKEN = os.environ.get("HF_TOKEN")
 HUGGINGFACE_REPO_ID = "meta-llama/Llama-3.3-70B-Instruct"
 
-# ✅ 4. 시스템 프롬프트 로드 (Pydantic 모델 적용)
+# ✅ 3. 시스템 프롬프트 로드 (Pydantic 모델 적용)
 assistant_instance = assistant()
 assistant_data = assistant_instance.model_dump()  # Pydantic 데이터 딕셔너리 변환
 system_prompt = f"{assistant_data['system_prompt']}\n\nRole: {assistant_data['role']}\nGoal: {assistant_data['goal']}"
 
-# ✅ 5. LangChain 메모리 (대화 기록 저장)
-memory = ConversationBufferMemory(memory_key="messages", return_messages=True)
+# ✅ 4. LangChain 메모리 (대화 기록 저장)
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 
 def load_llm():
@@ -32,12 +29,12 @@ def load_llm():
         return HuggingFaceEndpoint(
             repo_id=HUGGINGFACE_REPO_ID,
             task="text-generation",
-            max_new_tokens=125,
+            max_new_tokens=250,
             temperature=0.7,
             top_p=0.9,
             repetition_penalty=1.2,
             model_kwargs={
-                "max_length": 216,
+                "max_length": 512,
                 "num_beams": 3,
             },
             huggingfacehub_api_token=HF_TOKEN,
@@ -47,37 +44,75 @@ def load_llm():
         return None
 
 
-# ✅ 6. LLM 로드
+# ✅ 5. LLM 로드
 llm = load_llm()
 
+# ✅ 6. LangChain 프롬프트 템플릿 추가
+prompt_template = PromptTemplate(
+    input_variables=["system_prompt","chat_history", "user_query"],
+    template="""
+    {system_prompt}
+    
+    지금까지의 대화 기록은 다음과 같습니다:
+    {chat_history}
+    
+    사용자의 새로운 질문: {user_query}
 
-async def process_query(query: str, conversation_history: list):
-    """사용자 입력을 받아 LLM을 실행하고, 즉시 질문을 출력"""
+    이 정보를 기반으로 자연스럽고 일관된 답변을 제공하세요.
+    """,
+)
+
+
+async def process_query(query: str):
+    """사용자 입력을 받아 LLM을 실행하고, 같은 질문을 반복하지 않도록 개선"""
     if llm is None:
         return "❌ LLM을 로드할 수 없습니다."
 
     # ✅ 기존 대화 히스토리를 포함한 입력 메시지 생성
-    messages = memory.load_memory_variables({}).get("messages", [])
+    chat_history = memory.load_memory_variables({}).get("chat_history", [])
 
-    # ✅ 시스템 프롬프트를 첫 번째 메시지로 추가 (초기화 시)
-    if not messages:
-        messages.append(HumanMessage(content=system_prompt))
+    # ✅ 자료형 검사 및 변환
+    if not isinstance(chat_history, list):
+        print(f"⚠️ [ERROR] chat_history 자료형 오류: {type(chat_history)}")
+        chat_history = []
 
-    # ✅ 사용자의 현재 질문 추가
-    messages.append(HumanMessage(content=query))
+    # ✅ 히스토리를 요약하여 같은 대화 반복을 방지
+    if len(chat_history) > 3:
+        summary = f"지난 대화 요약: {str(chat_history[-3:])}"
+    else:
+        summary = "이전 대화 없음."
 
-    # ✅ 메시지를 문자열로 변환하여 LLM에 전달
-    llm_input = "\n".join(
-        [msg.content for msg in messages if isinstance(msg, HumanMessage)]
+    # ✅ 디버깅 로그 추가
+    print(f"🔍 [DEBUG] chat_history type: {type(chat_history)}, value: {chat_history}")
+    print(f"🔍 [DEBUG] summary type: {type(summary)}, value: {summary}")
+
+    # ✅ 시스템 프롬프트와 대화 내역을 포함한 LLM 입력 구성
+    try:
+        formatted_prompt = prompt_template.format(
+            system_prompt=system_prompt, chat_history=summary, user_query=query
+        )
+    except Exception as e:
+        print(f"❌ [DEBUG] 프롬프트 생성 오류: {e}")
+        return f"❌ [프롬프트 생성 오류] {e}"
+
+    # ✅ 디버깅 로그 추가
+    print(
+        f"🔍 [DEBUG] formatted_prompt type: {type(formatted_prompt)}, value: {formatted_prompt}"
     )
 
     # ✅ 예외처리: 빈 입력 방지
-    if not llm_input.strip():
-        return "❌ 유효한 입력이 없습니다."
+    if not formatted_prompt.strip():
+        return "❌ 유효한 프롬프트 생성 실패 (입력이 없습니다.)"
 
     try:
-        # ✅ LLM 실행 (문자열 입력)
-        response = await llm.ainvoke(llm_input)
+        # ✅ 최신 Hugging Face API 호출 방식 적용 (inputs 추가)
+        response = await llm.ainvoke([HumanMessage(content=formatted_prompt)])
+
+        # ✅ 디버깅 로그 추가
+        print(f"🔍 [DEBUG] LLM response type: {type(response)}, value: {response}")
+
+        # ✅ LLM 응답을 메모리에 저장 (반복 방지)
+        memory.save_context({"chat_history": formatted_prompt}, {"response": response})
 
         # ✅ **LLM 응답을 그대로 반환**
         return response
@@ -97,5 +132,5 @@ if __name__ == "__main__":
             break
 
         # ✅ 질문을 넣으면 바로 응답 출력
-        answer = asyncio.run(process_query(user_input, []))
+        answer = asyncio.run(process_query(user_input))
         print(f"🤖 AI: {answer}")
