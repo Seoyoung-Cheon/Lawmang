@@ -5,11 +5,8 @@ import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
 import DeleteConfirmPopup from "./DeleteConfirmPopup";
 import MemoDetailPopup from "./MemoDetailPopup";
-<<<<<<< HEAD
 import { FaRegBell, FaBell } from "react-icons/fa";
-=======
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
->>>>>>> 2103a82efb1b458dba38fe59b50012bf78f25003
 
 const Mypage = () => {
   const navigate = useNavigate();
