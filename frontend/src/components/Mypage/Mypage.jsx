@@ -5,7 +5,7 @@ import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
 import DeleteConfirmPopup from "./DeleteConfirmPopup";
 import MemoDetailPopup from "./MemoDetailPopup";
-import { FaRegBell, FaBell } from "react-icons/fa";
+import { FaRegBell, FaBell, FaExchangeAlt } from "react-icons/fa";
 import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 const Mypage = () => {
@@ -19,6 +19,8 @@ const Mypage = () => {
   const [selectedMemo, setSelectedMemo] = useState(null);
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
   const [notifiedMemos, setNotifiedMemos] = useState(new Set());
+  const [viewMode, setViewMode] = useState("recent");
+  const [sortOrder, setSortOrder] = useState("latest");
 
   // 새 메모 추가
   const handleAddMemo = () => {
@@ -125,17 +127,65 @@ const Mypage = () => {
           <div className="px-0 pt-[110px] pb-10">
             {/* 메모장 섹션 */}
             <div className="mb-8">
-              <div className="border border-gray-300 rounded-lg  overflow-hidden bg-[#f5f4f2]">
-                <div className="border-b border-gray-300 p-2 flex justify-between items-center bg-[#a7a28f]">
-                  <h2 className="font-medium flex-1 text-center text-white">
+              <div className="border border-gray-300 rounded-lg overflow-hidden bg-[#f5f4f2]">
+                <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
+                  <div className="flex items-center gap-4 ml-4 w-[100px]">
+                    {/* 정렬 토글 버튼 - 아이콘 스타일 */}
+                    <button
+                      onClick={() =>
+                        setSortOrder((prev) =>
+                          prev === "latest" ? "oldest" : "latest"
+                        )
+                      }
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
+                    >
+                      <FaExchangeAlt
+                        className={`transition-transform duration-300 ${
+                          sortOrder === "oldest" ? "rotate-180" : ""
+                        }`}
+                      />
+                      <span className="font-medium w-[60px]">
+                        {sortOrder === "latest" ? "최신순" : "오래된순"}
+                      </span>
+                    </button>
+                  </div>
+
+                  <h2 className="font-medium text-white flex-1 text-center">
                     메모장
                   </h2>
-                  <button
-                    onClick={handleAddMemo}
-                    className="px-3 py-1 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200 transition-colors"
-                  >
-                    메모 추가
-                  </button>
+
+                  <div className="flex items-center gap-4 mr-4">
+                    {/* 기존 토글 버튼 */}
+                    <div className="flex bg-white rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setViewMode("recent")}
+                        className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                          viewMode === "recent"
+                            ? "bg-[#8b7b6e] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        기록
+                      </button>
+                      <button
+                        onClick={() => setViewMode("notification")}
+                        className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                          viewMode === "notification"
+                            ? "bg-[#8b7b6e] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        알림
+                      </button>
+                    </div>
+                    {/* 메모 추가 버튼 */}
+                    <button
+                      onClick={handleAddMemo}
+                      className="px-4 py-1.5 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      메모 추가
+                    </button>
+                  </div>
                 </div>
                 <div className="h-[400px] p-4 overflow-y-auto">
                   {/* 메모 카드 리스트 */}
@@ -145,88 +195,101 @@ const Mypage = () => {
                         메모가 없습니다. 새 메모를 추가해보세요!
                       </div>
                     ) : (
-                      memos.map((memo) => (
-                        <div
-                          key={memo.id}
-                          onClick={() => handleMemoClick(memo)}
-                          className={`group relative ${
-                            notifiedMemos.has(memo.id)
-                              ? "bg-[#ffb9a3]"
-                              : "bg-[#f3d984]"
-                          } border-b-4 border-r-4 border-gray-300 rounded-sm h-[170px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer`}
-                          style={{
-                            boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
-                          }}
-                        >
-                          {/* 날짜 표시 추가 */}
-                          <div className="absolute top-2 left-4 text-[13px] text-[#828282] font-thin">
-                            {formatDate(memo.updatedAt)}
-                          </div>
-
-                          {/* 알림 아이콘 */}
-                          <button
-                            onClick={(e) =>
-                              handleNotificationToggle(memo.id, e)
-                            }
-                            className="absolute top-1 right-1 p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full transition-all duration-200"
+                      // 메모를 최신순으로 정렬하고 viewMode에 따라 필터링
+                      [...memos]
+                        .sort((a, b) => {
+                          const dateA = new Date(a.updatedAt);
+                          const dateB = new Date(b.updatedAt);
+                          return sortOrder === "latest"
+                            ? dateB - dateA // 최신순: 최근 날짜가 먼저
+                            : dateA - dateB; // 오래된순: 이전 날짜가 먼저
+                        })
+                        .filter(
+                          (memo) =>
+                            viewMode === "recent" || notifiedMemos.has(memo.id)
+                        )
+                        .map((memo) => (
+                          <div
+                            key={memo.id}
+                            onClick={() => handleMemoClick(memo)}
+                            className={`group relative ${
+                              notifiedMemos.has(memo.id)
+                                ? "bg-[#ffb9a3]"
+                                : "bg-[#f3d984]"
+                            } border-b-4 border-r-4 border-gray-300 rounded-sm h-[170px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer`}
+                            style={{
+                              boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
+                            }}
                           >
-                            {notifiedMemos.has(memo.id) ? (
-                              <FaBell size={16} />
-                            ) : (
-                              <FaRegBell size={16} />
-                            )}
-                          </button>
-
-                          {/* 메모 핀 장식 */}
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6  bg-[#bd0000]  rounded-full shadow-md z-10">
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#9d0000] rounded-full"></div>
-                          </div>
-
-                          {/* 메모 내용 */}
-                          <div className="h-full flex flex-col p-4 pt-9">
-                            <h3 className="font-bold text-[#5d4d40] mb-2 text-md">
-                              {memo.title}
-                            </h3>
-                            <div className="flex-1 text-xs text-[#5d4d40] truncate">
-                              {memo.content}
+                            {/* 날짜 표시 추가 */}
+                            <div className="absolute top-2 left-4 text-[13px] text-[#828282] font-thin">
+                              {formatDate(memo.updatedAt)}
                             </div>
 
-                            {/* 버튼 그룹 */}
-                            <div className="opacity-0 group-hover:opacity-100 absolute bottom-1 right-2 flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation(); // 이벤트 전파 중지
-                                  handleEditClick(memo);
-                                }}
-                                className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
-                              >
-                                <FiEdit2 size={16} />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation(); // 이벤트 전파 중지
-                                  handleDeleteClick(memo);
-                                }}
-                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffe4b8] transition-all duration-200"
-                              >
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                            {/* 알림 아이콘 */}
+                            <button
+                              onClick={(e) =>
+                                handleNotificationToggle(memo.id, e)
+                              }
+                              className="absolute top-1 right-1 p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full transition-all duration-200"
+                            >
+                              {notifiedMemos.has(memo.id) ? (
+                                <FaBell size={16} />
+                              ) : (
+                                <FaRegBell size={16} />
+                              )}
+                            </button>
+
+                            {/* 메모 핀 장식 */}
+                            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6  bg-[#bd0000]  rounded-full shadow-md z-10">
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#9d0000] rounded-full"></div>
+                            </div>
+
+                            {/* 메모 내용 */}
+                            <div className="h-full flex flex-col p-4 pt-9">
+                              <h3 className="font-bold text-[#5d4d40] mb-2 text-md">
+                                {memo.title}
+                              </h3>
+                              <div className="flex-1 text-xs text-[#5d4d40] truncate">
+                                {memo.content}
+                              </div>
+
+                              {/* 버튼 그룹 */}
+                              <div className="opacity-0 group-hover:opacity-100 absolute bottom-1 right-2 flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // 이벤트 전파 중지
+                                    handleEditClick(memo);
+                                  }}
+                                  className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
-                                </svg>
-                              </button>
+                                  <FiEdit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // 이벤트 전파 중지
+                                    handleDeleteClick(memo);
+                                  }}
+                                  className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffe4b8] transition-all duration-200"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     )}
                   </div>
                 </div>
