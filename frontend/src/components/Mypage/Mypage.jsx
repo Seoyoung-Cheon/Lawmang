@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Auth/AuthContext";
+import { useSelector } from "react-redux";
 import { FiEdit2 } from "react-icons/fi";
 import MemoPopup from "./MemoPopup";
 import DeleteConfirmPopup from "./DeleteConfirmPopup";
 import MemoDetailPopup from "./MemoDetailPopup";
+import { FaRegBell, FaBell, FaExchangeAlt } from "react-icons/fa";
+import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 const Mypage = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const isAuthenticated = useSelector(selectIsAuthenticated); // Redux 인증 상태 사용
   const [memos, setMemos] = useState([]); // 빈 배열로 시작
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState(null);
@@ -16,6 +18,8 @@ const Mypage = () => {
   const [memoToDelete, setMemoToDelete] = useState(null);
   const [selectedMemo, setSelectedMemo] = useState(null);
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("recent");
+  const [sortOrder, setSortOrder] = useState("latest");
 
   // 새 메모 추가
   const handleAddMemo = () => {
@@ -25,7 +29,11 @@ const Mypage = () => {
 
   // 메모 수정 모드
   const handleEditClick = (memo) => {
-    setEditingMemo(memo);
+    setEditingMemo({
+      ...memo,
+      isNotificationEnabled: memo.isNotificationEnabled, // 기존 메모의 알림 설정 상태 유지
+      notificationDate: memo.notificationDate, // 기존 메모의 알림 날짜 유지
+    });
     setIsPopupOpen(true);
   };
 
@@ -40,23 +48,40 @@ const Mypage = () => {
                 ...memo,
                 title: memoData.title,
                 content: memoData.content,
+                isNotificationEnabled: memoData.isNotificationEnabled,
+                notificationDate: memoData.notificationDate,
+                updatedAt: new Date().toISOString(),
               }
             : memo
         )
       );
     } else {
       // 새 메모 추가
+      const newMemoId = Date.now();
       setMemos([
         ...memos,
         {
-          id: Date.now(),
+          id: newMemoId,
           title: memoData.title,
           content: memoData.content,
+          isNotificationEnabled: memoData.isNotificationEnabled,
+          notificationDate: memoData.notificationDate,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       ]);
     }
     setIsPopupOpen(false);
     setEditingMemo(null);
+  };
+
+  // 날짜 포맷 함수
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}.${String(date.getDate()).padStart(2, "0")}`;
   };
 
   // 메모 삭제
@@ -80,91 +105,172 @@ const Mypage = () => {
   // 상세보기에서 수정 버튼 클릭 시
   const handleDetailEdit = () => {
     setIsDetailPopupOpen(false);
-    handleEditClick(selectedMemo);
+    handleEditClick(selectedMemo); // 동일한 handleEditClick 함수 사용
   };
 
   // 로그인하지 않은 사용자는 로그인 페이지로 리다이렉트
   React.useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       navigate("/login");
     }
-  }, [isLoggedIn, navigate]);
+  }, [isAuthenticated, navigate]);
 
-  if (!isLoggedIn) {
-    return null;
-  }
+  // 메모 필터링 로직 수정
+  const filteredMemos = [...memos]
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt);
+      const dateB = new Date(b.updatedAt);
+      return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
+    })
+    .filter(
+      (memo) =>
+        viewMode === "recent" ||
+        (viewMode === "notification" && memo.isNotificationEnabled)
+    );
 
   return (
     <div className="min-h-screen w-full">
       <div className="container min-h-[100vh]">
         <div className="left-layout">
-          <div className="px-0 pt-[110px] pb-10">
+          <div className="px-0 pt-[135px] pb-10">
             {/* 메모장 섹션 */}
             <div className="mb-8">
-              <div className="border border-gray-300 rounded-lg  overflow-hidden bg-[#f5f4f2]">
-                <div className="border-b border-gray-300 p-2 flex justify-between items-center bg-[#a7a28f]">
-                  <h2 className="font-medium flex-1 text-center text-white">
+              <div className="border border-gray-300 rounded-lg overflow-hidden bg-[#f5f4f2]">
+                <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
+                  <div className="flex items-center gap-4 ml-4 w-[100px]">
+                    {/* 정렬 토글 버튼 - 아이콘 스타일 */}
+                    <button
+                      onClick={() =>
+                        setSortOrder((prev) =>
+                          prev === "latest" ? "oldest" : "latest"
+                        )
+                      }
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
+                    >
+                      <FaExchangeAlt
+                        className={`transition-transform duration-300 ${
+                          sortOrder === "oldest" ? "rotate-180" : ""
+                        }`}
+                      />
+                      <span className="font-medium w-[60px]">
+                        {sortOrder === "latest" ? "최신순" : "오래된순"}
+                      </span>
+                    </button>
+                  </div>
+
+                  <h2 className="font-medium text-white flex-1 text-center">
                     메모장
                   </h2>
-                  <button
-                    onClick={handleAddMemo}
-                    className="px-3 py-1 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200 transition-colors"
-                  >
-                    메모 추가
-                  </button>
+
+                  <div className="flex items-center gap-4 mr-4">
+                    {/* 기존 토글 버튼 */}
+                    <div className="flex bg-white rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setViewMode("recent")}
+                        className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                          viewMode === "recent"
+                            ? "bg-[#8b7b6e] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        기록
+                      </button>
+                      <button
+                        onClick={() => setViewMode("notification")}
+                        className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                          viewMode === "notification"
+                            ? "bg-[#8b7b6e] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        알림
+                      </button>
+                    </div>
+                    {/* 메모 추가 버튼 */}
+                    <button
+                      onClick={handleAddMemo}
+                      className="px-4 py-1.5 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      메모 추가
+                    </button>
+                  </div>
                 </div>
                 <div className="h-[400px] p-4 overflow-y-auto">
                   {/* 메모 카드 리스트 */}
-                  <div className="grid grid-cols-4 gap-6">
-                    {memos.length === 0 ? (
+                  <div className="grid grid-cols-3 gap-6">
+                    {filteredMemos.length === 0 ? (
                       <div className="col-span-4 text-center text-gray-500 mt-[150px]">
                         메모가 없습니다. 새 메모를 추가해보세요!
                       </div>
                     ) : (
-                      memos.map((memo) => (
+                      filteredMemos.map((memo) => (
                         <div
                           key={memo.id}
                           onClick={() => handleMemoClick(memo)}
-                          className="group relative bg-[#f3d984] border-b-4 border-r-4 border-gray-300 rounded-sm h-[150px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer"
+                          className={`group relative ${
+                            memo.isNotificationEnabled
+                              ? "bg-[#ffb9a3]"
+                              : "bg-[#f3d984]"
+                          } border-b-4 border-r-4 border-gray-300 rounded-sm h-[170px] transform rotate-[-1deg] hover:rotate-0 transition-all duration-200 hover:shadow-md cursor-pointer`}
                           style={{
                             boxShadow: "1px 1px 3px rgba(0,0,0,0.1)",
                           }}
                         >
+                          {/* 알림 아이콘 - 클릭 이벤트 제거하고 표시만 */}
+                          <div className="absolute top-1 right-1 p-1.5 text-[#8b7b6e]">
+                            {memo.isNotificationEnabled ? (
+                              <FaBell size={16} />
+                            ) : (
+                              <FaRegBell size={16} />
+                            )}
+                          </div>
+
                           {/* 메모 핀 장식 */}
                           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6  bg-[#bd0000]  rounded-full shadow-md z-10">
                             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-[#9d0000] rounded-full"></div>
                           </div>
 
                           {/* 메모 내용 */}
-                          <div className="h-full flex flex-col p-4 pt-5">
-                            <h3 className="font-bold text-[#5d4d40] truncate mb-2">
+                          <div className="h-full flex flex-col p-4 pt-2">
+                            {/* 저장/수정 날짜 - 좌측 상단 */}
+                            <div className="text-[13px] text-[#828282] font-thin mb-2">
+                              {formatDate(memo.updatedAt)}
+                            </div>
+
+                            <h3 className="font-bold text-[#5d4d40] mb-2 text-md">
                               {memo.title}
                             </h3>
-                            <div className="flex-1 text-sm text-[#5d4d40] line-clamp-3 max-h-[4.5em] overflow-hidden">
+                            <div className="flex-1 text-xs text-[#5d4d40] line-clamp-2 overflow-hidden max-h-[2.6em]">
                               {memo.content}
                             </div>
 
+                            {/* 알림 설정 날짜 - 좌측 하단 */}
+                            {memo.isNotificationEnabled && (
+                              <div className="absolute bottom-2 left-4 text-[13px] text-[#828282] font-thin">
+                                알림: {formatDate(memo.notificationDate)}
+                              </div>
+                            )}
+
                             {/* 버튼 그룹 */}
-                            <div className="opacity-0 group-hover:opacity-100 absolute bottom-2 right-2 flex items-center gap-2">
+                            <div className="opacity-0 group-hover:opacity-100 absolute bottom-1 right-2 flex items-center gap-2">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation(); // 이벤트 전파 중지
                                   handleEditClick(memo);
                                 }}
-                                className="p-1 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
+                                className="p-1.5 text-[#8b7b6e] hover:text-[#5d4d40] rounded-full hover:bg-[#ffe4b8] transition-all duration-200 flex items-center gap-1"
                               >
-                                <span className="text-sm">수정하기</span>
-                                <FiEdit2 size={14} />
+                                <FiEdit2 size={16} />
                               </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation(); // 이벤트 전파 중지
                                   handleDeleteClick(memo);
                                 }}
-                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-all duration-200"
+                                className="p-1.5 text-red-400 hover:text-red-500 rounded-full hover:bg-[#ffe4b8] transition-all duration-200"
                               >
                                 <svg
-                                  className="w-4 h-4"
+                                  className="w-5 h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -219,6 +325,12 @@ const Mypage = () => {
           onSave={handleSaveMemo}
           initialTitle={editingMemo?.title || ""}
           initialContent={editingMemo?.content || ""}
+          initialNotification={
+            editingMemo ? editingMemo.isNotificationEnabled : false
+          } // 수정 시에는 기존 상태 유지
+          initialNotificationDate={
+            editingMemo ? editingMemo.notificationDate : null
+          } // 수정 시에는 기존 날짜 유지
         />
         <DeleteConfirmPopup
           isOpen={isDeletePopupOpen}

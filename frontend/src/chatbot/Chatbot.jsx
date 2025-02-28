@@ -65,7 +65,7 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "block max-[1380px]:block" : "hidden max-[1380px]:hidden"
-        } min-[1380px]:block fixed right-[50px] 2xl:right-[120px] top-[52%] -translate-y-1/2 z-40`}
+        } min-[1380px]:block fixed right-[50px] 2xl:right-[120px] top-[55%] -translate-y-1/2 z-40`}
       >
         <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-md flex flex-col relative">
           {showLoginPopup && (

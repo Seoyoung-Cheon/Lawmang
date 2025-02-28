@@ -12,3 +12,7 @@ uvicorn app.main:app --reload
 
 # 기본 api 확인
 localhost:8000
+
+# kobart 모델 불안정성 생각해서 수동설치 (물어보고 설치)
+# pip install --no-deps git+https://github.com/SKT-AI/KoBART#egg=kobart
+#pip install boto3
