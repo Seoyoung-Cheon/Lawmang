@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchConsultations,
@@ -14,8 +14,6 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Consultation = () => {
-  const { category: urlCategory } = useParams();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,10 +64,7 @@ const Consultation = () => {
 
   const {
     data: categoryResults = [],
-    isLoading: isCategoryLoading,
-    refetch: refetchCategory,
-    onSuccess: categorySuccess,
-    onError: categoryError,
+    isLoading: isCategoryLoading
   } = useQuery({
     queryKey: ["consultationCategory", selectedCategory],
     queryFn: () => fetchConsultationsByCategory(selectedCategory),
@@ -145,9 +140,6 @@ const Consultation = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
-  const handleConsultationClick = (consultationId) => {
-    navigate(`/consultation/detail/${consultationId}`);
-  };
 
   return (
     <div className="container min-h-screen">

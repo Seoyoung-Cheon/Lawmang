@@ -110,10 +110,11 @@ const Detail = () => {
             <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
               <iframe
                 src={iframeUrl}
+                title="판례 상세"
                 width="100%"
                 height="100%"
-                frameBorder="0"
-                scrolling="auto"
+                style={{ border: 'none' }}
+                className="overflow-auto"
               />
             </div>
           </div>

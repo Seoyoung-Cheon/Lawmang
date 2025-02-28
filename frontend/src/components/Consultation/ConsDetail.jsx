@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import openLicenseImg from "../../assets/open_license.jpg";
 import { TbCircleLetterQFilled, TbCircleLetterA } from "react-icons/tb";
-import axios from "axios";
+import { fetchConsultationDetail } from "./consultaionApi";
 import loadingGif from "../../assets/loading.gif";
 
 const ConsDetail = () => {
@@ -22,18 +22,11 @@ const ConsDetail = () => {
         setIsLoading(true);
         setError(null);
 
-        const response = await axios.get(
-          `http://localhost:8000/api/detail/consultation/${id}`
-        );
-
-        console.log("API Response:", response.data);
-        setConsultation(response.data);
+        const data = await fetchConsultationDetail(id);
+        console.log("API Response:", data);
+        setConsultation(data);
       } catch (error) {
         console.error("상담 상세 정보를 가져오는데 실패했습니다:", error);
-        if (error.response) {
-          console.error("Error response:", error.response.data);
-          console.error("Error status:", error.response.status);
-        }
         setError(error);
       } finally {
         setIsLoading(false);
@@ -53,6 +46,22 @@ const ConsDetail = () => {
             <div className="flex flex-col justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
               <img src={loadingGif} alt="loading" className="w-16 h-16" />
               <p className="text-lg text-gray-600 mt-4">로딩 중...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <div className="left-layout">
+          <div className="px-0 pt-32 pb-10">
+            <div className="flex justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
+              <p className="text-lg text-red-600">
+                오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+              </p>
             </div>
           </div>
         </div>
