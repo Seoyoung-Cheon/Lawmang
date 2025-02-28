@@ -137,6 +137,7 @@ const Detail = () => {
                 >
                   요약보기
                 </button>
+                <Popup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
               </div>
             </div>
 
