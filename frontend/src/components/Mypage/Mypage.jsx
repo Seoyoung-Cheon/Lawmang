@@ -89,11 +89,7 @@ const Mypage = () => {
     if (!isAuthenticated) {
       navigate("/login");
     }
-  }, [!isAuthenticated, navigate]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen w-full">
