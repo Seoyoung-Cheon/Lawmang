@@ -21,6 +21,7 @@ langchain
 langchain-community
 faiss-cpu
 jsonpatch
+
 # ✅ NLP 및 모델 관련
 torch
 transformers

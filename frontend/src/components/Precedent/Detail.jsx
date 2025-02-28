@@ -128,7 +128,18 @@ const Detail = () => {
       <div className="left-layout">
         <div className="px-0 pt-32 pb-10">
           <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
-            <h2 className="text-3xl font-bold text-center mb-6">판례 상세</h2>
+            <div className="relative flex justify-center mb-6">
+              <h2 className="text-3xl font-bold">판례 상세</h2>
+              <div className="absolute right-[20px]">
+                <button
+                  onClick={() => setIsPopupOpen(true)}
+                  className="px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
+                >
+                  요약보기
+                </button>
+              </div>
+            </div>
+
             <div className="h-[650px] p-6 rounded-2xl overflow-y-auto">
               <div className="space-y-6">
                 <div className="flex items-start pb-4 border-b border-gray-100">
@@ -154,16 +165,11 @@ const Detail = () => {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setIsPopupOpen(true)}
-              className="mt-4 px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
-            >
-              요약보기
-            </button>
+            
           </div>
         </div>
       </div>
-      <Popup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
+      
     </div>
   );
 };
