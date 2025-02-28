@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FiEdit2 } from "react-icons/fi";
@@ -18,7 +18,6 @@ const Mypage = () => {
   const [memoToDelete, setMemoToDelete] = useState(null);
   const [selectedMemo, setSelectedMemo] = useState(null);
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
-  const [notifiedMemos, setNotifiedMemos] = useState(new Set());
   const [viewMode, setViewMode] = useState("recent");
   const [sortOrder, setSortOrder] = useState("latest");
 
@@ -38,14 +37,6 @@ const Mypage = () => {
     setIsPopupOpen(true);
   };
 
-  // 컴포넌트 초기화 시 알림 설정된 메모 불러오기
-  useEffect(() => {
-    const notifiedIds = new Set(
-      memos.filter((memo) => memo.isNotificationEnabled).map((memo) => memo.id)
-    );
-    setNotifiedMemos(notifiedIds);
-  }, [memos]);
-
   // 팝업에서 메모 저장
   const handleSaveMemo = (memoData) => {
     if (editingMemo) {
@@ -64,17 +55,6 @@ const Mypage = () => {
             : memo
         )
       );
-
-      // 알림 설정 상태 업데이트
-      if (memoData.isNotificationEnabled) {
-        setNotifiedMemos((prev) => new Set([...prev, editingMemo.id]));
-      } else {
-        setNotifiedMemos((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(editingMemo.id);
-          return newSet;
-        });
-      }
     } else {
       // 새 메모 추가
       const newMemoId = Date.now();
@@ -86,15 +66,10 @@ const Mypage = () => {
           content: memoData.content,
           isNotificationEnabled: memoData.isNotificationEnabled,
           notificationDate: memoData.notificationDate,
-          createdAt: new Date().toISOString(), // 생성 날짜 추가
-          updatedAt: new Date().toISOString(), // 수정 날짜 추가
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       ]);
-
-      // 새 메모의 알림 설정 상태 업데이트
-      if (memoData.isNotificationEnabled) {
-        setNotifiedMemos((prev) => new Set([...prev, newMemoId]));
-      }
     }
     setIsPopupOpen(false);
     setEditingMemo(null);
