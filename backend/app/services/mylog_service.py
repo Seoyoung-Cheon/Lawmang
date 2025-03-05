@@ -9,9 +9,12 @@ def get_user_logs(db: Session, user_id: int) -> List[UserActivityLog]:
     """
     사용자의 활동 로그를 조회하는 함수
     """
-    return db.query(UserActivityLog).filter(
+    logs = db.query(UserActivityLog).filter(
         UserActivityLog.user_id == user_id
     ).order_by(UserActivityLog.created_at.desc()).all()
+
+    return logs if logs else []
+
 
 def create_user_log(
     db: Session,
@@ -22,23 +25,27 @@ def create_user_log(
     precedent_number: Optional[int] = None,
     event_date: Optional[datetime] = None,
     notification: bool = False
-) -> UserActivityLog:
-    """
-    새로운 사용자 활동 로그를 생성하는 함수
-    """
-    log = UserActivityLog(
-        user_id=user_id,
-        title=title,
-        content=content,
-        consultation_id=consultation_id,
-        precedent_number=precedent_number,
-        event_date=event_date,
-        notification=notification
-    )
-    db.add(log)
-    db.commit()
-    db.refresh(log)
-    return log
+) -> Optional[UserActivityLog]:
+    try:
+        log = UserActivityLog(
+            user_id=user_id,
+            title=title,
+            content=content,
+            consultation_id=consultation_id,
+            precedent_number=precedent_number,
+            event_date=event_date,
+            notification=notification
+        )
+        db.add(log)
+        db.commit()
+        db.refresh(log)
+        return log
+    
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating log: {e}")
+        return None
+
 
 def get_user_logs_old(db: Session, user_id: int):
     """
