@@ -6,10 +6,12 @@ import {
   useCreateMemoMutation,
   useUpdateMemoMutation,
 } from "../../redux/slices/mylogApi";
-import { removeMemo, updateMemoInState } from "../../redux/slices/mylogSlice";
+import { removeMemo } from "../../redux/slices/mylogSlice";
 import MemoModal from "./MemoModal";
 import { selectUser } from "../../redux/slices/authSlice";
-import { FaBell, FaRegBell } from "react-icons/fa";
+import { FaBell, FaRegBell, FaExchangeAlt } from "react-icons/fa";
+import { FiEdit2 } from "react-icons/fi";
+
 
 const MemoBoard = () => {
   const user = useSelector(selectUser);
@@ -22,14 +24,15 @@ const MemoBoard = () => {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState(null);
+  const [sortOrder, setSortOrder] = useState("latest");
 
-  // ✅ 새 메모 추가 모드 (빈 값으로 모달 열기)
+  // ✅ 새 메모 추가
   const handleAddMemo = () => {
     setEditingMemo(null);
     setIsPopupOpen(true);
   };
 
-  // ✅ 기존 메모 수정 모드 (데이터 로드)
+  // ✅ 메모 수정 모드
   const handleEditMemo = (memo) => {
     setEditingMemo(memo);
     setIsPopupOpen(true);
@@ -39,76 +42,102 @@ const MemoBoard = () => {
   const handleSaveMemo = async (memoData) => {
     try {
       if (memoData.id) {
-        await updateMemo({
-          id: memoData.id,
-          title: memoData.title,
-          content: memoData.content || "",
-          event_date: memoData.event_date ?? null,
-          notification: memoData.notification ?? false,
-        }).unwrap();
+        await updateMemo(memoData).unwrap();
       } else {
-        await createMemo({
-          user_id: user?.id,
-          title: memoData.title,
-          content: memoData.content || "",
-          event_date: memoData.event_date ?? null,
-          notification: memoData.notification ?? false,
-        }).unwrap();
+        await createMemo({ ...memoData, user_id: user?.id }).unwrap();
       }
+      setIsPopupOpen(false);
     } catch (error) {
       console.error("❌ 메모 저장 실패:", error);
     }
-  };  
-  
+  };
 
-  // ✅ 메모 삭제 (프론트에서 숨기기, DB에서는 삭제 X)
-  const handleDeleteMemo = async (memoId, event) => {
-    if (event) event.stopPropagation();
-    dispatch(removeMemo(memoId));
-
+  // ✅ 메모 삭제
+  const handleDeleteMemo = async (memoId) => {
     try {
       await deleteMemo(memoId).unwrap();
+      dispatch(removeMemo(memoId));
+      setIsPopupOpen(false);
     } catch (error) {
       console.error("❌ 메모 삭제 실패:", error);
     }
   };
 
+  // ✅ 정렬 기능
+  const sortedMemos = [...memos].sort((a, b) => {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
+  });
+
+
   return (
     <div className="relative border border-gray-300 rounded-lg overflow-hidden bg-[#f5f4f2]">
       <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
+        <button
+          onClick={() => setSortOrder(sortOrder === "latest" ? "oldest" : "latest")}
+          className="flex items-center gap-2 text-white text-sm ml-4"
+        >
+          <FaExchangeAlt /> {sortOrder === "latest" ? "최신순" : "오래된순"}
+        </button>
         <h2 className="font-medium text-white flex-1 text-center">메모장</h2>
-        <button onClick={handleAddMemo} className="px-4 py-1.5 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200">
+        <button
+          onClick={handleAddMemo}
+          className="px-4 py-1.5 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200"
+        >
           메모 추가
         </button>
       </div>
 
-      {/* ✅ 메모 리스트 */}
       <div className="h-[400px] p-4 overflow-y-auto grid grid-cols-3 gap-6">
         {isLoading ? (
           <p className="text-center">로딩 중...</p>
         ) : error ? (
           <p className="text-center text-red-500">오류 발생: {error.message}</p>
-        ) : memos.length === 0 ? (
+        ) : sortedMemos.length === 0 ? (
           <p className="text-center text-gray-500 w-full">아직 기록된 메모가 없습니다.</p>
         ) : (
-          memos.map((memo) => (
+          sortedMemos.map((memo) => (
             <div
               key={memo.id}
-              onClick={() => handleEditMemo(memo)}
-              className={`group relative ${memo.notification ? "bg-[#ffb9a3]" : "bg-[#f3d984]"} border-b-4 border-r-4 border-gray-300 rounded-sm h-[170px]`}
+              className="relative bg-[#f3d984] border-b-4 border-r-4 border-gray-300 rounded-sm p-4 h-[170px] flex flex-col justify-between"
             >
-              <div className="absolute top-1 right-1 p-1.5 text-[#8b7b6e]">
-                {memo.notification ? <FaBell size={16} /> : <FaRegBell size={16} />}
+              <div className="text-[13px] text-[#828282] font-thin">
+                {new Date(memo.created_at).toLocaleDateString()}
               </div>
-              <div className="h-full flex flex-col p-4 pt-2">
-                <h3 className="font-bold text-[#5d4d40] mb-2 text-md">{memo.title}</h3>
+              <h3 className="font-bold text-[#5d4d40] mb-2 text-md">{memo.title}</h3>
+              <p className="text-sm text-[#5d4d40] mb-2">{memo.content?.slice(0, 30)}...</p>
+              <div className="absolute bottom-2 right-2 flex gap-2">
+                <button
+                  onClick={() => handleEditMemo(memo)}
+                  className="p-1.5 text-[#8b7b6e] rounded-full bg-[#ffe4b8]"
+                >
+                  <FiEdit2 size={16} />
+                </button>
+                <button
+                  onClick={() => handleDeleteMemo(memo.id)}
+                  className="p-1.5 text-red-500 rounded-full bg-[#ffe4b8]"
+                >
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* ✅ MemoModal 연동 */}
       {isPopupOpen && (
         <MemoModal
           isOpen={isPopupOpen}
