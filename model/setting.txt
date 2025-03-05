@@ -22,7 +22,7 @@ pip install exa_py
 
 
 
-conda activate C:\conda_envs\test_env
+conda activate C:\conda_envs\Docker_env
 
 
 ----------------------------------------------------------------------------------
