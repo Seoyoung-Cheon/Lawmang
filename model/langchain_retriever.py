@@ -3,31 +3,47 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from langchain.memory import ConversationBufferMemory  # ✅ LangChain 메모리 추가
-
+from langchain_community.tools import TavilySearchResults
+from langchain_teddynote import logging
+from langchain_openai import ChatOpenAI
+logging.langsmith("llamaproject")
+import sys
+import time
+# "mistralai/Mistral-7B-Instruct-v0.3"
 # ✅ 환경 변수 로드
 load_dotenv()
-
-# ✅ LLM 모델 설정 (DeepSeek 적용)
+# ----------------------------------------------------------#
 HF_TOKEN = os.environ.get("HF_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+search_tool = TavilySearchResults(max_results=1)
+# ----------------------------------------------------------#
 HUGGINGFACE_REPO_ID = "meta-llama/Llama-3.3-70B-Instruct"
+#-----------------------------------------------------------#
 
-
-def load_llm():
+def load_llm(use_chatgpt=True):
     """LLM 로드 (HuggingFace Inference API)"""
     try:
-        return HuggingFaceEndpoint(
-            repo_id=HUGGINGFACE_REPO_ID,
-            task="text-generation",
-            max_new_tokens=125,  # ✅ 한 번에 생성할 최대 토큰 수 설정
-            temperature=0.7,  # ✅ 답변 다양성 조정 (기존 0.3 → 0.7)
-            top_p=0.9,  # ✅ 다양한 출력 유도
-            repetition_penalty=1.2,  # ✅ 반복 방지 추가
-            model_kwargs={
-                "max_length": 256,  # ✅ 출력 길이 늘리기 (기존 150 → 256)   // (입력 토큰 + 출력 토큰)값
-                "num_beams": 2,  # ✅ 탐색 다양성 증가 (기존 2 → 3)
-            },
-            huggingfacehub_api_token=HF_TOKEN,
-        )
+        if use_chatgpt:
+            print("🔹 ChatGPT-3.5-Turbo 사용")
+            return ChatOpenAI(
+                model="gpt-3.5-turbo",
+                api_key=OPENAI_API_KEY,
+                temperature=0.7,
+                max_tokens=512,
+                streaming=True,
+            )
+        else:
+            print("🔹 Mistral-7B 사용")
+            return HuggingFaceEndpoint(
+                repo_id=HUGGINGFACE_REPO_ID,
+                task="text-generation",
+                max_new_tokens=512,
+                temperature=0.7,
+                top_p=0.9,
+                repetition_penalty=1.2,
+                huggingfacehub_api_token=HF_TOKEN,
+            )
     except Exception as e:
         print(f"❌ [LLM 로드 오류] {e}")
         return None
@@ -52,33 +68,60 @@ class LangChainRetrieval:
     You are a Korean legal expert.
     Answer the user's question concisely and clearly based on the given legal context.
     If the question is unrelated to law, reinterpret it from a legal perspective.
+    
+    Previous conversation history:
     {chat_history}
+    
     The user's question is:
     "{user_query}"
+    
+    **Tavily Search Result:**
+    {search_result}
 
     Relevant case summary:
     {summary}
 
 
-Now, provide your answer in fluent, formal Korean and don't use Chinese characters and interpret as korean:
+Now, provide your answer in fluent, formal Korean:
 """,
-            input_variables=["chat_history", "user_query", "summary"],
+            input_variables=[
+                "chat_history",
+                "user_query",
+                "search_tool",
+                "search_result",
+                "summary",
+            ],
         )
 
     def generate_legal_answer(self, user_query, summary):
-        """LLM을 사용하여 법률적 답변 생성"""
+        """LLM을 사용하여 법률적 답변을 스트리밍 형태로 생성"""
         if not self.llm:
             return "❌ LLM이 로드되지 않았습니다."
-        try:
-            # ✅ 대화 기록을 불러옴 (이전 문맥 포함)
-            chat_history = self.memory.load_memory_variables({}).get("chat_history", "")
 
-            # ✅ 대화 기록 포함한 프롬프트 생성
+        try:
+            chat_history = self.memory.load_memory_variables({}).get("chat_history", "")
+            
+            search_result = search_tool.run(user_query)
+
             prompt = self.prompt_template.format(
-                chat_history=chat_history, user_query=user_query, summary=summary
+                chat_history=chat_history,
+                user_query=user_query,
+                search_tool="https://stdict.korean.go.kr/main/main.do",
+                search_result=search_result,
+                summary=summary,
             )
 
-            response = self.llm.invoke(prompt).strip()
+            # ✅ LLM 스트리밍 모드 실행 (한 글자씩 출력)
+            print("\nAI: ", end="", flush=True)
+            response = ""
+            for chunk in self.llm.stream(prompt):
+                chunk_text = chunk.content if hasattr(chunk, "content") else str(chunk)
+                if chunk_text:
+                    sys.stdout.write(chunk_text)
+                    sys.stdout.flush()
+                    response += chunk_text  # ✅ 전체 응답 저장
+
+            print("\n")  # ✅ 응답이 끝나면 개행 추가
 
             # ✅ 대화 기록 업데이트
             self.memory.save_context({"user_query": user_query}, {"response": response})
