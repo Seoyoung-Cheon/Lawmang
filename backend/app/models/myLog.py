@@ -14,7 +14,7 @@ class UserActivityLog(Base):
     title = Column(Text, nullable=False)  # 제목
     content = Column(Text, nullable=True)  # 본문 (메모 내용, 다운로드한 템플릿 파일명 등)
     event_date = Column(Date, nullable=True)  # 관련 날짜 (재판 일정, 상담 일정 등)
-    notification = Column(Boolean, default=False)  # 알림 설정 여부
+    notification = Column(Boolean, default=False, server_default="false")  # 알림 설정 여부
     created_at = Column(DateTime, server_default=func.now())  # 기록 생성 시간
 
     def __repr__(self):

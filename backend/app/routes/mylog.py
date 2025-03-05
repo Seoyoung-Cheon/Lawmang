@@ -9,8 +9,7 @@ router = APIRouter(prefix="/logs", tags=["user_logs"])
 @router.get("/{user_id}")
 def get_user_logs_route(user_id: int, db: Session = Depends(get_db)):
     logs = get_user_logs(db, user_id)
-    
     if logs is None:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
     
-    return logs
+    return logs if logs else []
