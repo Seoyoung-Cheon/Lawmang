@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react"; 
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCases, fetchCasesByCategory } from "./precedentApi";
 import {
@@ -11,7 +11,6 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Precedent = () => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,16 +27,10 @@ const Precedent = () => {
     refetch,
   } = useQuery({
     queryKey: ["cases", searchQuery],
-    queryFn: () => {
-      if (searchQuery.trim()) {
-        return fetchCases(searchQuery);
-      }
-      return [];
-    },
+    queryFn: () => (searchQuery.trim() ? fetchCases(searchQuery) : []),
     enabled: false,
   });
 
-  // 카테고리 검색을 위한 쿼리 추가
   const {
     data: categoryResults = [],
     isLoading: isCategoryLoading,
@@ -49,8 +42,8 @@ const Precedent = () => {
   });
 
   // 현재 표시할 결과 데이터 결정
-  const currentResults =
-    selectedCategory === "all" ? searchResults : categoryResults;
+  let currentResults = selectedCategory === "all" ? searchResults : categoryResults;
+  currentResults = Array.isArray(currentResults) ? currentResults : []; // 🛠 배열이 아닐 경우 빈 배열로 초기화
 
   const handleSearch = () => {
     setSelectedCategory("all");
@@ -65,7 +58,6 @@ const Precedent = () => {
     }
   };
 
-  // onChange 이벤트 핸들러 수정
   const handleSearchInputChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -78,7 +70,7 @@ const Precedent = () => {
 
   // 페이지네이션 관련 함수들
   const getTotalPages = () => {
-    return Math.ceil((currentResults?.length || 0) / itemsPerPage);
+    return Math.ceil((currentResults.length || 0) / itemsPerPage);
   };
 
   const getPageRange = (totalPages) => {
@@ -103,16 +95,6 @@ const Precedent = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
-  // c_type별 배경색 매핑
-  const typeColors = {
-    형사: "bg-red-50 text-red-600 border-red-200",
-    민사: "bg-blue-50 text-blue-600 border-blue-200",
-    세무: "bg-green-50 text-green-600 border-green-200",
-    일반행정: "bg-yellow-50 text-yellow-600 border-yellow-200",
-    특허: "bg-purple-50 text-purple-600 border-purple-200",
-    가사: "bg-pink-50 text-pink-600 border-pink-200",
-  };
-
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -128,22 +110,6 @@ const Precedent = () => {
                 onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
               />
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-gray-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                  />
-                </svg>
-              </div>
               <button
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 px-5 py-2 
                           text-sm text-white bg-Main hover:bg-Main_hover rounded-lg"
@@ -176,123 +142,26 @@ const Precedent = () => {
           {/* 로딩 및 결과 표시 */}
           {isLoading || isCategoryLoading ? (
             <div className="flex flex-col justify-center items-center h-[400px] gap-4">
-              <img
-                src={loadingGif}
-                alt="loading"
-                className="w-16 h-16 text-gray-600"
-              />
+              <img src={loadingGif} alt="loading" className="w-16 h-16 text-gray-600" />
               <p className="text-lg text-gray-600">로딩 중...</p>
             </div>
-          ) : currentResults && currentResults.length > 0 ? (
-            <>
-              <ul className="space-y-4 w-[900px]">
-                {currentItems.map((item) => (
-                  <li
-                    key={item.pre_number}
-                    className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
-                  >
-                    <Link
-                      to={`/precedent/detail/${item.pre_number}`}
-                      className="flex justify-between"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium truncate mb-4">
-                          {item.c_name}
-                        </h3>
-                        <div className="text-sm text-gray-600">
-                          {item.c_number}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {item.court} | {item.j_date}
-                        </div>
-                      </div>
-                      <div
-                        className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 
-                        ${
-                          typeColors[item.c_type] ||
-                          "bg-gray-50 text-gray-600 border-gray-200"
-                        }`}
-                      >
-                        {item.c_type}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              {/* 페이지네이션 UI */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-6">
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                    className={`px-2 py-1 rounded-lg ${
-                      currentPage === 1
-                        ? "text-gray-300"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <MdKeyboardDoubleArrowLeft size={20} />
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className={`px-2 py-1 rounded-lg ${
-                      currentPage === 1
-                        ? "text-gray-300"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <MdKeyboardArrowLeft size={20} />
-                  </button>
-
-                  <div className="flex gap-1">
-                    {pageNumbers.map((pageNum) => (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`w-8 h-8 rounded-lg ${
-                          currentPage === pageNum
-                            ? "bg-Main text-white"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className={`px-2 py-1 rounded-lg ${
-                      currentPage === totalPages
-                        ? "text-gray-300"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <MdKeyboardArrowRight size={20} />
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className={`px-2 py-1 rounded-lg ${
-                      currentPage === totalPages
-                        ? "text-gray-300"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <MdKeyboardDoubleArrowRight size={20} />
-                  </button>
-                </div>
-              )}
-            </>
+          ) : currentResults.length > 0 ? (
+            <ul className="space-y-4 w-[900px]">
+              {currentItems.map((item) => (
+                <li key={item.pre_number} className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50">
+                  <Link to={`/precedent/detail/${item.pre_number}`} className="flex justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-medium truncate mb-4">{item.c_name}</h3>
+                      <div className="text-sm text-gray-600">{item.c_number}</div>
+                      <div className="text-sm text-gray-600">{item.court} | {item.j_date}</div>
+                    </div>
+                    <div className="px-3 py-1 text-sm rounded-lg h-fit ml-4 bg-gray-50 text-gray-600 border-gray-200">
+                      {item.c_type}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           ) : (
             <div className="flex justify-center items-center h-[400px]">
               <p className="text-lg text-gray-400">
