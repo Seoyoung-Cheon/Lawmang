@@ -24,7 +24,7 @@ def load_llm():
             repetition_penalty=1.2,  # ✅ 반복 방지 추가
             model_kwargs={
                 "max_length": 256,  # ✅ 출력 길이 늘리기 (기존 150 → 256)   // (입력 토큰 + 출력 토큰)값
-                "num_beams": 3,  # ✅ 탐색 다양성 증가 (기존 2 → 3)
+                "num_beams": 2,  # ✅ 탐색 다양성 증가 (기존 2 → 3)
             },
             huggingfacehub_api_token=HF_TOKEN,
         )
@@ -49,18 +49,18 @@ class LangChainRetrieval:
         # ✅ LangChain 프롬프트 설정 (불필요한 요소 제거)
         self.prompt_template = PromptTemplate(
             template="""
-You are a Korean legal expert.
-Answer the user's question concisely and clearly based on the given legal context.
-If the question is unrelated to law, reinterpret it from a legal perspective.
-{chat_history}
-The user's question is:
-"{user_query}"
+    You are a Korean legal expert.
+    Answer the user's question concisely and clearly based on the given legal context.
+    If the question is unrelated to law, reinterpret it from a legal perspective.
+    {chat_history}
+    The user's question is:
+    "{user_query}"
 
-Relevant case summary:
-{summary}
+    Relevant case summary:
+    {summary}
 
 
-Now, provide your answer in fluent Korean:
+Now, provide your answer in fluent, formal Korean and don't use Chinese characters and interpret as korean:
 """,
             input_variables=["chat_history", "user_query", "summary"],
         )
