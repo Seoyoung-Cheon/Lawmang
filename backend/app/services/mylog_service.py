@@ -1,83 +1,91 @@
 from sqlalchemy.orm import Session
-from app.core.database import execute_sql
-from app.models.user import User
+from sqlalchemy import or_
 from app.models.mylog import UserActivityLog
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
-from typing import List, Optional
-
-def get_user_logs(db: Session, user_id: int) -> List[UserActivityLog]:
-    """
-    사용자의 활동 로그를 조회하는 함수
-    """
-    logs = db.query(UserActivityLog).filter(
-        UserActivityLog.user_id == user_id
-    ).order_by(UserActivityLog.created_at.desc()).all()
-
-    return logs if logs else []
 
 
-def create_user_log(
-    db: Session,
-    user_id: int,
-    title: str,
-    content: Optional[str] = None,
-    consultation_id: Optional[int] = None,
-    precedent_number: Optional[int] = None,
-    event_date: Optional[datetime] = None,
-    notification: bool = False
-) -> Optional[UserActivityLog]:
+def create_memo(db: Session, user_id: int, title: str, content: str, event_date=None, notification=False):
     try:
-        log = UserActivityLog(
+        if event_date and isinstance(event_date, str):
+            event_date = datetime.strptime(event_date, "%Y-%m-%d").date()
+        new_memo = UserActivityLog(
             user_id=user_id,
             title=title,
             content=content,
-            consultation_id=consultation_id,
-            precedent_number=precedent_number,
             event_date=event_date,
-            notification=notification
+            notification=notification,
         )
-        db.add(log)
+        db.add(new_memo)
         db.commit()
-        db.refresh(log)
-        return log
-    
-    except Exception as e:
-        db.rollback()
-        print(f"Error creating log: {e}")
+        db.refresh(new_memo)
+        return new_memo
+    except SQLAlchemyError as e:
+        print(f"🔥 메모 저장 오류: {e}")
         return None
 
 
-def get_user_logs_old(db: Session, user_id: int):
-    """
-    특정 사용자의 활동 로그를 조회하는 서비스 함수
-    - 조인을 통해 상담 사례 및 판례 관련 정보도 함께 조회
-    """
-    # 🔥 ORM을 사용하여 사용자 존재 여부 확인
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return None  # FastAPI 라우터에서 404 처리하도록 반환
+# ✅ 특정 사용자의 메모 조회 (title과 content가 있는 데이터만 반환)
+def get_user_memos(db: Session, user_id: int):
+    return db.query(UserActivityLog).filter(
+        UserActivityLog.user_id == user_id,
+        UserActivityLog.title.isnot(None),
+        UserActivityLog.content.isnot(None),
+        UserActivityLog.is_deleted == False
+    ).all()
 
-    # 🔥 RAW SQL을 사용하여 user_activity_log 관련 데이터 조회
-    query = """
-    SELECT 
-        ual.id, 
-        ual.user_id, 
-        ual.title, 
-        ual.content, 
-        ual.event_date, 
-        ual.notification, 
-        ual.created_at,
-        lc.title AS consultation_title, 
-        lc.category AS consultation_category,
-        p.pre_number AS precedent_number
-    FROM user_activity_log AS ual
-    LEFT JOIN legal_consultation AS lc ON ual.consultation_id = lc.id
-    LEFT JOIN precedent AS p ON ual.precedent_number = p.pre_number
-    WHERE ual.user_id = :user_id
-    ORDER BY ual.created_at DESC;
-    """
 
-    params = {"user_id": user_id}
-    logs = execute_sql(query, params)
+# ✅ 열람기록 저장
+def create_viewed_log(db: Session, user_id: int, consultation_id=None, precedent_number=None):
+    try:
+        new_log = UserActivityLog(
+            user_id=user_id,
+            consultation_id=consultation_id,
+            precedent_number=precedent_number
+        )
+        db.add(new_log)
+        db.commit()
+        db.refresh(new_log)  # ✅ 변경 사항 반영
+        return new_log
+    except SQLAlchemyError as e:
+        print(f"🔥 열람기록 저장 오류: {e}")
+        return None
 
-    return logs  # JSON 형태로 반환
+
+# ✅ 특정 사용자의 열람 기록 조회 (판례 / 상담 사례 열람한 내역만 반환)
+def get_user_viewed_logs(db: Session, user_id: int):
+    logs = db.query(UserActivityLog).filter(
+        UserActivityLog.user_id == user_id,
+        or_(
+            UserActivityLog.consultation_id.isnot(None),
+            UserActivityLog.precedent_number.isnot(None)
+        )
+    ).all()
+
+    return logs
+
+
+# ✅ 특정 메모의 알림 설정 업데이트 (변경 사항 반영)
+def update_notification_status(db: Session, memo_id: int, notification: bool):
+    try:
+        memo = db.query(UserActivityLog).filter(UserActivityLog.id == memo_id).first()
+        if not memo:
+            return False
+        memo.notification = notification
+        db.commit()
+        db.refresh(memo)  # ✅ 변경 사항 즉시 반영
+        return True
+    except SQLAlchemyError as e:
+        print(f"🔥 알림 설정 업데이트 오류: {e}")
+        return False
+
+
+# ✅ 메모 삭제 (is_deleted = True로 설정)
+def hide_memo(db: Session, memo_id: int):
+    memo = db.query(UserActivityLog).filter(UserActivityLog.id == memo_id).first()
+    if not memo:
+        return None
+    memo.is_deleted = True
+    db.commit()
+    db.refresh(memo)
+    return memo

@@ -1,9 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  logs: [], // 사용자 활동 로그 저장
-  status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
-  error: null,
+  logs: [],
 };
 
 const mylogSlice = createSlice({
@@ -12,18 +10,21 @@ const mylogSlice = createSlice({
   reducers: {
     setLogs: (state, action) => {
       state.logs = action.payload;
-      state.status = "succeeded";
     },
-    clearLogs: (state) => {
-      state.logs = [];
-      state.status = "idle";
+    removeMemo: (state, action) => {
+      state.logs = state.logs.map((memo) =>
+        memo.id === action.payload ? { ...memo, is_deleted: true } : memo
+      );
+    },
+    updateMemoInState: (state, action) => {
+      const updatedMemo = action.payload;
+      const index = state.logs.findIndex((memo) => memo.id === updatedMemo.id);
+      if (index !== -1) {
+        state.logs[index] = updatedMemo;
+      }
     },
   },
 });
 
-export const { setLogs, clearLogs } = mylogSlice.actions;
+export const { setLogs, removeMemo, updateMemoInState } = mylogSlice.actions;
 export default mylogSlice.reducer;
-
-// ✅ Redux에서 상태를 조회하는 선택자 추가
-export const selectLogs = (state) => state.mylog.logs;
-export const selectLogsStatus = (state) => state.mylog.status;

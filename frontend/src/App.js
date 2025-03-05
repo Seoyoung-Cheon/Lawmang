@@ -26,6 +26,9 @@ import ConsDetail from "./components/Consultation/ConsDetail";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ResetPassword from "./components/Auth/ResetPwd";
 import Modify from "./components/Auth/Modify";
+import ViewedList from "./components/MyLog/ViewedList";
+import MemoBoard from "./components/MyLog/MemoBoard";
+import MyLogsPage from "./components/MyLog/MyLogsPage";
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
@@ -64,6 +67,10 @@ function AppContent() {
           <Route path="/modify" element={<Modify />} />
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/consultation/detail/:id" element={<ConsDetail />} />
+          <Route path="/mylog" element={<MyLogsPage />} />
+          <Route path="/mylog/viewed" element={<ViewedList />} />
+          <Route path="/mylog/memo" element={<MemoBoard />} />
+          <Route path="/mylog/logs" element={<MyLogsPage />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

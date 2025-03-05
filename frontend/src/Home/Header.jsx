@@ -103,6 +103,10 @@ const Header = () => {
                 </button>
                 {isProfileMenuOpen && (
                   <div className="absolute right-0 mt-0 w-48 py-2 bg-white rounded-lg shadow-xl z-50">
+                    <Link to="/mylog" 
+                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                      테스트 페이지
+                    </Link>
                     <Link to="/mypage" 
                           className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
                       사건 기록 페이지

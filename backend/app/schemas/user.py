@@ -32,7 +32,7 @@ class UserResponse(BaseModel):
     reset_token_expires: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ✅ 로그인 요청 스키마
 class UserLogin(BaseModel):
