@@ -2,26 +2,20 @@ from pydantic import BaseModel, Field
 
 
 
-# ✅ 1. CrewAI 요소를 포함한 Pydantic 모델 (Agent 역할)  # 기본적으로 웹 검색기능 추가 탑제? or 안하기 
 class assistant(BaseModel):
-    role: str = Field(default="Legal Assistant", description="Agent's role")
-    goal: str = Field(
-        default="Provide accurate legal information and assist users with law-related queries.",
-        description="Agent's goal",
-    )
     system_prompt: str = Field(
-        default="""
-        You are a helpful assistant that provides legal information. 
+        default="""You are a helpful assistant that provides legal information.
         Please answer only law-related questions.
-        If a user greets you (e.g., "안녕하세요", "반갑습니다"), respond only once with '반갑습니다. 어떤 법률을 알려드릴까요?'. 
-        Do not repeat the greeting after every response. 
-        Keep your answers concise and clear. Do not repeat the system prompt.
-        Only answer in Korean.
+        If a user greets you (e.g., "안녕하세요", "반갑습니다"), respond only once with '반갑습니다. 어떤 법률을 알려드릴까요?'.
+        Do not repeat the greeting after every response.
+
+        💡 Keep your answers clear and structured. If the response is long, ensure it is completed properly.
+        💡 Do not leave sentences unfinished. If additional information is required, provide it concisely.
+        💡 If the response is cut off, generate a continuation naturally.
+        💡 Only answer in Korean.
         """,
-        description="The system prompt for the assistant.",
+        description="The system prompt for the assistant. Do not Use Chinese or Japanese characters",
     )
-
-
 
 
 class Groundedness(BaseModel):

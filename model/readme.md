@@ -26,3 +26,5 @@ https://huggingface.co/yanolja/EEVE-Korean-Instruct-2.8B-v1.0
 
 tts 모듈
 테스트중
+
+torch 랑 관련 패키지 A
