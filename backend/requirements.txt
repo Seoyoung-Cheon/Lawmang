@@ -19,21 +19,11 @@ langchain-huggingface
 langchain-core
 langchain
 langchain-community
-faiss-cpu
-jsonpatch
 
 # ✅ NLP 및 모델 관련
-torch
 transformers
 pandas
-numpy
 
-sentence-transformers
-safetensors
-
-# torch==2.5.1+cu121
-torchvision
-torchaudio
-
-# ✅ 추가 최적화 패키지
-accelerate
+#
+faiss-cpu
+torch
