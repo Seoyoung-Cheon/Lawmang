@@ -75,9 +75,6 @@ class LangChainRetrieval:
     The user's question is:
     "{user_query}"
     
-    Before submitting the answer, use this website as tool:
-    {search_tool}
-    
     **Tavily Search Result:**
     {search_result}
 

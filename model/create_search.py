@@ -121,7 +121,8 @@ def summarize_case(text, tokenizer, model):
 
 
 # ✅ BERT 판결 예측 모델 로드
-JUDGMENT_MODEL_PATH = "./model/2_bert/20240222_best_bert.pth"
+MODEL_PATH = "./model/2_bert"
+JUDGMENT_MODEL_PATH = os.path.join(MODEL_PATH, "model.safetensors")
 
 
 bert_model = None
@@ -129,25 +130,35 @@ bert_tokenizer = None
 
 
 def load_bert():
-    """BERT 모델 로드 (전역 캐싱 적용)"""
+    """BERT 모델 로드 (전역 캐싱 적용, safetensors 지원)"""
     global bert_model, bert_tokenizer
     if bert_model is None or bert_tokenizer is None:
         try:
             print("🔍 BERT 모델 로드 중...")
+
+            # ✅ Tokenizer 로드
             bert_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+            # ✅ 모델 설정 로드
             config = AutoConfig.from_pretrained("bert-base-uncased")
             config.num_labels = 3
             config.id2label = {0: "무죄", 1: "유죄", 2: "불명확"}
             config.label2id = {"무죄": 0, "유죄": 1, "불명확": 2}
 
+            # ✅ BERT 모델 생성
             bert_model = BertForSequenceClassification.from_pretrained(
                 "bert-base-uncased", config=config
             )
-            state_dict = torch.load(JUDGMENT_MODEL_PATH, map_location="cpu")
+
+            # ✅ safetensors 가중치 로드
+            state_dict = load_file(
+                JUDGMENT_MODEL_PATH
+            )  # 🔹 `safetensors`에서 가중치 로드
             bert_model.load_state_dict(state_dict, strict=False)
 
+            # ✅ 모델 평가 모드로 설정
             bert_model.eval()
-            print("✅ BERT 모델 로드 성공")
+            print("✅ BERT 모델 로드 성공 (safetensors 사용)")
         except Exception as e:
             print(f"❌ [BERT 로드 오류] {e}")
             bert_model, bert_tokenizer = None, None
