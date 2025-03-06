@@ -1,6 +1,6 @@
 import React from "react";
 
-const DeleteConfirmPopup = ({ isOpen, onClose, onConfirm }) => {
+const DeleteConfirm = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   return (
@@ -55,4 +55,4 @@ const DeleteConfirmPopup = ({ isOpen, onClose, onConfirm }) => {
   );
 };
 
-export default DeleteConfirmPopup;
+export default DeleteConfirm;

@@ -2,8 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&family=Oswald:wght@200..700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&family=Oswald:wght@200..700&display=swap");
 
 /* 초기화 스타일 */
 * {
@@ -13,12 +12,13 @@
   font-family: "Oswald", "Noto Sans KR", sans-serif;
 }
 
-body{
+body {
   overflow-y: scroll;
+  overflow-x: hidden; /* 가로 스크롤 제거 */
 }
 
-
-ol, ul {
+ol,
+ul {
   list-style: none;
 }
 
@@ -26,7 +26,6 @@ a {
   text-decoration: none;
   color: inherit;
 }
-
 
 /* 전체 레이아웃 컨테이너 */
 .container {
@@ -58,8 +57,27 @@ a {
   .left-layout {
     width: 100%;
   }
-  
+
   .right-layout {
     display: none;
   }
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 6px; /* 스크롤바 너비 */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* 스크롤바 트랙 배경 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #928e79; /* 색상 변경 */
+}
+
+/* Firefox 스크롤바 스타일링 */
+* {
+  scrollbar-width: thin; /* Firefox에서 얇은 스크롤바 */
+  scrollbar-color: #928e79 transparent; /* Firefox 색상 */
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-const MemoDetailPopup = ({ isOpen, memo, onClose }) => {
+const MemoDetail = ({ isOpen, memo, onClose }) => {
   if (!isOpen || !memo) return null;
 
   return (
@@ -50,4 +50,4 @@ const MemoDetailPopup = ({ isOpen, memo, onClose }) => {
   );
 };
 
-export default MemoDetailPopup;
+export default MemoDetail;
