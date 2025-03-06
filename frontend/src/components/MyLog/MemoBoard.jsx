@@ -54,10 +54,12 @@ const MemoBoard = () => {
 
   // ✅ 메모 삭제
   const handleDeleteMemo = async (memoId) => {
+    const confirmDelete = window.confirm("정말 이 메모를 삭제하시겠습니까?");
+    if (!confirmDelete) return; // 사용자가 취소하면 삭제 중단
+  
     try {
       await deleteMemo(memoId).unwrap();
       dispatch(removeMemo(memoId));
-      setIsPopupOpen(false);
     } catch (error) {
       console.error("❌ 메모 삭제 실패:", error);
     }

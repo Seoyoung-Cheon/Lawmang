@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { setViewedLogs } from "../slices/mylogSlice";
 
 const BASE_URL = "http://localhost:8000/api";
 
@@ -68,16 +69,27 @@ export const mylogApi = createApi({
     getUserViewedLogs: builder.query({
       query: (userId) => `/mylog/viewed/${userId}`,
       providesTags: ['UserViewed'],
+      async onQueryStarted(userId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setViewedLogs(data)); // ✅ Redux Store에 저장
+        } catch (error) {
+          console.error("❌ 열람 기록 가져오기 실패:", error);
+        }
+      },
     }),
 
     // ✅ 새로운 열람 기록 추가
     createViewedLog: builder.mutation({
       query: (logData) => ({
-        url: "/mylog/viewed",
+        url: `/mylog/viewed/${logData.user_id}`,
         method: "POST",
         body: logData,
       }),
       invalidatesTags: ['UserViewed'],
+      async onQueryStarted(logData, { queryFulfilled }) {
+        console.log("📢 열람 기록 저장 요청 실행됨:", logData);
+      },
     }),
   }),
 });

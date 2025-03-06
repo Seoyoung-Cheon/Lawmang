@@ -205,7 +205,7 @@ const Consultation = () => {
           </div>
 
           {/* 카테고리 정보 */}
-          {selectedCategory !== "all" && (
+          {selectedCategory !== "all" && ( // todo: 첫 로딩 시 GET http://localhost:3000/api/search/precedents/category/all 404 (Not Found) 해결 필요
             <div className="flex items-center gap-2 mb-4">
               <span className="text-lg font-semibold text-black">
                 {selectedCategory}
