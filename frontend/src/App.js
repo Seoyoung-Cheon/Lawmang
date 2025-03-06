@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Provider } from "react-redux"; // ✅ Redux Provider 추가
 import { store } from "./redux/store"; // ✅ Redux Store 불러오기
 import Header from "./Home/Header";
@@ -21,7 +16,7 @@ import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import Footer from "./Home/Footer";
 import { AuthProvider } from "./components/Auth/AuthContext";
-import Mypage from "./components/Mypage/Mypage";
+
 import ConsDetail from "./components/Consultation/ConsDetail";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ResetPassword from "./components/Auth/ResetPwd";
@@ -65,7 +60,7 @@ function AppContent() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/modify" element={<Modify />} />
-          <Route path="/mypage" element={<Mypage />} />
+
           <Route path="/consultation/detail/:id" element={<ConsDetail />} />
           <Route path="/mylog" element={<MyLogsPage />} />
           <Route path="/mylog/viewed" element={<ViewedList />} />

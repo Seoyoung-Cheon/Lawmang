@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CiLogin, CiUser } from "react-icons/ci";
 
 import { useLogoutUserMutation } from "../redux/slices/authApi";
-import { selectIsAuthenticated, selectToken, logout, selectUser } from '../redux/slices/authSlice';
-
+import {
+  selectIsAuthenticated,
+  selectToken,
+  logout,
+  selectUser,
+} from "../redux/slices/authSlice";
 
 const Header = () => {
   const location = useLocation();
@@ -33,7 +37,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
   const handleLogout = async () => {
     console.log("🚀 로그아웃 버튼 클릭됨!");
 
@@ -46,7 +49,6 @@ const Header = () => {
     dispatch(logout()); // ✅ Redux 상태 변경
     navigate("/"); // ✅ 홈으로 이동
   };
-
 
   return (
     <div className="w-full">
@@ -94,25 +96,29 @@ const Header = () => {
           {/* 로그인/로그아웃 버튼 */}
           <div className="flex items-center gap-6">
             {isAuthenticated ? (
-              <div className="relative inline-block"
-                   onMouseEnter={() => setIsProfileMenuOpen(true)}
-                   onMouseLeave={() => setIsProfileMenuOpen(false)}>
-                <button className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}>
+              <div
+                className="relative inline-block"
+                onMouseEnter={() => setIsProfileMenuOpen(true)}
+                onMouseLeave={() => setIsProfileMenuOpen(false)}
+              >
+                <button
+                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
+                >
                   <CiUser className="w-6 h-6" />
-                  <span>{user?.nickname || '사용자'}</span>
+                  <span>{user?.nickname || "사용자"}</span>
                 </button>
                 {isProfileMenuOpen && (
                   <div className="absolute right-0 mt-0 w-48 py-2 bg-white rounded-lg shadow-xl z-50">
-                    <Link to="/mylog" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
-                      테스트 페이지
-                    </Link>
-                    <Link to="/mypage" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                    <Link
+                      to="/mylog"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    >
                       사건 기록 페이지
                     </Link>
-                    <Link to="/modify" 
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                    <Link
+                      to="/modify"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    >
                       회원정보 수정
                     </Link>
                     <button
