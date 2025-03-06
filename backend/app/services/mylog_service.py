@@ -2,9 +2,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc
 from app.models.mylog import UserActivityLog
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.schemas.mylog import MemoUpdate
 
+# ✅ 메모리 캐시 추가 (전역 변수)
+_view_cache = {}
+CACHE_DURATION = 60  # 캐시 유효 시간 (초)
 
 # ✅ 메모 저장
 def create_memo(db: Session, user_id: int, title: str, content: str, event_date=None, notification=False):
@@ -105,39 +108,65 @@ def update_notification_status(db: Session, memo_id: int, notification: bool):
 # ✅ 열람 기록 저장 (중복 방지)
 def create_or_update_viewed_log(db: Session, user_id: int, consultation_id=None, precedent_number=None):
     try:
-        print(f"📌 [쿼리 실행] user_id={user_id}, consultation_id={consultation_id}, precedent_number={precedent_number}")
+        cache_key = f"{user_id}_{consultation_id}_{precedent_number}"
+        current_time = datetime.utcnow()
+
+        # ✅ 캐시 확인
+        if cache_key in _view_cache:
+            last_view, cached_result = _view_cache[cache_key]
+            if (current_time - last_view).total_seconds() < CACHE_DURATION:
+                print(f"⚠️ [중복 요청 감지] {cache_key}")
+                return {"status": "cached", "data": cached_result}  # ✅ 캐시된 결과 반환
 
         # 기존 기록이 있는지 확인
         existing_log = db.query(UserActivityLog).filter(
             UserActivityLog.user_id == user_id,
-            (UserActivityLog.consultation_id == consultation_id) if consultation_id else (UserActivityLog.precedent_number == precedent_number)
+            (UserActivityLog.consultation_id == consultation_id) if consultation_id 
+            else (UserActivityLog.precedent_number == precedent_number)
         ).first()
 
+        result = None
         if existing_log:
-            # 🔥 기존 기록이 있으면 `viewed_at` 갱신 (created_at은 변경되지 않음)
-            print(f"🔄 기존 기록 업데이트: {existing_log.id}")
-            existing_log.viewed_at = datetime.utcnow()
+            # 기존 기록 업데이트
+            existing_log.viewed_at = current_time
             db.commit()
             db.refresh(existing_log)
-            return existing_log
+            result = existing_log
+        else:
+            # 새로운 기록 저장
+            new_log = UserActivityLog(
+                user_id=user_id,
+                consultation_id=consultation_id,
+                precedent_number=precedent_number,
+                viewed_at=current_time
+            )
+            db.add(new_log)
+            db.commit()
+            db.refresh(new_log)
+            result = new_log
 
-        # 🔥 새로운 기록 저장
-        new_log = UserActivityLog(
-            user_id=user_id,
-            consultation_id=consultation_id,
-            precedent_number=precedent_number,
-            viewed_at=datetime.utcnow()
-        )
-        db.add(new_log)
-        db.commit()
-        db.refresh(new_log)
-        
-        print(f"✅ [쿼리 성공] 새로운 열람 기록 추가됨: {new_log.id}")
-        return new_log
+        # ✅ 캐시 업데이트
+        _view_cache[cache_key] = (current_time, result)
+
+        # ✅ 오래된 캐시 정리
+        cleanup_cache()
+
+        return {"status": "success", "data": result}  # ✅ 성공 결과 반환
 
     except SQLAlchemyError as e:
         print(f"🔥 [쿼리 오류] 열람기록 저장 오류: {e}")
-        return None
+        return {"status": "error", "message": str(e)}  # ✅ 오류 정보 반환
+
+
+# ✅ 캐시 정리 함수 추가
+def cleanup_cache():
+    current_time = datetime.utcnow()
+    expired_keys = [
+        key for key, (timestamp, _) in _view_cache.items()
+        if (current_time - timestamp).total_seconds() > CACHE_DURATION
+    ]
+    for key in expired_keys:
+        del _view_cache[key]
 
 
 # ✅ 특정 사용자의 열람 기록 조회 (최근 열람한 기록이 위로 오도록 정렬)

@@ -74,7 +74,7 @@ export const mylogApi = createApi({
           const { data } = await queryFulfilled;
           dispatch(setViewedLogs(data)); // ✅ Redux Store에 저장
         } catch (error) {
-          console.error("❌ 열람 기록 가져오기 실패:", error);
+          // console.error("❌ 열람 기록 가져오기 실패:", error);
         }
       },
     }),
@@ -88,7 +88,14 @@ export const mylogApi = createApi({
       }),
       invalidatesTags: ['UserViewed'],
       async onQueryStarted(logData, { queryFulfilled }) {
-        console.log("📢 열람 기록 저장 요청 실행됨:", logData);
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          // 중복 요청으로 인한 오류는 무시
+          if (error.error?.status === 500) {
+            console.log("중복 요청이 감지되었습니다.");
+          }
+        }
       },
     }),
   }),

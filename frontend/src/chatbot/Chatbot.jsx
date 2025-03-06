@@ -17,7 +17,6 @@ const Chatbot = () => {
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
-    console.log("🔄 로그인 상태 변경 감지됨:", isAuthenticated);
     if (!isAuthenticated) {
       setSelectedCategory("general");
     }

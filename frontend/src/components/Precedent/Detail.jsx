@@ -4,14 +4,31 @@ import { fetchCaseDetail } from "./precedentApi"; // API 요청 함수
 import Popup from "./Popup";
 import DOMPurify from "dompurify"; // XSS 방지 라이브러리
 import loadingGif from "../../assets/loading.gif";
+import { useSelector } from 'react-redux';
+import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
+
 
 const Detail = () => {
   const { id } = useParams();
+  const user = useSelector((state) => state.auth.user);
+  const [createViewedLog] = useCreateViewedLogMutation();
+
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [precedentDetail, setPrecedentDetail] = useState(null);
   const [iframeUrl, setIframeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ 판례 열람 기록 저장
+  useEffect(() => {
+    if (user?.id && id) {
+      createViewedLog({
+        user_id: user.id,
+        consultation_id: null,
+        precedent_number: id,
+      });
+    }
+  }, [id, user, createViewedLog]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -22,14 +39,12 @@ const Detail = () => {
       setIsLoading(true);
       setError(null);
 
-      console.log("Fetching detail for pre_number:", id);
+      // console.log("Fetching detail for pre_number:", id);
 
       try {
         const data = await fetchCaseDetail(id);
 
         if (data.type === "html") {
-          console.log("📌 HTML 데이터 수신됨");
-
           // HTML에서 iframe URL 추출
           const parser = new DOMParser();
           const doc = parser.parseFromString(data.content, "text/html");
@@ -37,7 +52,6 @@ const Detail = () => {
 
           if (iframeElement) {
             const extractedUrl = iframeElement.getAttribute("src");
-            console.log("📌 추출된 iframe URL:", extractedUrl);
             setIframeUrl(extractedUrl);
           } else {
             console.warn("⚠️ iframe을 찾을 수 없음");

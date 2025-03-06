@@ -6,6 +6,7 @@ from app.services.mylog_service import (
     get_user_viewed_logs, hide_memo, get_user_memos, update_memo
 )
 from app.schemas.mylog import MemoCreate, MemoUpdate, ViewedLogCreate, MemoResponse, ViewedLogResponse
+import time
 
 router = APIRouter()
 
@@ -61,24 +62,32 @@ def update_notification_route(memo_id: int, notification: bool, db: Session = De
     return {"message": "알림 설정이 업데이트되었습니다.", "memo_id": memo_id, "notification": notification}
 
 
-# ✅ 열람 기록 저장 (POST /api/mylog/viewed)
+# 중복 요청 방지를 위한 캐시
+request_cache = {}
+CACHE_TIMEOUT = 2  # 2초
+
+# ✅ 열람 기록 저장 (POST /api/mylog/viewed/{user_id})
 @router.post("/viewed/{user_id}")
 def create_viewed_log_route(user_id: int, viewed_log: ViewedLogCreate, db: Session = Depends(get_db)):
-    print(f"📌 [백엔드] 열람 기록 저장 요청 수신: user_id={user_id}, data={viewed_log}")
-
-    new_log = create_or_update_viewed_log(
+    result = create_or_update_viewed_log(
         db=db,
         user_id=user_id,
         consultation_id=viewed_log.consultation_id,
         precedent_number=viewed_log.precedent_number,
     )
 
-    if new_log is None:
-        print("❌ [백엔드] 열람 기록 저장 실패!")
-        raise HTTPException(status_code=500, detail="열람 기록 저장 실패")
-    
-    print(f"✅ [백엔드] 열람 기록 저장 완료: {new_log}")
-    return new_log
+    if result["status"] == "cached":
+        # 캐시된 결과 반환
+        return result["data"]
+    elif result["status"] == "success":
+        # 새로운 결과 반환
+        return result["data"]
+    else:
+        # 오류 처리
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("message", "열람 기록 저장 중 오류가 발생했습니다.")
+        )
 
 
 # ✅ 특정 사용자의 열람 기록 조회 (GET /api/mylog/viewed/{user_id})

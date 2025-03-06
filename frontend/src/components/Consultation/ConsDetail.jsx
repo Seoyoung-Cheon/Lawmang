@@ -4,12 +4,29 @@ import openLicenseImg from "../../assets/open_license.jpg";
 import { TbCircleLetterQFilled, TbCircleLetterA } from "react-icons/tb";
 import { fetchConsultationDetail } from "./consultaionApi";
 import loadingGif from "../../assets/loading.gif";
+import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
+import { useSelector } from "react-redux";
+
 
 const ConsDetail = () => {
   const { id } = useParams();
+  const user = useSelector((state) => state.auth.user);
+  const [createViewedLog] = useCreateViewedLogMutation();
+
   const [consultation, setConsultation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ 상담 사례 열람 기록 저장
+  useEffect(() => {
+    if (user?.id && id) {
+      createViewedLog({
+        user_id: user.id,
+        consultation_id: id,
+        precedent_number: null,
+      });
+    }
+  }, [id, user, createViewedLog]);
 
   // 페이지 진입 시 스크롤 위치 초기화
   useEffect(() => {
@@ -23,7 +40,6 @@ const ConsDetail = () => {
         setError(null);
 
         const data = await fetchConsultationDetail(id);
-        console.log("API Response:", data);
         setConsultation(data);
       } catch (error) {
         console.error("상담 상세 정보를 가져오는데 실패했습니다:", error);

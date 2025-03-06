@@ -13,7 +13,6 @@ const Youtube = () => {
   const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
-    console.log("API KEY:", process.env.REACT_APP_YOUTUBE_API_KEY);
     const lastRequestTime = localStorage.getItem("lastRequestTime");
     const cachedVideos = localStorage.getItem("cachedVideos");
     const currentTime = new Date().getTime();
@@ -25,12 +24,12 @@ const Youtube = () => {
       // 시간 수정할거면 앞에 24 * 60 * 60 * 1000 넣기
       currentTime - Number(lastRequestTime) < 24 * 60 * 60 * 1000
     ) {
-      console.log("캐시된 데이터 사용");
+      // console.log("캐시된 데이터 사용");
       setVideos(JSON.parse(cachedVideos));
       setLoading(false);
       return;
     } else {
-      console.log("새로운 API 요청 실행");
+      // console.log("새로운 API 요청 실행");
     }
 
     const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;

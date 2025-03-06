@@ -6,14 +6,10 @@
  * @returns {Promise<any>} - API 응답 데이터(성공 시 JSON 또는 HTML 문자열).
  */
 async function fetchData(apiUrl) {
-  console.log("🔹 API 요청 URL:", apiUrl);
-
   try {
     const response = await fetch(apiUrl, {
       headers: { "Accept": "*/*" }, // ✅ JSON & HTML 모두 받을 수 있도록 설정
     });
-
-    console.log("🔹 API 응답 상태 코드:", response.status);
 
     // HTTP 응답이 실패한 경우, 응답 본문을 읽어 오류 메시지를 생성합니다.
     if (!response.ok) {
@@ -22,22 +18,18 @@ async function fetchData(apiUrl) {
     }
 
     const contentType = response.headers.get("content-type") || "";
-    console.log("🔹 응답 Content-Type:", contentType);
 
     // ✅ JSON 응답 처리
     if (contentType.includes("application/json")) {
       const data = await response.json();
-      console.log("✅ API 응답 데이터 (JSON):", data);
       return data;
     }
 
     // ✅ HTML 응답 처리 (JSON이 아닌 경우)
     const htmlData = await response.text();
-    console.warn("⚠️ API 응답이 HTML 형식입니다.");
     return { type: "html", content: htmlData }; // HTML 응답을 객체 형태로 반환
 
   } catch (error) {
-    console.error("❌ API 요청 오류:", error.message);
     return { type: "error", message: error.message }; // 오류 발생 시 에러 정보 반환
   }
 }
@@ -50,7 +42,6 @@ async function fetchData(apiUrl) {
 export async function fetchCasesByCategory(category) {
   if (!category) return [];
   const apiUrl = `/api/search/precedents/category/${encodeURIComponent(category)}`;
-  console.log("🔹 API 요청 URL (카테고리):", apiUrl);
   return fetchData(apiUrl);
 }
 
@@ -75,8 +66,6 @@ export async function fetchCaseDetail(pre_number) {
   if (!pre_number) throw new Error("유효한 pre_number가 필요합니다.");
 
   const apiUrl = `/api/detail/precedent/${pre_number}`;
-  console.log("🔹 JSON 데이터 요청:", apiUrl);
-
   const result = await fetchData(apiUrl);
 
   // ✅ JSON인지 HTML인지 확인
@@ -84,7 +73,6 @@ export async function fetchCaseDetail(pre_number) {
     const firstKey = Object.keys(result)[0]; // ✅ JSON 응답의 첫 번째 키 확인
 
     if (firstKey === "Law") {
-      console.log("🔹 'Law' 키 발견 → HTML 데이터 요청");
       const htmlApiUrl = apiUrl.replace("type=JSON", "type=HTML"); // ✅ HTML API URL 변경
       return fetchData(htmlApiUrl); // ✅ HTML 요청 후 반환
     }

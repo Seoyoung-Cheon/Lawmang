@@ -6,15 +6,9 @@ const Detail = ({ consultation_id, precedent_number }) => {
   const user = useSelector((state) => state.auth.user);
   const [createViewedLog] = useCreateViewedLogMutation();
 
+  // ✅ 열람 기록 저장
   useEffect(() => {
-    console.log("📌 useEffect 실행됨!");
-    console.log("📌 현재 로그인한 유저 ID:", user?.id);
-    console.log("📌 열람할 판례 번호:", precedent_number);
-    console.log("📌 열람할 상담 ID:", consultation_id);
-
     if (user?.id && (consultation_id || precedent_number)) {
-      console.log("📢 열람 기록 저장 요청 실행:", { user_id: user.id, consultation_id, precedent_number });
-
       createViewedLog({
         user_id: user.id,
         consultation_id: consultation_id || null,

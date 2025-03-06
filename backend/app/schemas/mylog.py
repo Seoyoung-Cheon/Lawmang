@@ -36,7 +36,8 @@ class MemoResponse(BaseModel):
 # ✅ 열람기록 생성 스키마
 class UserActivityLogBase(BaseModel):
     user_id: int
-    precedent_id: Optional[int] = None
+    consultation_id: Optional[int] = None
+    precedent_number: Optional[int] = None
     activity_type: str
     created_at: datetime = Field(default_factory=datetime.now)
 
@@ -52,8 +53,9 @@ class UserActivityLogResponse(UserActivityLogBase):
 
 # ✅ 열람기록 생성 스키마
 class ViewedLogCreate(BaseModel):
-    user_id: int
-    precedent_id: Optional[int] = None
+    # user_id: int
+    consultation_id: Optional[int] = None
+    precedent_number: Optional[int] = None
     viewed_at: date = Field(default_factory=lambda: datetime.now().date())
 
 # ✅ 열람기록 응답 스키마
@@ -61,7 +63,7 @@ class ViewedLogResponse(BaseModel):
     id: int
     user_id: int
     consultation_id: Optional[int] = None
-    precedent_number: Optional[str] = None
+    precedent_number: Optional[int] = None
     created_at: datetime
 
     class Config:
