@@ -1,4 +1,4 @@
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCases, fetchCasesByCategory } from "./precedentApi";
@@ -42,7 +42,8 @@ const Precedent = () => {
   });
 
   // 현재 표시할 결과 데이터 결정
-  let currentResults = selectedCategory === "all" ? searchResults : categoryResults;
+  let currentResults =
+    selectedCategory === "all" ? searchResults : categoryResults;
   currentResults = Array.isArray(currentResults) ? currentResults : []; // 🛠 배열이 아닐 경우 빈 배열로 초기화
 
   const handleSearch = () => {
@@ -95,6 +96,25 @@ const Precedent = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
+  const getCategoryColor = (type) => {
+    switch (type) {
+      case "형사":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "민사":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "세무":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "일반행정":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "특허":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "가사":
+        return "bg-pink-100 text-pink-700 border-pink-200";
+      default:
+        return "bg-gray-50 text-gray-600 border-gray-200";
+    }
+  };
+
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -142,20 +162,40 @@ const Precedent = () => {
           {/* 로딩 및 결과 표시 */}
           {isLoading || isCategoryLoading ? (
             <div className="flex flex-col justify-center items-center h-[400px] gap-4">
-              <img src={loadingGif} alt="loading" className="w-16 h-16 text-gray-600" />
+              <img
+                src={loadingGif}
+                alt="loading"
+                className="w-16 h-16 text-gray-600"
+              />
               <p className="text-lg text-gray-600">로딩 중...</p>
             </div>
           ) : currentResults.length > 0 ? (
             <ul className="space-y-4 w-[900px]">
               {currentItems.map((item) => (
-                <li key={item.pre_number} className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50">
-                  <Link to={`/precedent/detail/${item.pre_number}`} className="flex justify-between">
+                <li
+                  key={item.pre_number}
+                  className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
+                >
+                  <Link
+                    to={`/precedent/detail/${item.pre_number}`}
+                    className="flex justify-between"
+                  >
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-medium truncate mb-4">{item.c_name}</h3>
-                      <div className="text-sm text-gray-600">{item.c_number}</div>
-                      <div className="text-sm text-gray-600">{item.court} | {item.j_date}</div>
+                      <h3 className="text-lg font-medium truncate mb-4">
+                        {item.c_name}
+                      </h3>
+                      <div className="text-sm text-gray-600">
+                        {item.c_number}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {item.court} | {item.j_date}
+                      </div>
                     </div>
-                    <div className="px-3 py-1 text-sm rounded-lg h-fit ml-4 bg-gray-50 text-gray-600 border-gray-200">
+                    <div
+                      className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border ${getCategoryColor(
+                        item.c_type
+                      )}`}
+                    >
                       {item.c_type}
                     </div>
                   </Link>
