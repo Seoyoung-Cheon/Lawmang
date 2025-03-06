@@ -32,7 +32,7 @@ const CardList = () => {
 
   return (
     <>
-      <span className="absolute h-[650px] w-screen left-0 -z-10 bg-gray-100"></span>
+      <span className="absolute h-[700px] w-screen left-0 -z-10 bg-gray-100"></span>
       <div className="container relative">
         <div className="left-layout">
           <div className="mx-[-200px]">
@@ -56,10 +56,10 @@ const CardList = () => {
                         className="absolute inset-[-2px] rounded-lg bg-gray-500 transition-all duration-200 ease-out 
                         [clip-path:polygon(0_0,0_0,0_0,0_0)] group-hover:[clip-path:polygon(0_0,100%_0,100%_100%,0_100%)]"
                       ></div>
-                      <div className="relative bg-white rounded-lg p-6 h-full border border-gray-300">
-                        <h3 className="text-lg font-bold mb-3 text-gray-900 line-clamp-2">
-                          {card.title}
-                        </h3>
+                      <div className="relative bg-white rounded-lg p-6 h-[200px] border border-gray-300 flex flex-col justify-between">
+                      <h3 className="text-lg font-bold mb-3 text-gray-900">
+                        {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
+                      </h3>
                         <p className="text-sm text-gray-600 mb-3">{card.date}</p>
                         <p className="text-sm text-gray-700 line-clamp-4">
                           {card.preview}

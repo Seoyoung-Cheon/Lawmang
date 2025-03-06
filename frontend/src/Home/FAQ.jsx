@@ -1,26 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { GrCircleQuestion } from "react-icons/gr";
-import { useState } from "react";
+import FAQdata from "../constants/FAQdata";
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
-
-  // 데이터 예시
-  const faqData = [
-    {
-      question: "로망은 어떤 서비스인가요?",
-      answer:
-        "로망은 법률 정보를 쉽게 접근할 수 있도록 도와주는 서비스입니다. 판례 검색, 법률 상담, 관련 서식 등을 제공합니다.",
-    },
-  ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(FAQdata.length / itemsPerPage);
 
   const toggleAnswer = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
+  const displayedFAQs = FAQdata.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="container !mt-[160px]">
+    <div className="container !mt-[100px] !mb-[80px]">
       <div className="left-layout">
         <div className="flex items-center gap-4 mx-[-100px]">
           <GrCircleQuestion className="text-6xl text-black" />
@@ -28,8 +29,8 @@ const FAQ = () => {
         </div>
 
         <div className="mx-[-100px] mt-10">
-          <div className="w-[90%] border-t border-b border-gray-200 py-2 space-y-4">
-            {faqData.map((faq, index) => (
+          <div className="w-[84%] border-t border-b border-gray-200 py-2 space-y-4">
+            {displayedFAQs.map((faq, index) => (
               <div
                 key={index}
                 className="border-b border-gray-200 last:border-b-0"
@@ -53,6 +54,21 @@ const FAQ = () => {
                   <p className="text-gray-600">{faq.answer}</p>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* 페이지네이션 */}
+          <div className="flex justify-center mt-4 space-x-2 ml-[-80px]">
+            {[...Array(totalPages).keys()].map((num) => (
+              <button
+                key={num + 1}
+                className={`px-3 py-1 border rounded-md ${
+                  currentPage === num + 1 ? "bg-gray-300" : "bg-white"
+                }`}
+                onClick={() => paginate(num + 1)}
+              >
+                {num + 1}
+              </button>
             ))}
           </div>
         </div>
