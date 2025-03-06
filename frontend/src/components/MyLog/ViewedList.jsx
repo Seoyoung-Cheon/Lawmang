@@ -39,14 +39,35 @@ const ViewedList = () => {
     }
   }, [viewedLogs, dispatch]);
 
-  // 추가: 필터링된 로그
-  const filteredLogs = viewedLogs.filter((log) => {
-    if (viewMode === "consultation") {
-      return log.consultation_id;
-    } else {
-      return log.precedent_number;
-    }
-  });
+  // 필터링된 로그를 최신순으로 정렬하고 중복 제거
+  const filteredLogs = [...viewedLogs]
+    .filter((log) => {
+      if (viewMode === "consultation") {
+        return log.consultation_id && !log.precedent_number;
+      } else {
+        return !log.consultation_id && log.precedent_number;
+      }
+    })
+    // 중복 제거: consultation_id 또는 precedent_number 기준
+    .filter((log, index, self) => {
+      if (viewMode === "consultation") {
+        return (
+          index ===
+          self.findIndex((l) => l.consultation_id === log.consultation_id)
+        );
+      } else {
+        return (
+          index ===
+          self.findIndex((l) => l.precedent_number === log.precedent_number)
+        );
+      }
+    })
+    .sort((a, b) => {
+      // ISO 문자열 형식의 날짜를 확실하게 비교
+      const dateA = new Date(a.viewed_at).getTime();
+      const dateB = new Date(b.viewed_at).getTime();
+      return dateB - dateA; // 내림차순 정렬 (최신순)
+    });
 
   return (
     <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">

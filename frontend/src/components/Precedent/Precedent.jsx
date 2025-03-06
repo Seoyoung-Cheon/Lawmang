@@ -69,11 +69,19 @@ const Precedent = () => {
     refetchCategory();
   };
 
-  // 페이지네이션 관련 함수들
-  const getTotalPages = () => {
-    return Math.ceil((currentResults.length || 0) / itemsPerPage);
+  // 현재 페이지의 아이템들 계산
+  const getCurrentItems = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return currentResults.slice(startIndex, endIndex);
   };
 
+  // 총 페이지 수 계산
+  const getTotalPages = () => {
+    return Math.ceil(currentResults.length / itemsPerPage);
+  };
+
+  // 페이지 범위 계산
   const getPageRange = (totalPages) => {
     let start = Math.max(1, currentPage - Math.floor(pageNumbersToShow / 2));
     let end = start + pageNumbersToShow - 1;
@@ -86,15 +94,9 @@ const Precedent = () => {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  const getCurrentItems = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return currentResults.slice(startIndex, endIndex);
-  };
-
   const totalPages = getTotalPages();
-  const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
+  const pageNumbers = getPageRange(totalPages);
 
   const getCategoryColor = (type) => {
     switch (type) {
@@ -122,6 +124,22 @@ const Precedent = () => {
           {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-[900px]">
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                  />
+                </svg>
+              </div>
               <input
                 type="text"
                 placeholder="판례 및 키워드를 입력해주세요..."
@@ -170,38 +188,113 @@ const Precedent = () => {
               <p className="text-lg text-gray-600">로딩 중...</p>
             </div>
           ) : currentResults.length > 0 ? (
-            <ul className="space-y-4 w-[900px]">
-              {currentItems.map((item) => (
-                <li
-                  key={item.pre_number}
-                  className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
-                >
-                  <Link
-                    to={`/precedent/detail/${item.pre_number}`}
-                    className="flex justify-between"
+            <>
+              <ul className="space-y-4 w-[900px]">
+                {currentItems.map((item) => (
+                  <li
+                    key={item.pre_number}
+                    className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
                   >
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-medium truncate mb-4">
-                        {item.c_name}
-                      </h3>
-                      <div className="text-sm text-gray-600">
-                        {item.c_number}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {item.court} | {item.j_date}
-                      </div>
-                    </div>
-                    <div
-                      className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border ${getCategoryColor(
-                        item.c_type
-                      )}`}
+                    <Link
+                      to={`/precedent/detail/${item.pre_number}`}
+                      className="flex justify-between"
                     >
-                      {item.c_type}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-medium truncate mb-4">
+                          {item.c_name}
+                        </h3>
+                        <div className="text-sm text-gray-600">
+                          {item.c_number}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {item.court} | {item.j_date}
+                        </div>
+                      </div>
+                      <div
+                        className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border ${getCategoryColor(
+                          item.c_type
+                        )}`}
+                      >
+                        {item.c_type}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              {/* 페이지네이션 UI */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className={`px-2 py-1 rounded-lg ${
+                      currentPage === 1
+                        ? "text-gray-300"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <MdKeyboardDoubleArrowLeft size={20} />
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-2 py-1 rounded-lg ${
+                      currentPage === 1
+                        ? "text-gray-300"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <MdKeyboardArrowLeft size={20} />
+                  </button>
+
+                  <div className="flex gap-1">
+                    {pageNumbers.map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-lg ${
+                          currentPage === pageNum
+                            ? "bg-Main text-white"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-2 py-1 rounded-lg ${
+                      currentPage === totalPages
+                        ? "text-gray-300"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <MdKeyboardArrowRight size={20} />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className={`px-2 py-1 rounded-lg ${
+                      currentPage === totalPages
+                        ? "text-gray-300"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <MdKeyboardDoubleArrowRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex justify-center items-center h-[400px]">
               <p className="text-lg text-gray-400">
