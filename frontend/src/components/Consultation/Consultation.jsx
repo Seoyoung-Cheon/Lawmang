@@ -62,20 +62,19 @@ const Consultation = () => {
     enabled: false,
   });
 
-  const {
-    data: categoryResults = [],
-    isLoading: isCategoryLoading
-  } = useQuery({
-    queryKey: ["consultationCategory", selectedCategory],
-    queryFn: () => fetchConsultationsByCategory(selectedCategory),
-    enabled: selectedCategory !== "all",
-    onSuccess: (data) => {
-      console.log("Query success, data:", data); // 쿼리 성공시 데이터 확인
-    },
-    onError: (error) => {
-      console.error("Query error:", error); // 쿼리 에러 확인
-    },
-  });
+  const { data: categoryResults = [], isLoading: isCategoryLoading } = useQuery(
+    {
+      queryKey: ["consultationCategory", selectedCategory],
+      queryFn: () => fetchConsultationsByCategory(selectedCategory),
+      enabled: selectedCategory !== "all",
+      onSuccess: (data) => {
+        console.log("Query success, data:", data); // 쿼리 성공시 데이터 확인
+      },
+      onError: (error) => {
+        console.error("Query error:", error); // 쿼리 에러 확인
+      },
+    }
+  );
 
   // 현재 표시할 결과 데이터 결정
   const currentResults = useMemo(() => {
@@ -140,7 +139,6 @@ const Consultation = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
-
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -152,8 +150,8 @@ const Consultation = () => {
                 type="text"
                 placeholder="사례 검색..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
-                         focus:outline-none focus:ring-2 focus:ring-sage focus:border-sage
-                         transition-all duration-200 bg-gray-50/50 hover:bg-white"
+                         focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
+                          transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
                 onKeyDown={handleKeyPress}
