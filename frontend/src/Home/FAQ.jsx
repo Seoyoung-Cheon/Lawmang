@@ -13,7 +13,11 @@ const FAQ = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // 페이지네이션 클릭 시 페이지 이동 및 열린 답변 닫기
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    setOpenIndex(null);
+  };
 
   const displayedFAQs = FAQdata.slice(
     (currentPage - 1) * itemsPerPage,
@@ -21,7 +25,7 @@ const FAQ = () => {
   );
 
   return (
-    <div className="container !mt-[100px] !mb-[80px]">
+    <div className="container !mt-[100px] !mb-[60px]">
       <div className="left-layout">
         <div className="flex items-center gap-4 mx-[-100px]">
           <GrCircleQuestion className="text-6xl text-black" />
