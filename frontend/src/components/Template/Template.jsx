@@ -33,30 +33,24 @@ const categoryMapping = {
 const Template = () => {
   const { category } = useParams();
   const navigate = useNavigate();
-  const [documents, setDocuments] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(category || "all");
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  useEffect(() => {
-    setIsLoading(true);
-    setDocuments(documentStructure);
-    setIsLoading(false);
-  }, []);
-
+  // 선택된 카테고리 설정
   useEffect(() => {
     if (category) {
       setSelectedCategory(category);
     }
   }, [category]);
 
+  // 선택된 카테고리에 따라 문서 필터링
   const handleCategorySelect = (key) => {
     setSelectedCategory(key);
     navigate(`/template/${key}`);
   };
 
+  // 미리보기 모달 닫기
   const handleClosePreview = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -69,19 +63,6 @@ const Template = () => {
     }
     return { [selectedCategory]: documentStructure[selectedCategory] };
   };
-
-  if (isLoading)
-    return (
-      <div className="p-6 flex items-center justify-center text-gray-600">
-        로딩 중...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="p-6 flex items-center justify-center text-red-500 font-medium">
-        {error}
-      </div>
-    );
 
   return (
     <div className="container">

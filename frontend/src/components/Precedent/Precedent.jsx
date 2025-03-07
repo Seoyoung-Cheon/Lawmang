@@ -23,7 +23,6 @@ const Precedent = () => {
   const {
     data: searchResults = [],
     isLoading,
-    error,
     refetch,
   } = useQuery({
     queryKey: ["cases", searchQuery],
