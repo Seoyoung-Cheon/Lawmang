@@ -63,7 +63,7 @@ def update_memo(db: Session, memo_id: int, memo_data: MemoUpdate):
         db.commit()
         db.refresh(existing_memo)
         return existing_memo
-
+    
     except SQLAlchemyError as e:
         print(f"🔥 메모 업데이트 오류: {e}")
         return None
