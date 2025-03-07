@@ -27,11 +27,8 @@ const Header = () => {
   // ✅ 스크롤 이벤트 처리
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      // 스크롤 위치가 50px을 넘어가면 배경 변경
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -62,7 +59,6 @@ const Header = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [logoutUser, dispatch]);
-
 
   return (
     <div className="w-full">
