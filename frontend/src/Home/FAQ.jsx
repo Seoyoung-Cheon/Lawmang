@@ -14,7 +14,7 @@ const FAQ = () => {
   };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   const displayedFAQs = FAQdata.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -58,12 +58,14 @@ const FAQ = () => {
           </div>
 
           {/* 페이지네이션 */}
-          <div className="flex justify-center mt-4 space-x-2 ml-[-80px]">
+          <div className="flex justify-center mt-10 space-x-2 ml-[-120px]">
             {[...Array(totalPages).keys()].map((num) => (
               <button
                 key={num + 1}
                 className={`px-3 py-1 border rounded-md ${
-                  currentPage === num + 1 ? "bg-gray-300" : "bg-white"
+                  currentPage === num + 1
+                    ? "bg-gray-500 text-white"
+                    : "bg-white text-gray-700"
                 }`}
                 onClick={() => paginate(num + 1)}
               >

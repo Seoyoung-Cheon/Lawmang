@@ -145,7 +145,7 @@ const Precedent = () => {
                 placeholder="판례 및 키워드를 입력해주세요..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl 
                           focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
-                          transition-colors duration-200"
+                          transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
                 onKeyPress={handleKeyPress}
