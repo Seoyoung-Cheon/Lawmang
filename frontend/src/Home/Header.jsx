@@ -49,14 +49,19 @@ const Header = () => {
 
   // ✅ 브라우저 종료 시 자동 로그아웃
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      logoutUser(); // ✅ 브라우저 종료 시 자동 로그아웃
+    const handleUnload = (event) => {
+      // 새로고침인 경우 (performance.navigation.type === 1)
+      if (event.persisted || (window.performance && window.performance.navigation.type === 1)) {
+        return;
+      }
+      
+      logoutUser();
       dispatch(logout());
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("unload", handleUnload);
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("unload", handleUnload);
     };
   }, [logoutUser, dispatch]);
 
