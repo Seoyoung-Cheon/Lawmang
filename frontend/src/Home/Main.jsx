@@ -62,7 +62,7 @@ const Main = () => {
         </div>
 
         {/* 스크롤 유도 애니메이션 */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
+        <div className="absolute bottom-10 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
           <HiOutlineChevronDoubleDown size={40} className="scale-x-130" />
         </div>
       </div>

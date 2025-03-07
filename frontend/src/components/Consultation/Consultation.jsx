@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,8 +14,12 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Consultation = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState(
+    () => localStorage.getItem("consultationSearchQuery") || ""
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    () => localStorage.getItem("consultationCategory") || "all"
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8; // 페이지당 8개 항목
@@ -47,6 +51,15 @@ const Consultation = () => {
     "상속",
   ];
 
+  // 상태가 변경될 때마다 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem("consultationSearchQuery", searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    localStorage.setItem("consultationCategory", selectedCategory);
+  }, [selectedCategory]);
+
   const {
     data: searchResults = [],
     isLoading,
@@ -62,19 +75,21 @@ const Consultation = () => {
     enabled: false,
   });
 
-  const { data: categoryResults = [], isLoading: isCategoryLoading } = useQuery(
-    {
-      queryKey: ["consultationCategory", selectedCategory],
-      queryFn: () => fetchConsultationsByCategory(selectedCategory),
-      enabled: selectedCategory !== "all",
-      onSuccess: (data) => {
-        console.log("Query success, data:", data); // 쿼리 성공시 데이터 확인
-      },
-      onError: (error) => {
-        console.error("Query error:", error); // 쿼리 에러 확인
-      },
-    }
-  );
+  const {
+    data: categoryResults = [],
+    isLoading: isCategoryLoading,
+    refetch: refetchCategory, // refetchCategory 추가
+  } = useQuery({
+    queryKey: ["consultationCategory", selectedCategory],
+    queryFn: () => fetchConsultationsByCategory(selectedCategory),
+    enabled: selectedCategory !== "all",
+    onSuccess: (data) => {
+      console.log("Query success, data:", data); // 쿼리 성공시 데이터 확인
+    },
+    onError: (error) => {
+      console.error("Query error:", error); // 쿼리 에러 확인
+    },
+  });
 
   // 현재 표시할 결과 데이터 결정
   const currentResults = useMemo(() => {
@@ -91,6 +106,7 @@ const Consultation = () => {
 
   const handleSearch = () => {
     setSelectedCategory("all");
+    localStorage.setItem("consultationCategory", "all");
     if (searchQuery.trim()) {
       refetch();
     }
@@ -108,8 +124,10 @@ const Consultation = () => {
 
   const handleCategorySelect = (category) => {
     setSearchQuery("");
+    localStorage.setItem("consultationSearchQuery", "");
     setSelectedCategory(category);
-    setCurrentPage(1);
+    localStorage.setItem("consultationCategory", category);
+    refetchCategory(); // 이제 정의된 refetchCategory 사용
   };
 
   // 페이지네이션 관련 함수들
