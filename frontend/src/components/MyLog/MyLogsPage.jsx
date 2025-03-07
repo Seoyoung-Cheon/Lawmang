@@ -20,8 +20,6 @@ const MyLogsPage = () => {
   const viewedLogs = useMemo(() => apiViewedLogs, [apiViewedLogs]);
 
   useEffect(() => {
-    console.log("📌 API 응답 데이터 확인:", viewedLogs);
-
     // 🔥 기존 Redux 상태와 다를 때만 Redux 상태 업데이트 실행
     if (viewedLogs.length > 0 && JSON.stringify(viewedLogs) !== JSON.stringify(reduxViewedLogs)) {
       console.log("🔄 Redux 상태 업데이트 실행됨!");
