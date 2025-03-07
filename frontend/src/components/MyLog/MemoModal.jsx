@@ -41,7 +41,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="container mx-auto">
         <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[60px]">
           {/* 상단 제목과 버튼 */}
