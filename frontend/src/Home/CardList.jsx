@@ -57,10 +57,14 @@ const CardList = () => {
                         [clip-path:polygon(0_0,0_0,0_0,0_0)] group-hover:[clip-path:polygon(0_0,100%_0,100%_100%,0_100%)]"
                       ></div>
                       <div className="relative bg-white rounded-lg p-6 h-[200px] border border-gray-300 flex flex-col justify-between">
-                      <h3 className="text-lg font-bold mb-3 text-gray-900">
-                        {card.title.length > 20 ? card.title.substring(0, 20) + "..." : card.title}
-                      </h3>
-                        <p className="text-sm text-gray-600 mb-3">{card.date}</p>
+                        <h3 className="text-lg font-bold mb-3 text-gray-900">
+                          {card.title.length > 20
+                            ? card.title.substring(0, 20) + "..."
+                            : card.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {card.date}
+                        </p>
                         <p className="text-sm text-gray-700 line-clamp-4">
                           {card.preview}
                         </p>
@@ -72,7 +76,7 @@ const CardList = () => {
             </ul>
 
             {/* 페이지네이션 UI */}
-            <div className="w-[90%] flex justify-center items-center gap-2 mt-6 mb-10 ml-[-12px]">
+            <div className="w-[90%] flex justify-center items-center gap-2 mt-8 mb-10 ml-[-30px]">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                 (number) => (
                   <button
