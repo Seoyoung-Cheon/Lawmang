@@ -108,6 +108,15 @@ export const mylogApi = createApi({
       invalidatesTags: ["UserViewed"],
     }),
 
+    // ✅ 특정 사용자의 모든 열람 기록 삭제
+    deleteAllViewedLogs: builder.mutation({
+      query: (userId) => ({
+        url: `/mylog/viewed/user/${userId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["UserViewed"],
+    }),
+
   }),
 });
 
@@ -119,4 +128,5 @@ export const {
   useGetUserViewedLogsQuery,
   useCreateViewedLogMutation,
   useDeleteViewedLogMutation,
+  useDeleteAllViewedLogsMutation,
 } = mylogApi;

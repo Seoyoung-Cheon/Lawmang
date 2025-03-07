@@ -185,3 +185,17 @@ def delete_viewed_log(db: Session, log_id: int):
     db.delete(log_entry)
     db.commit()
     return True
+
+
+# ✅ 특정 사용자의 모든 열람 기록 삭제
+def delete_all_viewed_logs(db: Session, user_id: int):
+    logs = db.query(UserActivityLog).filter(UserActivityLog.user_id == user_id).all()
+    
+    if not logs:
+        return False  # 삭제할 기록이 없음
+    
+    for log in logs:
+        db.delete(log)
+    
+    db.commit()
+    return True

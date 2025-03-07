@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.services.mylog_service import (
     create_memo, update_notification_status, create_or_update_viewed_log, 
-    get_user_viewed_logs, hide_memo, get_user_memos, update_memo, delete_viewed_log
+    get_user_viewed_logs, hide_memo, get_user_memos, update_memo, delete_viewed_log, delete_all_viewed_logs
 )
 from app.schemas.mylog import MemoCreate, MemoUpdate, ViewedLogCreate, MemoResponse, ViewedLogResponse
 import time
@@ -108,3 +108,12 @@ def delete_viewed_log_route(log_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="열람 기록을 찾을 수 없습니다.")
     return {"message": "열람 기록이 삭제되었습니다.", "log_id": log_id}
+
+
+# ✅ 특정 사용자의 모든 열람 기록 삭제 (DELETE /api/mylog/viewed/user/{user_id})
+@router.delete("/viewed/user/{user_id}")
+def delete_all_viewed_logs_route(user_id: int, db: Session = Depends(get_db)):
+    success = delete_all_viewed_logs(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="삭제할 열람 기록이 없습니다.")
+    return {"message": "모든 열람 기록이 삭제되었습니다.", "user_id": user_id}

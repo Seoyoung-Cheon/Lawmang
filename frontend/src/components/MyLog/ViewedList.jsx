@@ -4,8 +4,9 @@ import { selectUser } from "../../redux/slices/authSlice";
 import {
   useGetUserViewedLogsQuery,
   useDeleteViewedLogMutation,
+  useDeleteAllViewedLogsMutation,
 } from "../../redux/slices/mylogApi";
-import { setViewedLogs, removeViewedLog } from "../../redux/slices/mylogSlice";
+import { setViewedLogs, removeViewedLog, clearViewedLogs } from "../../redux/slices/mylogSlice";
 import ViewLog from "./ViewLog"; // ✅ ViewLog 추가
 import { Link } from "react-router-dom"; // ✅ 링크 추가
 import DeleteConfirm from "./DeleteConfirm";
@@ -18,6 +19,7 @@ const ViewedList = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
+  const [deleteAllViewedLogs] = useDeleteAllViewedLogsMutation();
 
   // 스크롤을 맨 위로 이동시키는 함수
   const scrollToTop = () => {
@@ -84,9 +86,13 @@ const ViewedList = () => {
   };
 
   // 전체 삭제 핸들러 추가
-  const handleDeleteAll = () => {
-    setIsAllDelete(true);
-    setIsDeleteConfirmOpen(true);
+  const handleDeleteAll = async () => {
+    if (!user?.id) return;
+    
+    if (window.confirm("모든 열람 기록을 삭제하시겠습니까?")) {
+      await deleteAllViewedLogs(user.id);
+      dispatch(clearViewedLogs());
+    }
   };
 
   // 삭제 확인 핸들러 수정
