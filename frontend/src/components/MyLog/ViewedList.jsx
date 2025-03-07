@@ -6,7 +6,11 @@ import {
   useDeleteViewedLogMutation,
   useDeleteAllViewedLogsMutation,
 } from "../../redux/slices/mylogApi";
-import { setViewedLogs, removeViewedLog, clearViewedLogs } from "../../redux/slices/mylogSlice";
+import {
+  setViewedLogs,
+  removeViewedLog,
+  clearViewedLogs,
+} from "../../redux/slices/mylogSlice";
 import ViewLog from "./ViewLog"; // ✅ ViewLog 추가
 import { Link } from "react-router-dom"; // ✅ 링크 추가
 import DeleteConfirm from "./DeleteConfirm";
@@ -51,6 +55,11 @@ const ViewedList = () => {
 
   // 필터링된 로그를 최신순으로 정렬하고 중복 제거
   const filteredLogs = [...viewedLogs]
+    // 먼저 viewed_at으로 정렬
+    .sort((a, b) => {
+      return new Date(b.viewed_at) - new Date(a.viewed_at);
+    })
+    // 그 다음 필터링
     .filter((log) => {
       if (viewMode === "consultation") {
         return log.consultation_id && !log.precedent_number;
@@ -71,12 +80,6 @@ const ViewedList = () => {
           self.findIndex((l) => l.precedent_number === log.precedent_number)
         );
       }
-    })
-    .sort((a, b) => {
-      // ISO 문자열 형식의 날짜를 확실하게 비교
-      const dateA = new Date(a.viewed_at).getTime();
-      const dateB = new Date(b.viewed_at).getTime();
-      return dateB - dateA; // 내림차순 정렬 (최신순)
     });
 
   // 열람 기록 삭제
@@ -88,7 +91,7 @@ const ViewedList = () => {
   // 전체 삭제 핸들러 추가
   const handleDeleteAll = async () => {
     if (!user?.id) return;
-    
+
     if (window.confirm("모든 열람 기록을 삭제하시겠습니까?")) {
       await deleteAllViewedLogs(user.id);
       dispatch(clearViewedLogs());
