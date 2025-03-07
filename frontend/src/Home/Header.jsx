@@ -24,6 +24,7 @@ const Header = () => {
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+  // ✅ 스크롤 이벤트 처리
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 100) {
@@ -37,18 +38,31 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ✅ 로그아웃 버튼 클릭 시 실행
   const handleLogout = async () => {
-    console.log("🚀 로그아웃 버튼 클릭됨!");
-
     try {
-      await logoutUser(token); // ✅ 백엔드 로그아웃 요청
+      await logoutUser(token);
     } catch (error) {
       console.error("❌ 로그아웃 API 호출 실패:", error);
     }
 
-    dispatch(logout()); // ✅ Redux 상태 변경
-    navigate("/"); // ✅ 홈으로 이동
+    dispatch(logout());
+    navigate("/");
   };
+
+  // ✅ 브라우저 종료 시 자동 로그아웃
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      logoutUser(); // ✅ 브라우저 종료 시 자동 로그아웃
+      dispatch(logout());
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [logoutUser, dispatch]);
+
 
   return (
     <div className="w-full">
