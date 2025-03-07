@@ -17,6 +17,7 @@ const ViewedList = () => {
   const [deleteViewedLog] = useDeleteViewedLogMutation();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
+  const [isAllDelete, setIsAllDelete] = useState(false);
 
   // 스크롤을 맨 위로 이동시키는 함수
   const scrollToTop = () => {
@@ -82,14 +83,33 @@ const ViewedList = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  // 삭제 확인
+  // 전체 삭제 핸들러 추가
+  const handleDeleteAll = () => {
+    setIsAllDelete(true);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  // 삭제 확인 핸들러 수정
   const handleConfirmDelete = async () => {
-    if (logToDelete) {
-      await deleteViewedLog(logToDelete);
-      dispatch(removeViewedLog(logToDelete));
+    try {
+      if (isAllDelete) {
+        // 전체 삭제
+        for (const log of filteredLogs) {
+          await deleteViewedLog(log.id);
+          dispatch(removeViewedLog(log.id));
+        }
+      } else {
+        // 단일 삭제
+        await deleteViewedLog(logToDelete);
+        dispatch(removeViewedLog(logToDelete));
+      }
+    } catch (error) {
+      console.error("삭제 중 오류 발생:", error);
     }
+
     setIsDeleteConfirmOpen(false);
     setLogToDelete(null);
+    setIsAllDelete(false);
   };
 
   return (
@@ -97,7 +117,7 @@ const ViewedList = () => {
       <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">
         <div className="border-b border-gray-300 p-2 bg-[#a7a28f] flex items-center">
           <div className="flex-1"></div>
-          <h2 className="font-medium text-white flex-1 text-center mr-[200px]">
+          <h2 className="font-medium text-white flex-1 text-center mr-[50px]">
             열람목록
           </h2>
           <div className="flex items-center gap-4 mr-4">
@@ -123,21 +143,48 @@ const ViewedList = () => {
                 판례
               </button>
             </div>
+            {/* 전체 삭제 버튼 추가 */}
+            <button
+              onClick={handleDeleteAll}
+              className="flex items-center gap-1 text-white hover:text-red-500 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                />
+              </svg>
+              <span className="text-sm">전체삭제</span>
+            </button>
           </div>
         </div>
         <div className="h-[250px] px-4 pt-1 pb-4 overflow-y-auto viewed-logs-container">
           {isLoading ? (
-            <p className="text-center">로딩 중...</p>
+            <div className="h-full flex items-center justify-center">
+              <p className="text-center">로딩 중...</p>
+            </div>
           ) : error ? (
-            <p className="text-center text-red-500">
-              오류 발생: {error.message}
-            </p>
+            <div className="h-full flex items-center justify-center">
+              <p className="text-center text-red-500">
+                오류 발생: {error.message}
+              </p>
+            </div>
           ) : filteredLogs.length === 0 ? (
-            <p className="text-center text-gray-500 w-full">
-              {viewMode === "consultation"
-                ? "열람한 상담사례가 없습니다."
-                : "열람한 판례가 없습니다."}
-            </p>
+            <div className="h-full flex items-center justify-center">
+              <p className="text-center text-gray-500">
+                {viewMode === "consultation"
+                  ? "열람한 상담사례가 없습니다."
+                  : "열람한 판례가 없습니다."}
+              </p>
+            </div>
           ) : (
             filteredLogs.map((log, index) => (
               <div
@@ -189,15 +236,16 @@ const ViewedList = () => {
         </div>
       </div>
 
-      {/* DeleteConfirm 컴포넌트 */}
+      {/* DeleteConfirm 컴포넌트 수정 */}
       <DeleteConfirm
         isOpen={isDeleteConfirmOpen}
         onClose={() => {
           setIsDeleteConfirmOpen(false);
           setLogToDelete(null);
+          setIsAllDelete(false);
         }}
         onConfirm={handleConfirmDelete}
-        type="viewLog" // 열람기록용 타입 지정
+        type={isAllDelete ? "viewLogAll" : "viewLog"}
       />
     </>
   );
