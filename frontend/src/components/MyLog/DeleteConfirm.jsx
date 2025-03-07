@@ -1,7 +1,20 @@
 import React from "react";
 
-const DeleteConfirm = ({ isOpen, onClose, onConfirm }) => {
+const DeleteConfirm = ({ isOpen, onClose, onConfirm, type = "memo" }) => {
   if (!isOpen) return null;
+
+  const messages = {
+    memo: {
+      title: "메모를 삭제하시겠습니까?",
+      subtitle: "삭제된 메모는 복구할 수 없습니다.",
+    },
+    viewLog: {
+      title: "열람기록을 삭제하시겠습니까?",
+      subtitle: "삭제된 열람기록은 복구할 수 없습니다.",
+    },
+  };
+
+  const currentMessage = messages[type];
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -28,11 +41,9 @@ const DeleteConfirm = ({ isOpen, onClose, onConfirm }) => {
         {/* 메시지 */}
         <div className="text-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            메모를 삭제하시겠습니까?
+            {currentMessage.title}
           </h3>
-          <p className="text-sm text-gray-500">
-            삭제된 메모는 복구할 수 없습니다.
-          </p>
+          <p className="text-sm text-gray-500">{currentMessage.subtitle}</p>
         </div>
 
         {/* 버튼 */}
