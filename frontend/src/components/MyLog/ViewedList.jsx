@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
-import { useGetUserViewedLogsQuery } from "../../redux/slices/mylogApi";
-import { setViewedLogs } from "../../redux/slices/mylogSlice";
+import { useGetUserViewedLogsQuery, useDeleteViewedLogMutation } from "../../redux/slices/mylogApi";
+import { setViewedLogs, removeViewedLog } from "../../redux/slices/mylogSlice";
 import ViewLog from "./ViewLog"; // ✅ ViewLog 추가
 import { Link } from "react-router-dom"; // ✅ 링크 추가
 
@@ -10,6 +10,7 @@ const ViewedList = () => {
   const user = useSelector(selectUser); // ✅ 현재 로그인한 회원 정보 가져오기
   const dispatch = useDispatch();
   const [viewMode, setViewMode] = useState("consultation"); // 추가: 토글 상태
+  const [deleteViewedLog] = useDeleteViewedLogMutation();
 
   // 스크롤을 맨 위로 이동시키는 함수
   const scrollToTop = () => {
@@ -68,6 +69,14 @@ const ViewedList = () => {
       const dateB = new Date(b.viewed_at).getTime();
       return dateB - dateA; // 내림차순 정렬 (최신순)
     });
+
+  // 열람 기록 삭제
+  const handleDelete = async (logId) => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      await deleteViewedLog(logId);
+      dispatch(removeViewedLog(logId));
+    }
+  };
 
   return (
     <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">

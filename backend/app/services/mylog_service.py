@@ -174,3 +174,14 @@ def get_user_viewed_logs(db: Session, user_id: int):
     return db.query(UserActivityLog).filter(
         UserActivityLog.user_id == user_id
     ).order_by(desc(UserActivityLog.viewed_at)).all()
+
+
+# ✅ 특정 열람 기록 삭제
+def delete_viewed_log(db: Session, log_id: int):
+    log_entry = db.query(UserActivityLog).filter(UserActivityLog.id == log_id).first()
+    if not log_entry:
+        return False
+
+    db.delete(log_entry)
+    db.commit()
+    return True

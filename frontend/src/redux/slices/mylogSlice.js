@@ -30,8 +30,13 @@ const mylogSlice = createSlice({
     setViewedLogs: (state, action) => {
       state.viewedLogs = action.payload;
     },
+
+    // ✅ 특정 열람 기록 삭제
+    removeViewedLog: (state, action) => {
+      state.viewedLogs = state.viewedLogs.filter(log => log.id !== action.payload);
+    },    
   },
 });
 
-export const { setLogs, removeMemo, updateMemoInState, setViewedLogs } = mylogSlice.actions;
+export const { setLogs, removeMemo, updateMemoInState, setViewedLogs, removeViewedLog } = mylogSlice.actions;
 export default mylogSlice.reducer;
