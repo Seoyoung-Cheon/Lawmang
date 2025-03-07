@@ -187,13 +187,16 @@ def delete_viewed_log(db: Session, log_id: int):
     return True
 
 
-# ✅ 특정 사용자의 모든 열람 기록 삭제
+# ✅ 특정 사용자의 열람 기록 삭제 (메모 제외)
 def delete_all_viewed_logs(db: Session, user_id: int):
-    logs = db.query(UserActivityLog).filter(UserActivityLog.user_id == user_id).all()
+    logs = db.query(UserActivityLog).filter(
+        UserActivityLog.user_id == user_id,
+        (UserActivityLog.consultation_id.isnot(None) | UserActivityLog.precedent_number.isnot(None))
+    ).all()
     
     if not logs:
-        return False  # 삭제할 기록이 없음
-    
+        return False
+
     for log in logs:
         db.delete(log)
     
