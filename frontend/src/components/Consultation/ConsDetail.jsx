@@ -56,7 +56,7 @@ const ConsDetail = () => {
 
   // 뒤로가기 핸들러 수정
   const handleGoBack = () => {
-    // 이전 페이지로 이동
+    sessionStorage.setItem("fromDetail", "true");
     navigate(-1);
   };
 

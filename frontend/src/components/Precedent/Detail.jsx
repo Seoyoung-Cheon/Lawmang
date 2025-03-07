@@ -74,6 +74,8 @@ const Detail = () => {
 
   // 뒤로가기 핸들러
   const handleGoBack = () => {
+    // 뒤로가기 전에 fromDetail 플래그 설정
+    sessionStorage.setItem("fromDetail", "true");
     navigate(-1);
   };
 
@@ -125,7 +127,7 @@ const Detail = () => {
     return (
       <div className="container">
         <div className="left-layout">
-          <div className="px-0 pt-[135px] pb-10">
+          <div className="px-0 pt-[100px] pb-10">
             <button
               onClick={handleGoBack}
               className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -167,7 +169,7 @@ const Detail = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-[135px] pb-10">
+        <div className="px-0 pt-[100px] pb-10">
           <button
             onClick={handleGoBack}
             className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

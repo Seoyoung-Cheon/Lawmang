@@ -14,12 +14,20 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Consultation = () => {
-  const [searchQuery, setSearchQuery] = useState(
-    () => localStorage.getItem("consultationSearchQuery") || ""
-  );
-  const [selectedCategory, setSelectedCategory] = useState(
-    () => localStorage.getItem("consultationCategory") || "all"
-  );
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("consultationSearchQuery") || ""
+      : "";
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("consultationCategory") || "all"
+      : "all";
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8; // 페이지당 8개 항목
@@ -51,13 +59,22 @@ const Consultation = () => {
     "상속",
   ];
 
-  // 상태가 변경될 때마다 localStorage에 저장
   useEffect(() => {
-    localStorage.setItem("consultationSearchQuery", searchQuery);
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    if (fromDetail) {
+      sessionStorage.removeItem("fromDetail");
+    } else {
+      sessionStorage.removeItem("consultationSearchQuery");
+      sessionStorage.removeItem("consultationCategory");
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("consultationSearchQuery", searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
-    localStorage.setItem("consultationCategory", selectedCategory);
+    sessionStorage.setItem("consultationCategory", selectedCategory);
   }, [selectedCategory]);
 
   const {

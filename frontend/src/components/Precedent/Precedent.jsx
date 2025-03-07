@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCases, fetchCasesByCategory } from "./precedentApi";
@@ -11,8 +11,20 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Precedent = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("precedentSearchQuery") || ""
+      : "";
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("precedentCategory") || "all"
+      : "all";
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8; // 페이지당 8개 항목
@@ -23,6 +35,7 @@ const Precedent = () => {
   const {
     data: searchResults = [],
     isLoading,
+    error,
     refetch,
   } = useQuery({
     queryKey: ["cases", searchQuery],
@@ -44,6 +57,27 @@ const Precedent = () => {
   let currentResults =
     selectedCategory === "all" ? searchResults : categoryResults;
   currentResults = Array.isArray(currentResults) ? currentResults : []; // 🛠 배열이 아닐 경우 빈 배열로 초기화
+
+  // 컴포넌트 마운트 시 fromDetail 플래그 제거
+  useEffect(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    if (fromDetail) {
+      sessionStorage.removeItem("fromDetail");
+    } else {
+      // Detail에서 오지 않은 경우 저장된 상태 모두 제거
+      sessionStorage.removeItem("precedentSearchQuery");
+      sessionStorage.removeItem("precedentCategory");
+    }
+  }, []);
+
+  // 검색어나 카테고리 변경 시 저장
+  useEffect(() => {
+    sessionStorage.setItem("precedentSearchQuery", searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    sessionStorage.setItem("precedentCategory", selectedCategory);
+  }, [selectedCategory]);
 
   const handleSearch = () => {
     setSelectedCategory("all");
