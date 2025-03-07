@@ -40,14 +40,31 @@ const FAQ = () => {
                 className="border-b border-gray-200 last:border-b-0"
               >
                 <button
-                  className="w-full py-4 flex justify-between items-center text-left hover:text-gray-500"
+                  className={`w-full py-4 flex justify-between items-center text-left 
+                              relative group transition-all duration-300
+                              hover:pl-4 hover:bg-gray-50 rounded-lg
+                              ${openIndex === index ? "pl-4 bg-gray-50" : ""}`}
                   onClick={() => toggleAnswer(index)}
                 >
-                  <span className="text-lg font-medium">{faq.question}</span>
+                  <span
+                    className="text-lg font-medium text-black
+                                  transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <span
+                      className={`transition-opacity duration-300
+                                     ${
+                                       openIndex === index
+                                         ? "opacity-100"
+                                         : "opacity-0 group-hover:opacity-100"
+                                     }`}
+                    >
+                      •
+                    </span>
+                    {faq.question}
+                  </span>
                   <IoIosArrowDown
-                    className={`transform transition-transform duration-300 ${
-                      openIndex === index ? "rotate-180" : ""
-                    }`}
+                    className={`transform transition-all duration-300 
+                                ${openIndex === index ? "rotate-180" : ""}`}
                   />
                 </button>
                 <div
