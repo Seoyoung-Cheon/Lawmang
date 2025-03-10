@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetCurrentUserQuery, useUpdateUserMutation, useCheckNicknameQuery, useVerifyCurrentPasswordMutation, useDeleteUserMutation } from "../../redux/slices/authApi";
+import {
+  useGetCurrentUserQuery,
+  useUpdateUserMutation,
+  useCheckNicknameQuery,
+  useVerifyCurrentPasswordMutation,
+  useDeleteUserMutation,
+} from "../../redux/slices/authApi";
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { CiUser } from "react-icons/ci";
-import { useDispatch } from 'react-redux';
-import { updateUserInfo } from '../../redux/slices/authSlice';
+import { useDispatch } from "react-redux";
+import { updateUserInfo } from "../../redux/slices/authSlice";
 
 const Modify = () => {
   const navigate = useNavigate();
@@ -18,7 +24,7 @@ const Modify = () => {
     length: false,
     special: false,
   });
-  
+
   const [passwordMatch, setPasswordMatch] = useState({
     isMatching: false,
     isDirty: false,
@@ -31,14 +37,14 @@ const Modify = () => {
     confirmNewPassword: "",
   });
 
-  const { data: nicknameData, error: nicknameErrorResponse } = useCheckNicknameQuery(
-    formData.nickname,
-    { skip: !formData.nickname || formData.nickname === user?.nickname }
-  );
+  const { data: nicknameData, error: nicknameErrorResponse } =
+    useCheckNicknameQuery(formData.nickname, {
+      skip: !formData.nickname || formData.nickname === user?.nickname,
+    });
 
   const [currentPasswordVerified, setCurrentPasswordVerified] = useState(false);
   const [currentPasswordError, setCurrentPasswordError] = useState("");
-  
+
   const [verifyCurrentPassword] = useVerifyCurrentPasswordMutation();
 
   const dispatch = useDispatch();
@@ -58,7 +64,10 @@ const Modify = () => {
     const { name, value } = e.target;
 
     // 현재 비밀번호가 확인되지 않은 상태에서 새 비밀번호를 입력하려 할 때
-    if ((name === "newPassword" || name === "confirmNewPassword") && !currentPasswordVerified) {
+    if (
+      (name === "newPassword" || name === "confirmNewPassword") &&
+      !currentPasswordVerified
+    ) {
       alert("현재 비밀번호를 먼저 확인해주세요.");
       return;
     }
@@ -117,7 +126,9 @@ const Modify = () => {
     }
 
     try {
-      await verifyCurrentPassword({ currentPassword: formData.currentPassword }).unwrap();
+      await verifyCurrentPassword({
+        currentPassword: formData.currentPassword,
+      }).unwrap();
       setCurrentPasswordVerified(true);
       setCurrentPasswordError("");
     } catch (err) {
@@ -131,7 +142,8 @@ const Modify = () => {
 
     // 변경할 데이터가 있는지 확인
     const hasNicknameChange = formData.nickname !== user?.nickname;
-    const hasPasswordChange = formData.newPassword || formData.confirmNewPassword;
+    const hasPasswordChange =
+      formData.newPassword || formData.confirmNewPassword;
 
     // 아무 변경사항이 없는 경우
     if (!hasNicknameChange && !hasPasswordChange) {
@@ -188,7 +200,7 @@ const Modify = () => {
       if (updateData.nickname) {
         dispatch(updateUserInfo({ nickname: updateData.nickname }));
       }
-      
+
       alert("회원정보가 성공적으로 수정되었습니다!");
       navigate("/mypage");
     } catch (err) {
@@ -199,30 +211,32 @@ const Modify = () => {
 
   // 회원탈퇴 핸들러 추가
   const handleWithdraw = async () => {
-    const confirmed = window.confirm("정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
-    
+    const confirmed = window.confirm(
+      "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    );
+
     if (confirmed) {
       try {
         await deleteUser().unwrap();
         alert("회원탈퇴가 완료되었습니다.");
-        
+
         // ✅ 탈퇴 후 홈 화면으로 리디렉트
         navigate("/");
-  
       } catch (err) {
         console.error("회원탈퇴 실패:", err);
         alert(err.data?.detail || "회원탈퇴 처리 중 오류가 발생했습니다.");
       }
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
       <div className="absolute inset-0 bg-[#e1e0df]" />
 
-      <div className="bg-white/50 backdrop-blur-sm p-12 rounded-lg w-[600px] shadow-lg relative border-2 border-white/50 z-10">
-        <h2 className="text-4xl text-neutral-700 text-center mb-8">회원정보 수정</h2>
+      <div className="bg-white/50 backdrop-blur-sm p-12 mt-[80px] rounded-lg w-[600px] shadow-lg relative border-2 border-white/50 z-10">
+        <h2 className="text-4xl text-neutral-700 text-center mb-8">
+          회원정보 수정
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8 mt-16">
           {/* 이메일 (수정 불가능) */}
@@ -262,8 +276,12 @@ const Modify = () => {
               </button>
             </div>
             <div className="mt-2 text-xs">
-              {nicknameStatus === false && <p className="text-red-500">{nicknameError}</p>}
-              {nicknameStatus === true && <p className="text-green-600">✓ 사용 가능한 닉네임입니다.</p>}
+              {nicknameStatus === false && (
+                <p className="text-red-500">{nicknameError}</p>
+              )}
+              {nicknameStatus === true && (
+                <p className="text-green-600">✓ 사용 가능한 닉네임입니다.</p>
+              )}
             </div>
           </div>
 
@@ -286,7 +304,9 @@ const Modify = () => {
                 onClick={handleVerifyCurrentPassword}
                 disabled={currentPasswordVerified}
                 className={`ml-2 px-4 py-2 text-white rounded-md whitespace-nowrap w-[100px] ${
-                  currentPasswordVerified ? "bg-green-500" : "bg-Main hover:bg-Main_hover"
+                  currentPasswordVerified
+                    ? "bg-green-500"
+                    : "bg-Main hover:bg-Main_hover"
                 }`}
               >
                 {currentPasswordVerified ? "확인 완료" : "확인"}
@@ -314,14 +334,20 @@ const Modify = () => {
               onChange={handleChange}
               placeholder="새 비밀번호"
               className={`w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 
-                ${!currentPasswordVerified ? 'border-gray-300 text-gray-400' : 'border-gray-400 focus:border-gray-600'} 
+                ${
+                  !currentPasswordVerified
+                    ? "border-gray-300 text-gray-400"
+                    : "border-gray-400 focus:border-gray-600"
+                } 
                 outline-none placeholder-gray-400`}
               disabled={!currentPasswordVerified}
             />
             {/* 비밀번호 조건 표시 */}
             <div className="mt-2 text-xs">
               {!currentPasswordVerified ? (
-                <p className="text-gray-500">∙ 비밀번호 변경을 원하시면 현재 비밀번호를 먼저 확인해주세요.</p>
+                <p className="text-gray-500">
+                  ∙ 비밀번호 변경을 원하시면 현재 비밀번호를 먼저 확인해주세요.
+                </p>
               ) : (
                 <>
                   {!passwordChecks?.length && !passwordChecks?.special ? (
@@ -356,7 +382,11 @@ const Modify = () => {
               onChange={handleChange}
               placeholder="새 비밀번호 확인"
               className={`w-full pl-12 pr-4 py-3 text-lg bg-transparent border-b-2 
-                ${!currentPasswordVerified ? 'border-gray-300 text-gray-400' : 'border-gray-400 focus:border-gray-600'} 
+                ${
+                  !currentPasswordVerified
+                    ? "border-gray-300 text-gray-400"
+                    : "border-gray-400 focus:border-gray-600"
+                } 
                 outline-none placeholder-gray-400`}
               disabled={!currentPasswordVerified}
             />
@@ -386,7 +416,7 @@ const Modify = () => {
             </button>
           </div>
         </form>
-        
+
         {/* 회원탈퇴 버튼 추가 */}
         <div className="mt-8 text-center">
           <button
