@@ -90,7 +90,7 @@ const Header = () => {
       {/* 어두운 배경 오버레이 - 전체 화면 */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/70 z-[45]"
+          className="fixed inset-0 bg-black/70 z-[140]"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
@@ -186,14 +186,10 @@ const Header = () => {
 
             {/* 햄버거 메뉴 버튼 (lg 미만에서만 표시) */}
             <button
-              className="lg:hidden text-gray-600 hover:text-Main transition-colors"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden text-gray-600 hover:text-Main transition-colors relative z-[40]"
+              onClick={() => setIsMenuOpen(true)}
             >
-              {isMenuOpen ? (
-                <IoClose className={`w-7 h-7 ${textColorClass}`} />
-              ) : (
-                <RxHamburgerMenu className={`w-7 h-7 ${textColorClass}`} />
-              )}
+              <RxHamburgerMenu className={`w-7 h-7 ${textColorClass}`} />
             </button>
           </div>
         </div>
@@ -201,10 +197,11 @@ const Header = () => {
 
       {/* 모바일 메뉴 패널 */}
       <div
-        className={`fixed top-0 right-0 w-80 h-screen bg-white transform transition-transform duration-300 ease-in-out z-[50] flex flex-col ${
+        className={`fixed top-0 right-0 w-80 h-screen bg-white transform transition-transform duration-300 ease-in-out z-[150] flex flex-col ${
           isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
+        {/* 상단 헤더와 닫기 버튼 */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           {isAuthenticated ? (
             <div className="flex items-center gap-2 text-gray-800">
@@ -218,7 +215,7 @@ const Header = () => {
           )}
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-Main transition-colors"
+            className="text-gray-600 hover:text-Main transition-colors z-[160]"
           >
             <IoClose className="w-7 h-7" />
           </button>
