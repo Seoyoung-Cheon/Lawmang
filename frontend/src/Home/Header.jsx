@@ -152,7 +152,7 @@ const Header = () => {
                   <span>{user?.nickname || "사용자"}</span>
                 </button>
                 {isProfileMenuOpen && (
-                  <div className="absolute right-0 mt-0 w-48 py-2 bg-white rounded-lg shadow-xl z-[200]">
+                  <div className="absolute right-0 mt-0 w-48 py-2 bg-white rounded-lg border border-gray-100 shadow-md z-[200]">
                     <Link
                       to="/mylog"
                       className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
