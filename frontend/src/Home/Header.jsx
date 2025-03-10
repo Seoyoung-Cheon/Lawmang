@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CiLogin, CiUser } from "react-icons/ci";
-
+import { RxHamburgerMenu } from "react-icons/rx";
+import { IoClose } from "react-icons/io5";
 import { useLogoutUserMutation } from "../redux/slices/authApi";
 import {
   selectIsAuthenticated,
@@ -23,6 +24,7 @@ const Header = () => {
   const [logoutUser] = useLogoutUserMutation(); // ✅ RTK Query 로그아웃 훅 사용
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // ✅ 스크롤 이벤트 처리
   useEffect(() => {
@@ -35,6 +37,11 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 페이지 이동 시 모바일 메뉴 닫기
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
   // ✅ 로그아웃 버튼 클릭 시 실행
   const handleLogout = async () => {
     try {
@@ -42,7 +49,6 @@ const Header = () => {
     } catch (error) {
       console.error("❌ 로그아웃 API 호출 실패:", error);
     }
-
     dispatch(logout());
     navigate("/");
   };
@@ -51,10 +57,12 @@ const Header = () => {
   useEffect(() => {
     const handleUnload = (event) => {
       // 새로고침인 경우 (performance.navigation.type === 1)
-      if (event.persisted || (window.performance && window.performance.navigation.type === 1)) {
+      if (
+        event.persisted ||
+        (window.performance && window.performance.navigation.type === 1)
+      ) {
         return;
       }
-      
       logoutUser();
       dispatch(logout());
     };
@@ -80,8 +88,8 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* 가운데 위치한 메뉴 리스트 (ul) */}
-          <ul className="flex items-center justify-center space-x-20 text-xl">
+          {/* 기존 메뉴 (lg 이상에서만 표시) */}
+          <ul className="hidden lg:flex items-center justify-center space-x-20 text-xl">
             <li>
               <Link
                 to="/consultation"
@@ -110,9 +118,10 @@ const Header = () => {
 
           {/* 로그인/로그아웃 버튼 */}
           <div className="flex items-center gap-6">
+            {/* 기존 로그인/프로필 메뉴 (lg 이상에서만 표시) */}
             {isAuthenticated ? (
               <div
-                className="relative inline-block"
+                className="relative hidden lg:inline-block"
                 onMouseEnter={() => setIsProfileMenuOpen(true)}
                 onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
@@ -148,12 +157,117 @@ const Header = () => {
             ) : (
               <Link
                 to="/login"
-                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
+                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer hidden lg:flex items-center gap-2`}
               >
                 <CiLogin className="w-5 h-5" />
                 로그인
               </Link>
             )}
+
+            {/* 햄버거 메뉴 버튼 (lg 미만에서만 표시) */}
+            <button
+              className="lg:hidden text-gray-600 hover:text-Main transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <IoClose className={`w-7 h-7 ${textColorClass}`} />
+              ) : (
+                <RxHamburgerMenu className={`w-7 h-7 ${textColorClass}`} />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 모바일 메뉴 */}
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity lg:hidden ${
+            isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <div
+            className={`fixed top-0 right-0 w-64 h-screen bg-white transform transition-transform duration-300 ease-in-out ${
+              isMenuOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col h-full">
+              {/* 로그인된 경우 상단에 사용자 정보와 닫기 버튼 */}
+              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                {isAuthenticated ? (
+                  <div className="flex items-center gap-2 text-gray-800">
+                    <CiUser className="w-6 h-6" />
+                    <span className="font-medium">
+                      {user?.nickname || "사용자"}님
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-gray-800">메뉴</div>
+                )}
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-gray-600 hover:text-Main transition-colors"
+                >
+                  <IoClose className="w-7 h-7" />
+                </button>
+              </div>
+
+              {/* 메뉴 항목들 */}
+              <div className="flex-1 overflow-y-auto">
+                <Link
+                  to="/consultation"
+                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+                >
+                  상담사례
+                </Link>
+                <Link
+                  to="/precedent"
+                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+                >
+                  판례
+                </Link>
+                <Link
+                  to="/template"
+                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+                >
+                  법률 서식
+                </Link>
+              </div>
+
+              {/* 하단 메뉴 */}
+              <div className="border-t border-gray-200 p-4">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    <Link
+                      to="/mylog"
+                      className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
+                    >
+                      사건 기록 페이지
+                    </Link>
+                    <Link
+                      to="/modify"
+                      className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
+                    >
+                      회원정보 수정
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="flex items-center justify-center gap-2 w-full py-2 text-gray-600 hover:text-Main transition-colors"
+                  >
+                    <CiLogin className="w-5 h-5" />
+                    로그인
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
