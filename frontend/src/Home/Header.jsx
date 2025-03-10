@@ -37,6 +37,18 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 스크롤 방지추가
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMenuOpen]);
+
   // 페이지 이동 시 모바일 메뉴 닫기
   useEffect(() => {
     setIsMenuOpen(false);
@@ -75,8 +87,16 @@ const Header = () => {
 
   return (
     <div className="w-full">
+      {/* 어두운 배경 오버레이 - 전체 화면 */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 z-[45]"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
       <div
-        className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 z-[40] w-full transition-all duration-300 ${
           isScrolled ? "bg-white/80 backdrop-blur-sm shadow-md" : ""
         }`}
       >
@@ -177,98 +197,87 @@ const Header = () => {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* 모바일 메뉴 */}
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity lg:hidden ${
-            isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <div
-            className={`fixed top-0 right-0 w-64 h-screen bg-white transform transition-transform duration-300 ease-in-out ${
-              isMenuOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col h-full">
-              {/* 로그인된 경우 상단에 사용자 정보와 닫기 버튼 */}
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                {isAuthenticated ? (
-                  <div className="flex items-center gap-2 text-gray-800">
-                    <CiUser className="w-6 h-6" />
-                    <span className="font-medium">
-                      {user?.nickname || "사용자"}님
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-gray-800">메뉴</div>
-                )}
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-gray-600 hover:text-Main transition-colors"
-                >
-                  <IoClose className="w-7 h-7" />
-                </button>
-              </div>
-
-              {/* 메뉴 항목들 */}
-              <div className="flex-1 overflow-y-auto">
-                <Link
-                  to="/consultation"
-                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
-                >
-                  상담사례
-                </Link>
-                <Link
-                  to="/precedent"
-                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
-                >
-                  판례
-                </Link>
-                <Link
-                  to="/template"
-                  className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
-                >
-                  법률 서식
-                </Link>
-              </div>
-
-              {/* 하단 메뉴 */}
-              <div className="border-t border-gray-200 p-4">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <Link
-                      to="/mylog"
-                      className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
-                    >
-                      사건 기록 페이지
-                    </Link>
-                    <Link
-                      to="/modify"
-                      className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
-                    >
-                      회원정보 수정
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                    >
-                      로그아웃
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="flex items-center justify-center gap-2 w-full py-2 text-gray-600 hover:text-Main transition-colors"
-                  >
-                    <CiLogin className="w-5 h-5" />
-                    로그인
-                  </Link>
-                )}
-              </div>
+      {/* 모바일 메뉴 패널 */}
+      <div
+        className={`fixed top-0 right-0 w-64 h-screen bg-white transform transition-transform duration-300 ease-in-out z-[50] flex flex-col ${
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2 text-gray-800">
+              <CiUser className="w-6 h-6" />
+              <span className="font-medium">
+                {user?.nickname || "사용자"}님
+              </span>
             </div>
-          </div>
+          ) : (
+            <div className="text-gray-800">메뉴</div>
+          )}
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="text-gray-600 hover:text-Main transition-colors"
+          >
+            <IoClose className="w-7 h-7" />
+          </button>
+        </div>
+
+        {/* 메뉴 항목들 */}
+        <div className="flex-1 overflow-y-auto">
+          <Link
+            to="/consultation"
+            className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+          >
+            상담사례
+          </Link>
+          <Link
+            to="/precedent"
+            className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+          >
+            판례
+          </Link>
+          <Link
+            to="/template"
+            className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+          >
+            법률 서식
+          </Link>
+        </div>
+
+        {/* 하단 메뉴 */}
+        <div className="mt-auto border-t border-gray-200 p-4">
+          {isAuthenticated ? (
+            <div className="space-y-3">
+              <Link
+                to="/mylog"
+                className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
+              >
+                사건 기록 페이지
+              </Link>
+              <Link
+                to="/modify"
+                className="block w-full py-2 text-gray-600 hover:text-Main transition-colors"
+              >
+                회원정보 수정
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="block w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+              >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center justify-center gap-2 w-full py-2 text-gray-600 hover:text-Main transition-colors"
+            >
+              <CiLogin className="w-5 h-5" />
+              로그인
+            </Link>
+          )}
         </div>
       </div>
     </div>
