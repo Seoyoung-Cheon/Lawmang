@@ -5,36 +5,36 @@
  * @param {string} apiUrl - 호출할 API의 URL.
  * @returns {Promise<any>} - API 응답 데이터(성공 시 JSON 또는 HTML 문자열).
  */
-async function fetchData(apiUrl) {
+async function fetchData(apiUrl, retries = 2) {
   try {
     const response = await fetch(apiUrl, {
-      headers: { "Accept": "*/*" }, // ✅ JSON & HTML 모두 받을 수 있도록 설정
+      headers: { "Accept": "*/*" }, 
     });
 
-    // HTTP 응답이 실패한 경우, 응답 본문을 읽어 오류 메시지를 생성합니다.
     if (!response.ok) {
-      // 404일 경우 빈 배열 반환 (UI 오류 방지)
       if (response.status === 404) {
-        return [];
+        console.warn(`API 404: ${apiUrl} - 빈 결과 반환`); // ✅ 경고 메시지로 변경
+        return []; // ✅ 404 발생 시 빈 배열 반환 (콘솔에 에러 안 찍힘)
       }
       const errorText = await response.text();
       throw new Error(`API 오류: ${response.status} - ${response.statusText}\n${errorText}`);
     }
 
     const contentType = response.headers.get("content-type") || "";
-
-    // ✅ JSON 응답 처리
+    
     if (contentType.includes("application/json")) {
-      const data = await response.json();
-      return data;
+      return await response.json();
     }
 
-    // ✅ HTML 응답 처리 (JSON이 아닌 경우)
-    const htmlData = await response.text();
-    return { type: "html", content: htmlData }; // HTML 응답을 객체 형태로 반환
+    return { type: "html", content: await response.text() };
 
   } catch (error) {
-    return { type: "error", message: error.message }; // 오류 발생 시 에러 정보 반환
+    if (retries > 0) {
+      console.warn(`API 요청 실패, 재시도 중... 남은 횟수: ${retries}`);
+      return fetchData(apiUrl, retries - 1);
+    }
+    console.error(`API 요청 실패: ${error.message}`); // ❌ 최종 실패 시 콘솔 에러만 출력
+    return [];
   }
 }
 
