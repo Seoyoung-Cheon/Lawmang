@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from app.schemas.mylog import MemoUpdate
 from functools import lru_cache
+from app.core.database import execute_sql
 
 # ✅ 메모리 캐시 추가 (전역 변수)
 _view_cache = {}
@@ -202,3 +203,32 @@ def delete_all_viewed_logs(db: Session, user_id: int):
     
     db.commit()
     return True
+
+# 열람기록 판례 목록 정보 불러오기
+def get_precedent_info(precedent_number: str):
+    """
+    특정 판례 번호에 해당하는 판례 정보를 SQL 쿼리로 가져오는 함수
+    """
+    sql = """
+        SELECT c_name, c_number, court, j_date 
+        FROM precedent 
+        WHERE pre_number = :precedent_number
+    """
+
+    result = execute_sql(sql, {"precedent_number": precedent_number}, fetch_one=True)
+
+    if not result:
+        return {
+            "title": "판례 정보 없음",
+            "caseNumber": "사건번호 없음",
+            "court": "법원 정보 없음",
+            "date": "날짜 없음",
+        }
+
+    # ✅ result가 dict인지 확인 후 반환 (튜플인 경우 예외 처리 필요)
+    return {
+        "title": result["c_name"] if "c_name" in result else "제목 없음",
+        "caseNumber": result["c_number"] if "c_number" in result else "사건번호 없음",
+        "court": result["court"] if "court" in result else "법원 정보 없음",
+        "date": result["j_date"] if "j_date" in result else "날짜 없음",
+    }
