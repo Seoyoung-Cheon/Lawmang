@@ -87,16 +87,27 @@ export const mylogApi = createApi({
         body: logData,
       }),
       invalidatesTags: ['UserViewed'],
-      async onQueryStarted(logData, { queryFulfilled }) {
+      async onQueryStarted(logData, { queryFulfilled, dispatch, getState }) {
+        const { mylog } = getState();
+        const isAlreadyViewed = mylog.viewedLogs.some(
+          (log) =>
+            (log.consultation_id && log.consultation_id === logData.consultation_id) ||
+            (log.precedent_number && log.precedent_number === logData.precedent_number)
+        );
+      
+        if (isAlreadyViewed) {
+          console.log("이미 존재하는 열람 기록입니다. API 요청을 취소합니다.");
+          return;
+        }
+      
         try {
           await queryFulfilled;
         } catch (error) {
-          // 중복 요청으로 인한 오류는 무시
           if (error.error?.status === 500) {
-            console.log("중복 요청이 감지되었습니다.");
+            console.log("중복 요청 감지: 서버에서 처리되었습니다.");
           }
         }
-      },
+      }
     }),
 
     // ✅ 특정 열람 기록 삭제
@@ -119,6 +130,7 @@ export const mylogApi = createApi({
 
   }),
 });
+
 
 export const { 
   useGetUserMemosQuery, 
