@@ -72,17 +72,38 @@ export async function fetchCaseDetail(pre_number) {
   const apiUrl = `/api/detail/precedent/${pre_number}`;
   const result = await fetchData(apiUrl);
 
-  // ✅ JSON인지 HTML인지 확인
   if (result && typeof result === "object" && !Array.isArray(result)) {
-    const firstKey = Object.keys(result)[0]; // ✅ JSON 응답의 첫 번째 키 확인
+    const firstKey = Object.keys(result)[0];
 
     if (firstKey === "Law") {
-      const htmlApiUrl = apiUrl.replace("type=JSON", "type=HTML"); // ✅ HTML API URL 변경
-      return fetchData(htmlApiUrl); // ✅ HTML 요청 후 반환
+      const htmlApiUrl = apiUrl.replace("type=JSON", "type=HTML");
+      const htmlResult = await fetchData(htmlApiUrl);
+
+      // ✅ JSON 데이터가 없으면 새로 만든 열람 목록 API에서 판례 정보 가져오기
+      const dbApiUrl = `/api/mylog/precedent-info/${pre_number}`;
+      const dbResult = await fetchData(dbApiUrl);
+
+      return {
+        type: "html",
+        content: htmlResult.content, // ✅ iframe으로 표시할 HTML
+        ...dbResult, // ✅ DB에서 가져온 판례 정보 추가
+      };
     }
 
-    return result; // ✅ 정상 JSON 반환
+    return result;
   }
+
+  return result;
+}
+
+export async function fetchPrecedentInfo(precedent_number) {
+  if (!precedent_number) throw new Error("유효한 precedent_number가 필요합니다.");
+
+  const apiUrl = `/api/mylog/viewed/precedent-info/${precedent_number}`;
+  // console.log("📌 요청하는 API:", apiUrl);  // ✅ 로그 추가
+
+  const result = await fetchData(apiUrl);
+  console.log("📌 API 응답 데이터:", result);  // ✅ 응답 확인용 로그 추가
 
   return result;
 }
