@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendResetCodeMutation, useVerifyResetCodeMutation, useResetPasswordMutation } from "../../redux/slices/authApi";
 import { AiOutlineMail } from "react-icons/ai";
@@ -26,6 +26,12 @@ const ResetPwd = () => {
     isMatching: false,
     isDirty: false
   });
+
+  // ✅ 새로고침 시 오류 메시지 초기화
+  useEffect(() => {
+    setErrorMessage("");
+  }, []);
+  
 
   // ✅ 이메일 인증 코드 요청
   const [sendResetCode, { isLoading: isSendingCode }] = useSendResetCodeMutation();
@@ -64,11 +70,13 @@ const ResetPwd = () => {
       setErrorMessage("유효한 이메일 주소를 입력해주세요.");
       return;
     }
-
+  
     try {
       const response = await sendResetCode({ email: formData.email }).unwrap();
-      if (response.exists === false) {
-        setErrorMessage("등록되지 않은 이메일입니다.");
+  
+      if (!response.exists) {
+        alert("등록되지 않은 이메일입니다. 로그인 페이지로 이동합니다.");
+        navigate("/login");
         return;
       }
       setIsCodeSent(true);
@@ -84,18 +92,25 @@ const ResetPwd = () => {
       setErrorMessage("인증 코드를 입력해주세요.");
       return;
     }
-
+  
     try {
-      await verifyResetCode({ 
-        email: formData.email, 
-        code: formData.code 
+      setErrorMessage("");
+  
+      await verifyResetCode({
+        email: formData.email,
+        code: formData.code
       }).unwrap();
+  
       setIsCodeVerified(true);
       setErrorMessage("");
     } catch (err) {
+      console.error("❌ 인증 코드 검증 실패:", err);
+      setIsCodeVerified(false);
       setErrorMessage("잘못된 인증 코드입니다.");
+      setFormData({ ...formData, code: "" });
     }
-  };
+  };  
+  
 
   // ✅ 비밀번호 재설정 요청 핸들러
   const handleResetPassword = async (e) => {
@@ -123,6 +138,7 @@ const ResetPwd = () => {
       setErrorMessage(err.data?.detail || "비밀번호 재설정 실패");
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">

@@ -4,7 +4,6 @@ import { selectUser } from "../../redux/slices/authSlice";
 import {
   useGetUserViewedLogsQuery,
   useDeleteViewedLogMutation,
-  useDeleteAllViewedLogsMutation,
 } from "../../redux/slices/mylogApi";
 import { setViewedLogs, removeViewedLog } from "../../redux/slices/mylogSlice";
 import ViewLog from "./ViewLog";
@@ -20,8 +19,21 @@ const ViewedList = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
-  const [deleteAllViewedLogs] = useDeleteAllViewedLogsMutation();
   const [caseDataMap, setCaseDataMap] = useState({});
+
+  // ✅ 스크롤을 맨 위로 이동시키는 함수
+  const scrollToTop = () => {
+    const scrollContainer = document.querySelector(".viewed-logs-container");
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
+  };
+
+  // ✅ viewMode 변경 시 스크롤 유지
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    scrollToTop();
+  };
 
   // ✅ API 요청 실행
   const {
@@ -85,21 +97,7 @@ const ViewedList = () => {
       fetchCaseData();
     }
   }, [filteredLogs]);
-
-  // ✅ 스크롤을 맨 위로 이동시키는 함수
-  const scrollToTop = () => {
-    const scrollContainer = document.querySelector(".viewed-logs-container");
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    }
-  };
-
-  // ✅ viewMode 변경 시 스크롤 유지
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    scrollToTop();
-  };
-
+  
   // ✅ 열람 기록 삭제
   const handleDelete = async (logId) => {
     setLogToDelete(logId);
@@ -111,6 +109,28 @@ const ViewedList = () => {
     if (!user?.id || filteredLogs.length === 0) return;
     setIsAllDelete(true);
     setIsDeleteConfirmOpen(true);
+  };
+
+  // 삭제 확인 핸들러 수정
+  const handleConfirmDelete = async () => {
+    try {
+      if (isAllDelete) {
+        // 전체 삭제
+        for (const log of filteredLogs) {
+          await deleteViewedLog(log.id);
+          dispatch(removeViewedLog(log.id));
+        }
+      } else {
+        // 단일 삭제
+        await deleteViewedLog(logToDelete);
+        dispatch(removeViewedLog(logToDelete));
+      }
+    } catch (error) {
+      console.error("삭제 중 오류 발생:", error);
+    }
+    setIsDeleteConfirmOpen(false);
+    setLogToDelete(null);
+    setIsAllDelete(false);
   };
 
   return (
@@ -138,6 +158,27 @@ const ViewedList = () => {
                 판례
               </button>
             </div>
+            {/* 전체 삭제 버튼 추가 */}
+            <button
+              onClick={handleDeleteAll}
+              className="flex items-center gap-1 text-white hover:underline"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                />
+              </svg>
+              <span className="text-sm">전체삭제</span>
+            </button>
           </div>
         </div>
 
@@ -154,19 +195,61 @@ const ViewedList = () => {
           ) : (
             filteredLogs.map((log, index) => (
               <div key={index} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
-                <Link to={log.precedent_number ? `/precedent/detail/${log.precedent_number}` : `/consultation/detail/${log.consultation_id}`} className="block w-full transition-all duration-200 group-hover:pl-2">
+                <Link
+                  to={
+                    log.precedent_number
+                      ? `/precedent/detail/${log.precedent_number}`
+                      : `/consultation/detail/${log.consultation_id}`
+                  }
+                  className="block w-full transition-all duration-200 group-hover:pl-2"
+                >
                   <ViewLog
                     consultation_id={log.consultation_id}
                     precedent_number={log.precedent_number}
                     precedentData={caseDataMap[log.precedent_number]}
                   />
                 </Link>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDelete(log.id);
+                  }}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100
+                            transition-all duration-200 p-1.5 hover:bg-gray-100
+                            rounded-full text-gray-500 hover:text-red-500
+                            z-10"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-4 h-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                    />
+                  </svg>
+                </button>
               </div>
             ))
           )}
         </div>
       </div>
-      <DeleteConfirm isOpen={isDeleteConfirmOpen} onClose={() => setIsDeleteConfirmOpen(false)} onConfirm={handleDeleteAll} />
+      <DeleteConfirm
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setLogToDelete(null);
+          setIsAllDelete(false);
+        }}
+        onConfirm={handleConfirmDelete}
+        type={isAllDelete ? "viewLogAll" : "viewLog"}
+      />
     </>
   );
 };

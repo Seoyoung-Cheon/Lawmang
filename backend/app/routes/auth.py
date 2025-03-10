@@ -219,11 +219,17 @@ def update_user(
 
 
 # ✅ 닉네임 중복 확인 API 추가
-@router.get("/check-nickname")
+@router.get("/auth/check-nickname")
 def check_nickname(nickname: str, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.nickname == nickname).first()
+    """탈퇴한 계정을 제외하고 닉네임 중복 검사"""
+    existing_user = db.query(User).filter(
+        User.nickname == nickname, 
+        User.is_active == True  # ✅ 활성화된 계정만 검색
+    ).first()
+
     if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 사용 중인 닉네임입니다.")
+        raise HTTPException(status_code=400, detail="이미 사용 중인 닉네임입니다.")
+
     return {"message": "사용 가능한 닉네임입니다."}
 
 
@@ -246,29 +252,21 @@ async def verify_current_password(
 
 
 # ✅ 회원탈퇴 API
-@router.delete("/withdraw", status_code=status.HTTP_200_OK)
+@router.delete("/auth/withdraw", status_code=status.HTTP_200_OK)
 async def withdraw_user(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    try:
-        user = db.query(User).filter(User.email == current_user["sub"]).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="사용자를 찾을 수 없습니다."
-            )
-        
-        # 사용자 삭제
-        db.delete(user)
-        db.commit()
-        
-        return {"message": "회원탈퇴가 완료되었습니다."}
-        
-    except Exception as e:
-        db.rollback()
-        print(f"회원탈퇴 처리 중 오류 발생: {str(e)}")  # 디버깅을 위한 로그 추가
+    user = db.query(User).filter(User.email == current_user["sub"]).first()
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="회원탈퇴 처리 중 오류가 발생했습니다."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="사용자를 찾을 수 없습니다."
         )
+
+    # ✅ 회원 데이터 완전 삭제
+    db.delete(user)
+    db.commit()
+
+    return {"message": "회원탈퇴가 완료되었습니다."}
+

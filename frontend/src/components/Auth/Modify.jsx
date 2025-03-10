@@ -37,10 +37,9 @@ const Modify = () => {
     confirmNewPassword: "",
   });
 
-  const { data: nicknameData, error: nicknameErrorResponse } =
-    useCheckNicknameQuery(formData.nickname, {
-      skip: !formData.nickname || formData.nickname === user?.nickname,
-    });
+  const { data: nicknameData } = useCheckNicknameQuery(formData.nickname, {
+    skip: !formData.nickname || formData.nickname === user?.nickname,
+  });
 
   const [currentPasswordVerified, setCurrentPasswordVerified] = useState(false);
   const [currentPasswordError, setCurrentPasswordError] = useState("");
@@ -195,7 +194,7 @@ const Modify = () => {
     }
 
     try {
-      const result = await updateUser(updateData).unwrap();
+      await updateUser(updateData).unwrap();
       // Redux store 업데이트
       if (updateData.nickname) {
         dispatch(updateUserInfo({ nickname: updateData.nickname }));
