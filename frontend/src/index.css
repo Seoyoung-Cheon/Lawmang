@@ -12,9 +12,15 @@
   font-family: "Oswald", "Noto Sans KR", sans-serif;
 }
 
+html,
+body {
+  overflow-x: hidden; /* html에도 가로 스크롤 제거 추가 */
+  width: 100%; /* 너비를 명시적으로 지정 */
+}
+
 body {
   overflow-y: scroll;
-  overflow-x: hidden; /* 가로 스크롤 제거 */
+  overflow-x: hidden;
 }
 
 ol,

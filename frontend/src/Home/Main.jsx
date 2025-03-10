@@ -49,6 +49,9 @@ const Main = () => {
             autoPlay
             muted
             loop
+            onLoadedMetadata={(e) => {
+              e.target.playbackRate = 0.7;
+            }}
           ></video>
         </div>
 
