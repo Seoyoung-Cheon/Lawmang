@@ -4,7 +4,6 @@ import { selectUser } from "../../redux/slices/authSlice";
 import {
   useGetUserViewedLogsQuery,
   useDeleteViewedLogMutation,
-  useDeleteAllViewedLogsMutation,
 } from "../../redux/slices/mylogApi";
 import {
   setViewedLogs,
@@ -22,7 +21,6 @@ const ViewedList = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
-  const [deleteAllViewedLogs] = useDeleteAllViewedLogsMutation();
 
   // 스크롤을 맨 위로 이동시키는 함수
   const scrollToTop = () => {
@@ -151,7 +149,7 @@ const ViewedList = () => {
             {/* 전체 삭제 버튼 추가 */}
             <button
               onClick={handleDeleteAll}
-              className="flex items-center gap-1 text-white hover:text-red-500 transition-colors"
+              className="flex items-center gap-1 text-white hover:underline"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
