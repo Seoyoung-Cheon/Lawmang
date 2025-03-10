@@ -34,7 +34,7 @@ const Precedent = () => {
 
   const {
     data: searchResults = [],
-    isLoading,    
+    isLoading,
     refetch,
   } = useQuery({
     queryKey: ["cases", searchQuery],
@@ -42,14 +42,15 @@ const Precedent = () => {
     enabled: false,
   });
 
-   // ✅ 카테고리별 검색 API (selectedCategory가 `null`이 아니고 `"all"`이 아닐 때 실행)
+  // ✅ 카테고리별 검색 API (selectedCategory가 `null`이 아니고 `"all"`이 아닐 때 실행)
   const {
     data: categoryResults = [],
     isLoading: isCategoryLoading,
     refetch: refetchCategory,
   } = useQuery({
     queryKey: ["precedentCategory", selectedCategory],
-    queryFn: () => (selectedCategory ? fetchCasesByCategory(selectedCategory) : []),
+    queryFn: () =>
+      selectedCategory ? fetchCasesByCategory(selectedCategory) : [],
     enabled: selectedCategory !== null && selectedCategory !== "all",
   });
 
@@ -99,7 +100,7 @@ const Precedent = () => {
   const handleCategorySelect = (category) => {
     setSearchQuery("");
     setSelectedCategory(category);
-  
+
     if (category !== "all") {
       refetchCategory(); // ✅ "all"이 아닐 때만 API 요청 실행
     }
@@ -159,7 +160,17 @@ const Precedent = () => {
         <div className="px-0 pt-[135px] pb-10">
           {/* 검색바 */}
           <div className="relative mb-8">
-            <div className="relative w-[900px]">
+            <div className="relative w-full max-w-[900px]">
+              <input
+                type="text"
+                placeholder="판례 및 키워드를 입력해주세요..."
+                className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl 
+                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
+                          transition-colors duration-200 bg-gray-50/50 hover:bg-white"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                onKeyPress={handleKeyPress}
+              />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -176,20 +187,10 @@ const Precedent = () => {
                   />
                 </svg>
               </div>
-              <input
-                type="text"
-                placeholder="판례 및 키워드를 입력해주세요..."
-                className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl 
-                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
-                          transition-colors duration-200 bg-gray-50/50 hover:bg-white"
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
-              />
               <button
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 px-5 py-2 
-                          text-sm text-white bg-Main hover:bg-Main_hover rounded-lg"
-                onClick={handleSearch}
+                               text-sm text-white bg-Main hover:bg-Main_hover 
+                               rounded-lg transition-colors duration-200"
               >
                 검색
               </button>
