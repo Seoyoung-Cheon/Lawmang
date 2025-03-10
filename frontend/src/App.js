@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Provider } from "react-redux"; // ✅ Redux Provider 추가
 import { store } from "./redux/store"; // ✅ Redux Store 불러오기
@@ -31,10 +31,33 @@ const queryClient = new QueryClient();
 // ScrollToTop 컴포넌트 추가
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  // 전역 이벤트 리스너 설정
+  useEffect(() => {
+    const handleCustomEvent = (e) => {
+      setIsModalOpen(e.detail.isOpen);
+      if (e.detail.isOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "unset";
+      }
+    };
+
+    window.addEventListener("modalStateChange", handleCustomEvent);
+
+    return () => {
+      window.removeEventListener("modalStateChange", handleCustomEvent);
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  // 페이지 이동 시 스크롤 처리
+  useEffect(() => {
+    if (!isModalOpen) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, isModalOpen]);
 
   return null;
 }
@@ -42,7 +65,9 @@ function ScrollToTop() {
 // ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ["/login", "/signup"].includes(location.pathname);
+  const hideFooter = ["/login", "/signup", "/modify"].includes(
+    location.pathname
+  );
   // 챗봇을 숨길 경로 추가
   const hideChatbot = [
     "/login",
