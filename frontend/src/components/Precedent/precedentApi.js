@@ -13,6 +13,10 @@ async function fetchData(apiUrl) {
 
     // HTTP 응답이 실패한 경우, 응답 본문을 읽어 오류 메시지를 생성합니다.
     if (!response.ok) {
+      // 404일 경우 빈 배열 반환 (UI 오류 방지)
+      if (response.status === 404) {
+        return [];
+      }
       const errorText = await response.text();
       throw new Error(`API 오류: ${response.status} - ${response.statusText}\n${errorText}`);
     }

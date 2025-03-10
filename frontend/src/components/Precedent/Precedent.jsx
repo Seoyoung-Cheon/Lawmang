@@ -21,8 +21,8 @@ const Precedent = () => {
   const [selectedCategory, setSelectedCategory] = useState(() => {
     const fromDetail = sessionStorage.getItem("fromDetail") === "true";
     return fromDetail
-      ? sessionStorage.getItem("precedentCategory") || "all"
-      : "all";
+      ? sessionStorage.getItem("precedentCategory") || null
+      : null;
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,8 +34,7 @@ const Precedent = () => {
 
   const {
     data: searchResults = [],
-    isLoading,
-    error,
+    isLoading,    
     refetch,
   } = useQuery({
     queryKey: ["cases", searchQuery],
@@ -43,14 +42,15 @@ const Precedent = () => {
     enabled: false,
   });
 
+   // ✅ 카테고리별 검색 API (selectedCategory가 `null`이 아니고 `"all"`이 아닐 때 실행)
   const {
     data: categoryResults = [],
     isLoading: isCategoryLoading,
     refetch: refetchCategory,
   } = useQuery({
     queryKey: ["precedentCategory", selectedCategory],
-    queryFn: () => fetchCasesByCategory(selectedCategory),
-    enabled: selectedCategory !== "all",
+    queryFn: () => (selectedCategory ? fetchCasesByCategory(selectedCategory) : []),
+    enabled: selectedCategory !== null && selectedCategory !== "all",
   });
 
   // 현재 표시할 결과 데이터 결정
@@ -80,7 +80,7 @@ const Precedent = () => {
   }, [selectedCategory]);
 
   const handleSearch = () => {
-    setSelectedCategory("all");
+    setSelectedCategory(null);
     if (searchQuery.trim()) {
       refetch();
     }
@@ -99,7 +99,10 @@ const Precedent = () => {
   const handleCategorySelect = (category) => {
     setSearchQuery("");
     setSelectedCategory(category);
-    refetchCategory();
+  
+    if (category !== "all") {
+      refetchCategory(); // ✅ "all"이 아닐 때만 API 요청 실행
+    }
   };
 
   // 현재 페이지의 아이템들 계산
