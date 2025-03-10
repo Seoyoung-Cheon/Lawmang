@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc
 from app.models.mylog import UserActivityLog
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.schemas.mylog import MemoUpdate
+from functools import lru_cache
 
 # ✅ 메모리 캐시 추가 (전역 변수)
 _view_cache = {}
@@ -111,29 +112,29 @@ def create_or_update_viewed_log(db: Session, user_id: int, consultation_id=None,
         cache_key = f"{user_id}_{consultation_id}_{precedent_number}"
         current_time = datetime.utcnow()
 
-        # ✅ 캐시 확인
+        # ✅ 캐시 확인 (2초 내 중복 요청 방지)
         if cache_key in _view_cache:
             last_view, cached_result = _view_cache[cache_key]
             if (current_time - last_view).total_seconds() < CACHE_DURATION:
                 print(f"⚠️ [중복 요청 감지] {cache_key}")
-                return {"status": "cached", "data": cached_result}  # ✅ 캐시된 결과 반환
+                return {"status": "cached", "data": cached_result}
 
-        # 기존 기록이 있는지 확인
+        # ✅ 기존 데이터 확인 (중복 방지)
         existing_log = db.query(UserActivityLog).filter(
             UserActivityLog.user_id == user_id,
-            (UserActivityLog.consultation_id == consultation_id) if consultation_id 
-            else (UserActivityLog.precedent_number == precedent_number)
+            or_(
+                UserActivityLog.consultation_id == consultation_id,
+                UserActivityLog.precedent_number == precedent_number
+            )
         ).first()
 
         result = None
         if existing_log:
-            # 기존 기록 업데이트
             existing_log.viewed_at = current_time
             db.commit()
             db.refresh(existing_log)
             result = existing_log
         else:
-            # 새로운 기록 저장
             new_log = UserActivityLog(
                 user_id=user_id,
                 consultation_id=consultation_id,
@@ -147,15 +148,13 @@ def create_or_update_viewed_log(db: Session, user_id: int, consultation_id=None,
 
         # ✅ 캐시 업데이트
         _view_cache[cache_key] = (current_time, result)
-
-        # ✅ 오래된 캐시 정리
         cleanup_cache()
 
-        return {"status": "success", "data": result}  # ✅ 성공 결과 반환
+        return {"status": "success", "data": result}
 
     except SQLAlchemyError as e:
         print(f"🔥 [쿼리 오류] 열람기록 저장 오류: {e}")
-        return {"status": "error", "message": str(e)}  # ✅ 오류 정보 반환
+        return {"status": "error", "message": str(e)}
 
 
 # ✅ 캐시 정리 함수 추가
@@ -170,6 +169,7 @@ def cleanup_cache():
 
 
 # ✅ 특정 사용자의 열람 기록 조회 (최근 열람한 기록이 위로 오도록 정렬)
+@lru_cache(maxsize=128)
 def get_user_viewed_logs(db: Session, user_id: int):
     return db.query(UserActivityLog).filter(
         UserActivityLog.user_id == user_id
