@@ -28,6 +28,17 @@ import MyLogsPage from "./components/MyLog/MyLogsPage";
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
 
+// ScrollToTop 컴포넌트 추가
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 // ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
   const location = useLocation();
@@ -42,6 +53,7 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollToTop />
       <Header />
       {!hideChatbot && <Chatbot />}
       <div className="flex-grow">
