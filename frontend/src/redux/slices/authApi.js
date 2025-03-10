@@ -99,7 +99,7 @@ export const authApi = createApi({
     // ✅ 비밀번호 재설정 코드 요청 API
     sendResetCode: builder.mutation({
       query: (data) => ({
-        url: '/send-reset-code',
+        url: '/auth/send-reset-code',
         method: 'POST',
         body: data,
       }),
@@ -108,7 +108,7 @@ export const authApi = createApi({
     // ✅ 비밀번호 재설정 코드 확인 API
     verifyResetCode: builder.mutation({
       query: (data) => ({
-        url: '/verify-reset-code',
+        url: '/auth/verify-reset-code',
         method: 'POST',
         body: data,
       }),
@@ -117,7 +117,7 @@ export const authApi = createApi({
     // ✅ 비밀번호 변경 API
     resetPassword: builder.mutation({
       query: (data) => ({
-        url: '/reset-password',
+        url: '/auth/reset-password',
         method: 'POST',
         body: data,
       }),
