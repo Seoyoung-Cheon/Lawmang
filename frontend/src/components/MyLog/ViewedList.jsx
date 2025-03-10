@@ -9,16 +9,15 @@ import {
 import {
   setViewedLogs,
   removeViewedLog,
-  clearViewedLogs,
 } from "../../redux/slices/mylogSlice";
-import ViewLog from "./ViewLog"; // ✅ ViewLog 추가
-import { Link } from "react-router-dom"; // ✅ 링크 추가
+import ViewLog from "./ViewLog";
+import { Link } from "react-router-dom";
 import DeleteConfirm from "./DeleteConfirm";
 
 const ViewedList = () => {
-  const user = useSelector(selectUser); // ✅ 현재 로그인한 회원 정보 가져오기
+  const user = useSelector(selectUser);
   const dispatch = useDispatch();
-  const [viewMode, setViewMode] = useState("consultation"); // 추가: 토글 상태
+  const [viewMode, setViewMode] = useState("consultation");
   const [deleteViewedLog] = useDeleteViewedLogMutation();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
@@ -195,16 +194,15 @@ const ViewedList = () => {
             filteredLogs.map((log, index) => (
               <div
                 key={index}
-                className="border-b border-gray-200 relative group"
+                className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg"
               >
-                {/* ✅ 클릭 시 상세 페이지로 이동하는 링크 추가 */}
                 <Link
                   to={
                     log.precedent_number
                       ? `/precedent/detail/${log.precedent_number}`
                       : `/consultation/detail/${log.consultation_id}`
                   }
-                  className="block w-full transition-all duration-200 hover:pl-2"
+                  className="block w-full transition-all duration-200 group-hover:pl-2"
                 >
                   <ViewLog
                     consultation_id={log.consultation_id}
@@ -218,8 +216,9 @@ const ViewedList = () => {
                     handleDelete(log.id);
                   }}
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 
-                           transition-opacity duration-200 p-1.5 hover:bg-gray-100 
-                           rounded-full text-gray-500 hover:text-red-500"
+                            transition-all duration-200 p-1.5 hover:bg-gray-100 
+                            rounded-full text-gray-500 hover:text-red-500
+                            z-10"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -242,7 +241,6 @@ const ViewedList = () => {
         </div>
       </div>
 
-      {/* DeleteConfirm 컴포넌트 수정 */}
       <DeleteConfirm
         isOpen={isDeleteConfirmOpen}
         onClose={() => {

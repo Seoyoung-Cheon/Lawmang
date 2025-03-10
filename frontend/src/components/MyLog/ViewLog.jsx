@@ -12,6 +12,8 @@ const Detail = ({ consultation_id, precedent_number }) => {
     title: "",
     content: "",
     caseNumber: "",
+    court: "",
+    date: ""
   });
 
   // 텍스트 길이 제한 함수
@@ -19,6 +21,12 @@ const Detail = ({ consultation_id, precedent_number }) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + "...";
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return dateString.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
   };
 
   // 상세 내용 가져오기
@@ -31,12 +39,16 @@ const Detail = ({ consultation_id, precedent_number }) => {
             title: data?.title || "",
             content: data?.question || "",
             caseNumber: "",
+            court: "",
+            date: ""
           });
         } else if (precedent_number) {
           const data = await fetchCaseDetail(precedent_number);
           setCaseData({
             title: data?.사건명 || "",
             caseNumber: data?.사건번호 || "",
+            court: data?.법원명 || "",
+            date: data?.선고일자 || ""
           });
         }
       } catch (error) {
@@ -49,7 +61,6 @@ const Detail = ({ consultation_id, precedent_number }) => {
   // 열람 기록 저장
   useEffect(() => {
     if (user?.id && (consultation_id || precedent_number)) {
-        // ✅ Redux 상태에서 이미 있는지 확인
         const isAlreadyViewed = viewedLogs.some(
             (log) =>
                 (log.consultation_id && log.consultation_id === consultation_id) ||
@@ -68,7 +79,7 @@ const Detail = ({ consultation_id, precedent_number }) => {
 
 
   return (
-    <div className="hover:bg-white hover:shadow-md py-4 px-2 rounded-lg transition-all duration-200">
+    <div className="py-4 px-2">
       {consultation_id ? (
         // 상담사례 표시
         <div>
@@ -82,8 +93,15 @@ const Detail = ({ consultation_id, precedent_number }) => {
       ) : (
         // 판례 표시
         <div>
-          <h3 className="text-lg font-medium truncate">{caseData.title}</h3>
-          <div className="text-sm text-gray-600">{caseData.caseNumber}</div>
+          <h3 className="text-lg font-medium truncate mb-2">
+            {truncateText(caseData.title, 30)}
+          </h3>
+          <div className="flex justify-between items-end text-sm text-gray-600">
+            <div>
+              {truncateText(caseData.court, 15)} | {formatDate(caseData.date)}
+            </div>
+            <div>{truncateText(caseData.caseNumber, 20)}</div>
+          </div>
         </div>
       )}
     </div>
