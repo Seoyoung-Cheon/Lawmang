@@ -89,13 +89,10 @@ const ViewedList = () => {
   };
 
   // 전체 삭제 핸들러 추가
-  const handleDeleteAll = async () => {
-    if (!user?.id) return;
-
-    if (window.confirm("모든 열람 기록을 삭제하시겠습니까?")) {
-      await deleteAllViewedLogs(user.id);
-      dispatch(clearViewedLogs());
-    }
+  const handleDeleteAll = () => {
+    if (!user?.id || filteredLogs.length === 0) return;
+    setIsAllDelete(true);
+    setIsDeleteConfirmOpen(true);
   };
 
   // 삭제 확인 핸들러 수정
