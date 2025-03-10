@@ -123,10 +123,8 @@ def create_or_update_viewed_log(db: Session, user_id: int, consultation_id=None,
         # ✅ 기존 데이터 확인 (중복 방지)
         existing_log = db.query(UserActivityLog).filter(
             UserActivityLog.user_id == user_id,
-            or_(
-                UserActivityLog.consultation_id == consultation_id,
-                UserActivityLog.precedent_number == precedent_number
-            )
+            (UserActivityLog.consultation_id == consultation_id) if consultation_id 
+            else (UserActivityLog.precedent_number == precedent_number)
         ).first()
 
         result = None
@@ -204,7 +202,8 @@ def delete_all_viewed_logs(db: Session, user_id: int):
     db.commit()
     return True
 
-# 열람기록 판례 목록 정보 불러오기
+
+# ✅ 열람기록 판례 목록 정보 불러오기
 def get_precedent_info(precedent_number: str):
     """
     특정 판례 번호에 해당하는 판례 정보를 SQL 쿼리로 가져오는 함수
