@@ -103,7 +103,7 @@ export async function fetchPrecedentInfo(precedent_number) {
   // console.log("📌 요청하는 API:", apiUrl);  // ✅ 로그 추가
 
   const result = await fetchData(apiUrl);
-  console.log("📌 API 응답 데이터:", result);  // ✅ 응답 확인용 로그 추가
+  // console.log("📌 API 응답 데이터:", result);  // ✅ 응답 확인용 로그 추가
 
   return result;
 }

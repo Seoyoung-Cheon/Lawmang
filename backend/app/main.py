@@ -1,3 +1,9 @@
+import bcrypt
+from types import SimpleNamespace
+
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = SimpleNamespace(__version__=bcrypt.__version__)
+
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse

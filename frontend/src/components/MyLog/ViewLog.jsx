@@ -38,7 +38,7 @@ const Detail = ({ consultation_id, precedent_number }) => {
 
         if (consultation_id) {
           data = await fetchConsultationDetail(consultation_id);
-          console.log("📌 상담사례 API 응답:", data); // ✅ 응답 확인용 로그
+          // console.log("📌 상담사례 API 응답:", data); // ✅ 응답 확인용 로그
           setCaseData({
             title: data?.title || "제목 없음",
             caseNumber: "",

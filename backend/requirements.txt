@@ -5,8 +5,7 @@ sqlalchemy
 psycopg2-binary
 watchfiles
 python-dotenv
-bcrypt==4.3.0
-passlib[bcrypt]==1.7.4
+passlib[bcrypt]
 python-jose[cryptography]
 orjson
 httpx
