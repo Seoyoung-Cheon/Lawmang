@@ -215,7 +215,7 @@ def get_precedent_info(precedent_number: str):
     """
     result = execute_sql(sql, {"precedent_number": precedent_number}, fetch_one=True)
 
-    print(f"📌 판례 데이터 조회 결과: {result}")  # ✅ 로그 추가
+    # print(f"📌 판례 데이터 조회 결과: {result}")  # ✅ 로그 추가
 
     if not result:
         return None
