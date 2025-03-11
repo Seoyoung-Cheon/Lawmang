@@ -269,7 +269,7 @@ const Header = () => {
           ) : (
             <Link
               to="/login"
-              className="flex items-center justify-center gap-2 w-full py-2 text-gray-600 hover:text-Main transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-2 text-gray-600 hover:text-white hover:bg-Main  rounded-md transition-colors"
             >
               <CiLogin className="w-5 h-5" />
               로그인

@@ -5,7 +5,7 @@ import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
 } from "react-icons/md";
-import PreviewModal from './PreviewModal';
+import PreviewModal from "./PreviewModal";
 
 const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,21 +53,20 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
       let formattedFile = file.endsWith(".hwp")
         ? file.replace(".hwp", ".pdf")
         : file;
-  
+
       const encodedCategory = encodeURIComponent(category);
       const encodedFile = encodeURIComponent(formattedFile);
       const pdfUrl = `/template_pdfs/${encodedCategory}/${encodedFile}`;
-  
-      console.log('미리보기 URL:', pdfUrl);
-  
+
+      console.log("미리보기 URL:", pdfUrl);
+
       // 바로 미리보기 데이터 설정 및 모달 열기
       setPreviewData({
         url: pdfUrl,
         fileName: formattedFile,
-        category: category
+        category: category,
       });
       setIsPreviewOpen(true);
-  
     } catch (error) {
       console.error("미리보기 오류:", error);
       alert("미리보기 처리 중 오류가 발생했습니다.");
@@ -146,19 +145,19 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
               key={index}
               className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
             >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600">📄</span>
-                  <span className="text-lg">
+              <div className="flex justify-between items-center gap-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <span className="text-gray-600 flex-shrink-0">📄</span>
+                  <span className="text-lg truncate">
                     {removeLeadingNumbers(fileInfo.file)}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() =>
                       handlePreview(fileInfo.category, fileInfo.file)
                     }
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 w-[90px]"
                   >
                     미리보기
                   </button>
@@ -166,7 +165,7 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
                     onClick={() =>
                       handleDownload(fileInfo.category, fileInfo.file)
                     }
-                    className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200"
+                    className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200 w-[90px]"
                   >
                     다운로드
                   </button>
@@ -179,15 +178,15 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
         {/* PreviewModal 컴포넌트 추가 */}
         {isPreviewOpen && (
           <PreviewModal
-            file={previewData.fileName}  // 파일명
+            file={previewData.fileName} // 파일명
             previewUrl={previewData.url} // PDF 미리보기 URL
             onClose={() => {
-            setIsPreviewOpen(false);
-            setPreviewData(null);
+              setIsPreviewOpen(false);
+              setPreviewData(null);
             }}
           />
-        )}  
-              
+        )}
+
         {/* 페이지네이션 UI */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-6">
