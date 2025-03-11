@@ -20,7 +20,7 @@ class UserActivityLog(Base):
 
     # ✅ 열람기록 관련 필드 (메모에는 필요 없음)
     consultation_id = Column(Integer, nullable=True)  # 상담사례 ID
-    precedent_number = Column(String(255), nullable=True)  # 판례 번호
+    precedent_number = Column(Integer, nullable=True)  # 판례 번호
     viewed_at = Column(DateTime, server_default=func.now(), onupdate=func.now())  # 열람 기록 시간 - 업데이트
 
     # 🔥 중복 저장 방지를 위한 제약 조건 추가

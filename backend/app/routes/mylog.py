@@ -121,7 +121,7 @@ def delete_all_viewed_logs_route(user_id: int, db: Session = Depends(get_db)):
 
 # ✅ 열람 목록에서 판례 정보를 조회하는 API
 @router.get("/viewed/precedent-info/{precedent_number}")
-def get_precedent_data(precedent_number: str):
+def get_precedent_data(precedent_number: int):
     """
     판례 번호를 기반으로 판례 정보를 조회하는 엔드포인트
     """
