@@ -100,14 +100,15 @@ def summarize_case(text, tokenizer, model):
 
         summary_ids = model.generate(
             input_ids,
-            max_length=150,  # ✅ 응답 속도를 높이기 위해 짧게 설정 (200 → 150)
-            min_length=120,  # ✅ 최소한의 정보 포함 (80~120 유지)
-            num_beams=3,  # ✅ beams 감소로 속도 증가 (8 → 3)
+            max_length=200,  # ✅ 최대 길이 증가 (150 → 200)
+            min_length=100,  # ✅ 최소 길이 줄임 (149 → 100)
+            num_beams=5,  # ✅ beams 수 증가 (3 → 5) → 더 다양한 후보 탐색
             early_stopping=True,
-            no_repeat_ngram_size=3,
-            repetition_penalty=1.5,  # ✅ 반복 최소화 (2.0 → 1.5)
-            length_penalty=0.8,  # ✅ 더 짧은 요약 생성 (1.0 → 0.8)
-        )  # 모델 3 속도만 빠르고 부정확
+            no_repeat_ngram_size=4,  # ✅ 반복 방지 (3 → 4)
+            repetition_penalty=2.0,  # ✅ 반복 최소화 (1.5 → 2.0)
+            length_penalty=1.0,  # ✅ 길이 제한 완화 (0.8 → 1.0)
+        )
+
         print(f"🔎 [DEBUG] summary_ids: {summary_ids}")
 
         decoded = tokenizer.decode(summary_ids[0], skip_special_tokens=True)

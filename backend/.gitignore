@@ -31,3 +31,7 @@ logs/
 
 # Jupyter Notebook 캐시
 .ipynb_checkpoints/
+
+
+# model 관련 똥
+*.cache
