@@ -1,10 +1,5 @@
-import React from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Provider } from "react-redux"; // ✅ Redux Provider 추가
 import { store } from "./redux/store"; // ✅ Redux Store 불러오기
 import Header from "./Home/Header";
@@ -21,19 +16,58 @@ import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import Footer from "./Home/Footer";
 import { AuthProvider } from "./components/Auth/AuthContext";
-import Mypage from "./components/Mypage/Mypage";
+
 import ConsDetail from "./components/Consultation/ConsDetail";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ResetPassword from "./components/Auth/ResetPwd";
 import Modify from "./components/Auth/Modify";
+import ViewedList from "./components/MyLog/ViewedList";
+import MemoBoard from "./components/MyLog/MemoBoard";
+import MyLogsPage from "./components/MyLog/MyLogsPage";
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
 
+// ScrollToTop 컴포넌트 추가
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 전역 이벤트 리스너 설정
+  useEffect(() => {
+    const handleCustomEvent = (e) => {
+      setIsModalOpen(e.detail.isOpen);
+      if (e.detail.isOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "unset";
+      }
+    };
+
+    window.addEventListener("modalStateChange", handleCustomEvent);
+
+    return () => {
+      window.removeEventListener("modalStateChange", handleCustomEvent);
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  // 페이지 이동 시 스크롤 처리
+  useEffect(() => {
+    if (!isModalOpen) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, isModalOpen]);
+
+  return null;
+}
+
 // ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ["/login", "/signup"].includes(location.pathname);
+  const hideFooter = ["/login", "/signup", "/modify"].includes(
+    location.pathname
+  );
   // 챗봇을 숨길 경로 추가
   const hideChatbot = [
     "/login",
@@ -44,6 +78,7 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollToTop />
       <Header />
       {!hideChatbot && <Chatbot />}
       <div className="flex-grow">
@@ -62,8 +97,12 @@ function AppContent() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/modify" element={<Modify />} />
-          <Route path="/mypage" element={<Mypage />} />
+
           <Route path="/consultation/detail/:id" element={<ConsDetail />} />
+          <Route path="/mylog" element={<MyLogsPage />} />
+          <Route path="/mylog/viewed" element={<ViewedList />} />
+          <Route path="/mylog/memo" element={<MemoBoard />} />
+          <Route path="/mylog/logs" element={<MyLogsPage />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

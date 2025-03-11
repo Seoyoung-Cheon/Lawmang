@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import openLicenseImg from "../../assets/open_license.jpg";
 import { TbCircleLetterQFilled, TbCircleLetterA } from "react-icons/tb";
 import { fetchConsultationDetail } from "./consultaionApi";
 import loadingGif from "../../assets/loading.gif";
+import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
+import { useSelector } from "react-redux";
 
 const ConsDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+  const [createViewedLog] = useCreateViewedLogMutation();
+
   const [consultation, setConsultation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ 상담 사례 열람 기록 저장
+  useEffect(() => {
+    if (user?.id && id) {
+      createViewedLog({
+        user_id: user.id,
+        consultation_id: id,
+        precedent_number: null,
+      });
+    }
+  }, [id, user, createViewedLog]);
 
   // 페이지 진입 시 스크롤 위치 초기화
   useEffect(() => {
@@ -23,7 +40,6 @@ const ConsDetail = () => {
         setError(null);
 
         const data = await fetchConsultationDetail(id);
-        console.log("API Response:", data);
         setConsultation(data);
       } catch (error) {
         console.error("상담 상세 정보를 가져오는데 실패했습니다:", error);
@@ -37,6 +53,12 @@ const ConsDetail = () => {
       fetchConsultation();
     }
   }, [id]);
+
+  // 뒤로가기 핸들러 수정
+  const handleGoBack = () => {
+    sessionStorage.setItem("fromDetail", "true");
+    navigate(-1);
+  };
 
   if (isLoading) {
     return (
@@ -89,6 +111,28 @@ const ConsDetail = () => {
     <div className="container">
       <div className="left-layout">
         <div className="px-0 pt-[135px] pb-10">
+          {/* 뒤로가기 버튼 수정 */}
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
+            </svg>
+            <span>목록으로</span>
+          </button>
+
           {/* 상단 정보 영역 */}
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             {/* 구분 */}

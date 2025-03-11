@@ -17,7 +17,6 @@ const Chatbot = () => {
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
-    console.log("🔄 로그인 상태 변경 감지됨:", isAuthenticated);
     if (!isAuthenticated) {
       setSelectedCategory("general");
     }
@@ -67,10 +66,10 @@ const Chatbot = () => {
           isOpen ? "block max-[1380px]:block" : "hidden max-[1380px]:hidden"
         } min-[1380px]:block fixed right-[50px] 2xl:right-[120px] top-[55%] -translate-y-1/2 z-40`}
       >
-        <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-md flex flex-col relative">
+        <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] flex flex-col relative">
           {showLoginPopup && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white rounded-lg p-6 shadow-xl">
+              <div className="bg-white rounded-lg p-6 shadow-2xl">
                 <p className="text-center text-lg mb-6">
                   법률상담은 로그인이 필요합니다.
                 </p>

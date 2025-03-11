@@ -5,40 +5,36 @@
  * @param {string} apiUrl - 호출할 API의 URL.
  * @returns {Promise<any>} - API 응답 데이터(성공 시 JSON 또는 HTML 문자열).
  */
-async function fetchData(apiUrl) {
-  console.log("🔹 API 요청 URL:", apiUrl);
-
+async function fetchData(apiUrl, retries = 2) {
   try {
     const response = await fetch(apiUrl, {
-      headers: { "Accept": "*/*" }, // ✅ JSON & HTML 모두 받을 수 있도록 설정
+      headers: { "Accept": "*/*" }, 
     });
 
-    console.log("🔹 API 응답 상태 코드:", response.status);
-
-    // HTTP 응답이 실패한 경우, 응답 본문을 읽어 오류 메시지를 생성합니다.
     if (!response.ok) {
+      if (response.status === 404) {
+        console.warn(`API 404: ${apiUrl} - 빈 결과 반환`); // ✅ 경고 메시지로 변경
+        return []; // ✅ 404 발생 시 빈 배열 반환 (콘솔에 에러 안 찍힘)
+      }
       const errorText = await response.text();
       throw new Error(`API 오류: ${response.status} - ${response.statusText}\n${errorText}`);
     }
 
     const contentType = response.headers.get("content-type") || "";
-    console.log("🔹 응답 Content-Type:", contentType);
-
-    // ✅ JSON 응답 처리
+    
     if (contentType.includes("application/json")) {
-      const data = await response.json();
-      console.log("✅ API 응답 데이터 (JSON):", data);
-      return data;
+      return await response.json();
     }
 
-    // ✅ HTML 응답 처리 (JSON이 아닌 경우)
-    const htmlData = await response.text();
-    console.warn("⚠️ API 응답이 HTML 형식입니다.");
-    return { type: "html", content: htmlData }; // HTML 응답을 객체 형태로 반환
+    return { type: "html", content: await response.text() };
 
   } catch (error) {
-    console.error("❌ API 요청 오류:", error.message);
-    return { type: "error", message: error.message }; // 오류 발생 시 에러 정보 반환
+    if (retries > 0) {
+      console.warn(`API 요청 실패, 재시도 중... 남은 횟수: ${retries}`);
+      return fetchData(apiUrl, retries - 1);
+    }
+    console.error(`API 요청 실패: ${error.message}`); // ❌ 최종 실패 시 콘솔 에러만 출력
+    return [];
   }
 }
 
@@ -50,7 +46,6 @@ async function fetchData(apiUrl) {
 export async function fetchCasesByCategory(category) {
   if (!category) return [];
   const apiUrl = `/api/search/precedents/category/${encodeURIComponent(category)}`;
-  console.log("🔹 API 요청 URL (카테고리):", apiUrl);
   return fetchData(apiUrl);
 }
 
@@ -75,22 +70,40 @@ export async function fetchCaseDetail(pre_number) {
   if (!pre_number) throw new Error("유효한 pre_number가 필요합니다.");
 
   const apiUrl = `/api/detail/precedent/${pre_number}`;
-  console.log("🔹 JSON 데이터 요청:", apiUrl);
-
   const result = await fetchData(apiUrl);
 
-  // ✅ JSON인지 HTML인지 확인
   if (result && typeof result === "object" && !Array.isArray(result)) {
-    const firstKey = Object.keys(result)[0]; // ✅ JSON 응답의 첫 번째 키 확인
+    const firstKey = Object.keys(result)[0];
 
     if (firstKey === "Law") {
-      console.log("🔹 'Law' 키 발견 → HTML 데이터 요청");
-      const htmlApiUrl = apiUrl.replace("type=JSON", "type=HTML"); // ✅ HTML API URL 변경
-      return fetchData(htmlApiUrl); // ✅ HTML 요청 후 반환
+      const htmlApiUrl = apiUrl.replace("type=JSON", "type=HTML");
+      const htmlResult = await fetchData(htmlApiUrl);
+
+      // ✅ JSON 데이터가 없으면 새로 만든 열람 목록 API에서 판례 정보 가져오기
+      const dbApiUrl = `/api/mylog/precedent-info/${pre_number}`;
+      const dbResult = await fetchData(dbApiUrl);
+
+      return {
+        type: "html",
+        content: htmlResult.content, // ✅ iframe으로 표시할 HTML
+        ...dbResult, // ✅ DB에서 가져온 판례 정보 추가
+      };
     }
 
-    return result; // ✅ 정상 JSON 반환
+    return result;
   }
+
+  return result;
+}
+
+export async function fetchPrecedentInfo(precedent_number) {
+  if (!precedent_number) throw new Error("유효한 precedent_number가 필요합니다.");
+
+  const apiUrl = `/api/mylog/viewed/precedent-info/${precedent_number}`;
+  // console.log("📌 요청하는 API:", apiUrl);  // ✅ 로그 추가
+
+  const result = await fetchData(apiUrl);
+  // console.log("📌 API 응답 데이터:", result);  // ✅ 응답 확인용 로그 추가
 
   return result;
 }

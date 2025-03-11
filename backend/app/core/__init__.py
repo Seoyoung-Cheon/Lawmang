@@ -7,7 +7,6 @@ from .config import (
     DB_PORT,
 	SECRET_KEY,
     ALGORITHM,
-    ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
 from .database import (

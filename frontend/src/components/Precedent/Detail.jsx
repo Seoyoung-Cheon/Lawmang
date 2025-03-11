@@ -1,17 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { fetchCaseDetail } from "./precedentApi"; // API 요청 함수
 import Popup from "./Popup";
 import DOMPurify from "dompurify"; // XSS 방지 라이브러리
 import loadingGif from "../../assets/loading.gif";
+import { useSelector } from "react-redux";
+import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
 
 const Detail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+  const [createViewedLog] = useCreateViewedLogMutation();
+
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [precedentDetail, setPrecedentDetail] = useState(null);
   const [iframeUrl, setIframeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ 판례 열람 기록 저장
+  useEffect(() => {
+    if (user?.id && id) {
+      createViewedLog({
+        user_id: user.id,
+        consultation_id: null,
+        precedent_number: id,
+      });
+    }
+  }, [id, user, createViewedLog]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -22,14 +39,12 @@ const Detail = () => {
       setIsLoading(true);
       setError(null);
 
-      console.log("Fetching detail for pre_number:", id);
+      // console.log("Fetching detail for pre_number:", id);
 
       try {
         const data = await fetchCaseDetail(id);
 
         if (data.type === "html") {
-          console.log("📌 HTML 데이터 수신됨");
-
           // HTML에서 iframe URL 추출
           const parser = new DOMParser();
           const doc = parser.parseFromString(data.content, "text/html");
@@ -37,7 +52,6 @@ const Detail = () => {
 
           if (iframeElement) {
             const extractedUrl = iframeElement.getAttribute("src");
-            console.log("📌 추출된 iframe URL:", extractedUrl);
             setIframeUrl(extractedUrl);
           } else {
             console.warn("⚠️ iframe을 찾을 수 없음");
@@ -57,6 +71,13 @@ const Detail = () => {
       fetchPrecedentDetail();
     }
   }, [id]);
+
+  // 뒤로가기 핸들러
+  const handleGoBack = () => {
+    // 뒤로가기 전에 fromDetail 플래그 설정
+    sessionStorage.setItem("fromDetail", "true");
+    navigate(-1);
+  };
 
   if (isLoading) {
     return (
@@ -106,14 +127,35 @@ const Detail = () => {
     return (
       <div className="container">
         <div className="left-layout">
-          <div className="px-0 pt-32 pb-10">
+          <div className="px-0 pt-[100px] pb-10">
+            <button
+              onClick={handleGoBack}
+              className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+              <span>목록으로</span>
+            </button>
+
             <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
               <iframe
                 src={iframeUrl}
                 title="판례 상세"
                 width="100%"
                 height="100%"
-                style={{ border: 'none' }}
+                style={{ border: "none" }}
                 className="overflow-auto"
               />
             </div>
@@ -127,7 +169,28 @@ const Detail = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-32 pb-10">
+        <div className="px-0 pt-[100px] pb-10">
+          <button
+            onClick={handleGoBack}
+            className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
+            </svg>
+            <span>목록으로</span>
+          </button>
+
           <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
             <div className="relative flex justify-center mb-6">
               <h2 className="text-3xl font-bold">판례 상세</h2>
@@ -138,7 +201,10 @@ const Detail = () => {
                 >
                   요약보기
                 </button>
-                <Popup isOpen={isPopupOpen} onClose={() => setIsPopupOpen(false)} />
+                <Popup
+                  isOpen={isPopupOpen}
+                  onClose={() => setIsPopupOpen(false)}
+                />
               </div>
             </div>
 
@@ -167,11 +233,9 @@ const Detail = () => {
                 </div>
               </div>
             </div>
-            
           </div>
         </div>
       </div>
-      
     </div>
   );
 };

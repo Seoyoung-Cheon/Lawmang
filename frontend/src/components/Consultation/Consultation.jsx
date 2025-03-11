@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,8 +14,20 @@ import {
 import loadingGif from "../../assets/loading.gif";
 
 const Consultation = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("consultationSearchQuery") || ""
+      : "";
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    return fromDetail
+      ? sessionStorage.getItem("consultationCategory") || "all"
+      : "all";
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8; // 페이지당 8개 항목
@@ -47,6 +59,24 @@ const Consultation = () => {
     "상속",
   ];
 
+  useEffect(() => {
+    const fromDetail = sessionStorage.getItem("fromDetail") === "true";
+    if (fromDetail) {
+      sessionStorage.removeItem("fromDetail");
+    } else {
+      sessionStorage.removeItem("consultationSearchQuery");
+      sessionStorage.removeItem("consultationCategory");
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("consultationSearchQuery", searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    sessionStorage.setItem("consultationCategory", selectedCategory);
+  }, [selectedCategory]);
+
   const {
     data: searchResults = [],
     isLoading,
@@ -64,7 +94,8 @@ const Consultation = () => {
 
   const {
     data: categoryResults = [],
-    isLoading: isCategoryLoading
+    isLoading: isCategoryLoading,
+    refetch: refetchCategory, // refetchCategory 추가
   } = useQuery({
     queryKey: ["consultationCategory", selectedCategory],
     queryFn: () => fetchConsultationsByCategory(selectedCategory),
@@ -92,6 +123,7 @@ const Consultation = () => {
 
   const handleSearch = () => {
     setSelectedCategory("all");
+    localStorage.setItem("consultationCategory", "all");
     if (searchQuery.trim()) {
       refetch();
     }
@@ -109,8 +141,10 @@ const Consultation = () => {
 
   const handleCategorySelect = (category) => {
     setSearchQuery("");
+    localStorage.setItem("consultationSearchQuery", "");
     setSelectedCategory(category);
-    setCurrentPage(1);
+    localStorage.setItem("consultationCategory", category);
+    refetchCategory(); // 이제 정의된 refetchCategory 사용
   };
 
   // 페이지네이션 관련 함수들
@@ -140,7 +174,6 @@ const Consultation = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
-
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -152,8 +185,8 @@ const Consultation = () => {
                 type="text"
                 placeholder="사례 검색..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
-                         focus:outline-none focus:ring-2 focus:ring-sage focus:border-sage
-                         transition-all duration-200 bg-gray-50/50 hover:bg-white"
+                         focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
+                          transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
                 onKeyDown={handleKeyPress}
@@ -205,7 +238,7 @@ const Consultation = () => {
           </div>
 
           {/* 카테고리 정보 */}
-          {selectedCategory !== "all" && (
+          {selectedCategory !== "all" && ( // todo: 첫 로딩 시 GET http://localhost:3000/api/search/precedents/category/all 404 (Not Found) 해결 필요
             <div className="flex items-center gap-2 mb-4">
               <span className="text-lg font-semibold text-black">
                 {selectedCategory}
