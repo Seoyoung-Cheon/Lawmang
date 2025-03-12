@@ -36,6 +36,7 @@ const Template = () => {
   const [selectedCategory, setSelectedCategory] = useState(category || "all");
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // 선택된 카테고리 설정
   useEffect(() => {
@@ -64,20 +65,42 @@ const Template = () => {
     return { [selectedCategory]: documentStructure[selectedCategory] };
   };
 
+  // 검색어 입력 핸들러
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // 검색 버튼 클릭 핸들러
+  const handleSearch = () => {
+    // 검색 시 카테고리를 'all'로 변경
+    setSelectedCategory("all");
+    navigate("/template/all");
+  };
+
+  // Enter 키 입력 핸들러
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="container">
       <div className="left-layout">
         <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
-          {/* 검색바 */}
+          {/* 검색바 수정 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
                 placeholder="문서 검색..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyPress={handleKeyPress}
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
                           transition-colors duration-200
-                          bg-gray-50/50 hover:bg-white "
+                          bg-gray-50/50 hover:bg-white"
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
@@ -96,6 +119,7 @@ const Template = () => {
                 </svg>
               </div>
               <button
+                onClick={handleSearch}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 px-5 py-2 
                                text-sm text-white bg-Main hover:bg-Main_hover 
                                rounded-lg transition-colors duration-200"
@@ -124,13 +148,14 @@ const Template = () => {
             ))}
           </div>
 
-          {/* 문서 섹션 */}
+          {/* DocumentSection에 searchQuery 전달 */}
           <DocumentSection
             documents={getDisplayDocuments()}
             categoryMapping={categoryMapping}
+            selectedCategory={selectedCategory}
+            searchQuery={searchQuery}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
-            selectedCategory={selectedCategory}
           />
         </div>
       </div>

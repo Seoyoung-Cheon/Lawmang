@@ -7,7 +7,12 @@ import {
 } from "react-icons/md";
 import PreviewModal from "./PreviewModal";
 
-const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
+const DocumentSection = ({
+  documents,
+  categoryMapping,
+  selectedCategory,
+  searchQuery,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [previewData, setPreviewData] = useState(null); // 미리보기 데이터 상태 추가
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); // 모달 상태 추가
@@ -80,31 +85,47 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
     }, []);
   };
 
-  // 현재 표시할 파일 목록 가져오기
-  const getCurrentFiles = () => {
-    if (selectedCategory === "all") {
-      const allFiles = getAllFiles();
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      return allFiles.slice(startIndex, endIndex);
-    }
+  // 파일 필터링 함수 수정
+  const filterFiles = (files) => {
+    if (!searchQuery.trim()) return files;
 
-    const files = documents[selectedCategory] || [];
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return files.slice(startIndex, endIndex).map((file) => ({
-      category: selectedCategory,
-      file,
-    }));
+    return files.filter((fileInfo) => {
+      const fileName = removeLeadingNumbers(fileInfo.file).toLowerCase();
+      return fileName.includes(searchQuery.toLowerCase());
+    });
   };
 
-  // 총 페이지 수 계산
+  // getCurrentFiles 함수 수정
+  const getCurrentFiles = () => {
+    let files = [];
+    if (selectedCategory === "all") {
+      files = getAllFiles();
+    } else {
+      files = (documents[selectedCategory] || []).map((file) => ({
+        category: selectedCategory,
+        file,
+      }));
+    }
+
+    // 검색어로 필터링
+    const filteredFiles = filterFiles(files);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredFiles.slice(startIndex, endIndex);
+  };
+
+  // getTotalPages 함수 수정
   const getTotalPages = () => {
-    const totalFiles =
+    let totalFiles =
       selectedCategory === "all"
-        ? getAllFiles().length
-        : (documents[selectedCategory] || []).length;
-    return Math.ceil(totalFiles / itemsPerPage);
+        ? getAllFiles()
+        : (documents[selectedCategory] || []).map((file) => ({
+            category: selectedCategory,
+            file,
+          }));
+
+    const filteredFiles = filterFiles(totalFiles);
+    return Math.ceil(filteredFiles.length / itemsPerPage);
   };
 
   // 페이지 범위 계산
@@ -123,10 +144,14 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
   const totalPages = getTotalPages();
   const currentFiles = getCurrentFiles();
   const pageNumbers = getPageRange(totalPages);
-  const totalFiles =
+  const filteredTotalFiles = filterFiles(
     selectedCategory === "all"
-      ? getAllFiles().length
-      : (documents[selectedCategory] || []).length;
+      ? getAllFiles()
+      : (documents[selectedCategory] || []).map((file) => ({
+          category: selectedCategory,
+          file,
+        }))
+  ).length;
 
   return (
     <div className="w-full max-w-[900px]">
@@ -136,7 +161,7 @@ const DocumentSection = ({ documents, categoryMapping, selectedCategory }) => {
             ? "전체"
             : categoryMapping[selectedCategory]}
           <span className="text-sm text-gray-500 ml-2">
-            (총 {totalFiles}개)
+            (총 {filteredTotalFiles}개)
           </span>
         </h2>
         <div className="space-y-4">
