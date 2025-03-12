@@ -55,8 +55,15 @@ const Precedent = () => {
   });
 
   // 현재 표시할 결과 데이터 결정
-  let currentResults =
-    selectedCategory === "all" ? searchResults : categoryResults;
+  let currentResults = [];
+
+  if (selectedCategory) {
+    currentResults = categoryResults;
+  } else if (searchQuery.trim()) {
+    currentResults = searchResults;
+  }
+
+  // 배열이 아닐 경우 빈 배열로 초기화
   currentResults = Array.isArray(currentResults) ? currentResults : []; // 🛠 배열이 아닐 경우 빈 배열로 초기화
 
   // 컴포넌트 마운트 시 fromDetail 플래그 제거
@@ -81,7 +88,8 @@ const Precedent = () => {
   }, [selectedCategory]);
 
   const handleSearch = () => {
-    setSelectedCategory(null);
+    setSelectedCategory(null); // 카테고리 선택 초기화
+    setCurrentPage(1); // 페이지 1로 초기화
     if (searchQuery.trim()) {
       refetch();
     }
@@ -98,11 +106,12 @@ const Precedent = () => {
   };
 
   const handleCategorySelect = (category) => {
-    setSearchQuery("");
+    setSearchQuery(""); // 검색어 초기화
     setSelectedCategory(category);
+    setCurrentPage(1); // 페이지 1로 초기화
 
-    if (category !== "all") {
-      refetchCategory(); // ✅ "all"이 아닐 때만 API 요청 실행
+    if (category) {
+      refetchCategory();
     }
   };
 
@@ -188,6 +197,7 @@ const Precedent = () => {
                 </svg>
               </div>
               <button
+                onClick={handleSearch}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 px-5 py-2 
                                text-sm text-white bg-Main hover:bg-Main_hover 
                                rounded-lg transition-colors duration-200"
