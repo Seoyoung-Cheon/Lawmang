@@ -14,6 +14,9 @@ def search_precedents(keyword: str):
     if not keyword:
         return []
 
+    # ✅ 띄어쓰기 제거한 키워드 추가
+    no_space_keyword = keyword.replace(" ", "")
+    
     tokens = keyword.split()
     court_tokens = [token for token in tokens if "법원" in token or "지원" in token]
     c_name_tokens = [token for token in tokens if token not in court_tokens]
@@ -27,12 +30,16 @@ def search_precedents(keyword: str):
             SELECT id, c_number, c_type, j_date, pre_number, court, d_link, c_name
             FROM precedent
             WHERE court ILIKE :court_keyword
-              AND c_name ILIKE :c_name_keyword
+              AND (
+                  c_name ILIKE :c_name_keyword
+                  OR REPLACE(c_name, ' ', '') ILIKE :no_space_keyword
+              )
             ORDER BY j_date DESC;
             """
             params = {
                 "court_keyword": f"%{court_keyword}%",
-                "c_name_keyword": f"%{c_name_keyword}%"
+                "c_name_keyword": f"%{c_name_keyword}%",
+                "no_space_keyword": f"%{no_space_keyword}%"
             }
         else:
             query = """
@@ -47,11 +54,15 @@ def search_precedents(keyword: str):
         SELECT id, c_number, c_type, j_date, pre_number, court, d_link, c_name
         FROM precedent
         WHERE c_name ILIKE :keyword
+           OR REPLACE(c_name, ' ', '') ILIKE :no_space_keyword
            OR court ILIKE :keyword
            OR c_number ILIKE :keyword
         ORDER BY j_date DESC;
         """
-        params = {"keyword": f"%{keyword}%"}
+        params = {
+            "keyword": f"%{keyword}%",
+            "no_space_keyword": f"%{no_space_keyword}%"
+        }
 
     # ✅ SQL 실행
     results = execute_sql(query, params)
