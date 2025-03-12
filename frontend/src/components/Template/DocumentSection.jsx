@@ -167,8 +167,8 @@ const DocumentSection = ({
   const SearchResultMessage = () => {
     if (isSearched && searchQuery.trim() && currentFiles.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-          <p className="text-lg">해당하는 서식이 없습니다.</p>
+        <div className="flex justify-center items-center h-[400px]">
+          <p className="text-lg text-gray-400 ">해당하는 서식이 없습니다.</p>
         </div>
       );
     }

@@ -94,7 +94,7 @@ const Template = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
           {/* 검색바 수정 */}
