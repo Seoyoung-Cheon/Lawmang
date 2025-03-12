@@ -12,6 +12,7 @@ const DocumentSection = ({
   categoryMapping,
   selectedCategory,
   searchQuery,
+  isSearched,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [previewData, setPreviewData] = useState(null); // 미리보기 데이터 상태 추가
@@ -87,12 +88,21 @@ const DocumentSection = ({
 
   // 파일 필터링 함수 수정
   const filterFiles = (files) => {
-    if (!searchQuery.trim()) return files;
+    if (!isSearched) {
+      // 검색하지 않은 상태면 현재 카테고리의 모든 파일 표시
+      return files;
+    }
 
-    return files.filter((fileInfo) => {
-      const fileName = removeLeadingNumbers(fileInfo.file).toLowerCase();
-      return fileName.includes(searchQuery.toLowerCase());
-    });
+    // 검색어가 있고 검색 상태일 때만 필터링
+    if (searchQuery.trim()) {
+      return files.filter((fileInfo) => {
+        const fileName = removeLeadingNumbers(fileInfo.file).toLowerCase();
+        const query = searchQuery.toLowerCase();
+        return fileName.includes(query);
+      });
+    }
+
+    return files; // 검색어가 없으면 모든 파일 표시
   };
 
   // getCurrentFiles 함수 수정
@@ -153,6 +163,18 @@ const DocumentSection = ({
         }))
   ).length;
 
+  // 검색 결과 메시지 컴포넌트
+  const SearchResultMessage = () => {
+    if (isSearched && searchQuery.trim() && currentFiles.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+          <p className="text-lg">해당하는 서식이 없습니다.</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="w-full max-w-[900px]">
       <div className="mb-6">
@@ -164,41 +186,46 @@ const DocumentSection = ({
             (총 {filteredTotalFiles}개)
           </span>
         </h2>
-        <div className="space-y-4">
-          {currentFiles.map((fileInfo, index) => (
-            <div
-              key={index}
-              className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
-            >
-              <div className="flex justify-between items-center gap-4">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-gray-600 flex-shrink-0">📄</span>
-                  <span className="text-lg truncate">
-                    {removeLeadingNumbers(fileInfo.file)}
-                  </span>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() =>
-                      handlePreview(fileInfo.category, fileInfo.file)
-                    }
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 w-[90px]"
-                  >
-                    미리보기
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleDownload(fileInfo.category, fileInfo.file)
-                    }
-                    className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200 w-[90px]"
-                  >
-                    다운로드
-                  </button>
+
+        <SearchResultMessage />
+
+        {currentFiles.length > 0 && (
+          <div className="space-y-4">
+            {currentFiles.map((fileInfo, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+              >
+                <div className="flex justify-between items-center gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-gray-600 flex-shrink-0">📄</span>
+                    <span className="text-lg truncate">
+                      {removeLeadingNumbers(fileInfo.file)}
+                    </span>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() =>
+                        handlePreview(fileInfo.category, fileInfo.file)
+                      }
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 w-[90px]"
+                    >
+                      미리보기
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleDownload(fileInfo.category, fileInfo.file)
+                      }
+                      className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200 w-[90px]"
+                    >
+                      다운로드
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* PreviewModal 컴포넌트 추가 */}
         {isPreviewOpen && (

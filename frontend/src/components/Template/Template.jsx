@@ -37,6 +37,7 @@ const Template = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearched, setIsSearched] = useState(false);
 
   // 선택된 카테고리 설정
   useEffect(() => {
@@ -45,9 +46,36 @@ const Template = () => {
     }
   }, [category]);
 
-  // 선택된 카테고리에 따라 문서 필터링
+  // 검색어 입력 핸들러
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    if (e.target.value === "") {
+      setIsSearched(false); // 검색어가 비어있으면 검색 상태 해제
+    }
+  };
+
+  // 검색 버튼 클릭 핸들러
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // 검색어가 있을 때만 검색 실행
+      setIsSearched(true);
+      setSelectedCategory("all");
+      navigate("/template/all");
+    }
+  };
+
+  // Enter 키 입력 핸들러
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  // 카테고리 선택 핸들러 수정
   const handleCategorySelect = (key) => {
     setSelectedCategory(key);
+    setIsSearched(false); // 카테고리 변경 시 검색 상태 초기화
+    setSearchQuery(""); // 검색어도 초기화
     navigate(`/template/${key}`);
   };
 
@@ -63,25 +91,6 @@ const Template = () => {
       return documentStructure;
     }
     return { [selectedCategory]: documentStructure[selectedCategory] };
-  };
-
-  // 검색어 입력 핸들러
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // 검색 버튼 클릭 핸들러
-  const handleSearch = () => {
-    // 검색 시 카테고리를 'all'로 변경
-    setSelectedCategory("all");
-    navigate("/template/all");
-  };
-
-  // Enter 키 입력 핸들러
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
   };
 
   return (
@@ -154,6 +163,7 @@ const Template = () => {
             categoryMapping={categoryMapping}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
+            isSearched={isSearched}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
           />
