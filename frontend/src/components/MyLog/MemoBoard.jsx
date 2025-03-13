@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  useGetUserMemosQuery,
-  useDeleteMemoMutation,
-  useCreateMemoMutation,
-  useUpdateMemoMutation,
-} from "../../redux/slices/mylogApi";
+  useGetMemosQuery,
+  useRemoveMutation,
+  useCreateMutation,
+  useUpdateMutation,
+} from "../../redux/slices/memoApi";
 import { removeMemo } from "../../redux/slices/mylogSlice";
 import MemoModal from "./MemoModal";
 import MemoDetail from "./MemoDetail";
@@ -17,11 +17,10 @@ import DeleteConfirm from "./DeleteConfirm";
 const MemoBoard = () => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
-  const { data: memos = [], isLoading, error } = useGetUserMemosQuery(user?.id);
-
-  const [deleteMemo] = useDeleteMemoMutation();
-  const [createMemo] = useCreateMemoMutation();
-  const [updateMemo] = useUpdateMemoMutation();
+  const { data: memos = [], isLoading, error } = useGetMemosQuery(user?.id);
+  const [remove] = useRemoveMutation();
+  const [create] = useCreateMutation();
+  const [update] = useUpdateMutation();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingMemo, setEditingMemo] = useState(null);
@@ -49,22 +48,22 @@ const MemoBoard = () => {
   const handleSaveMemo = async (memoData) => {
     try {
       if (memoData.id) {
-        await updateMemo(memoData).unwrap();
+        await update({
+          user_id: user.id,
+          memo_id: memoData.id,
+          ...memoData
+        }).unwrap();
       } else {
-        await createMemo({ ...memoData, user_id: user?.id }).unwrap();
+        await create({ 
+          user_id: user.id,
+          ...memoData 
+        }).unwrap();
       }
       setIsPopupOpen(false);
     } catch (error) {
       console.error("❌ 메모 저장 실패:", error);
     }
   };
-
-  // ✅ 정렬 기능
-  const sortedMemos = [...memos].sort((a, b) => {
-    const dateA = new Date(a.created_at);
-    const dateB = new Date(b.created_at);
-    return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
-  });
 
   // 메모 필터링 로직
   const filteredMemos = [...memos]
@@ -94,7 +93,10 @@ const MemoBoard = () => {
   // 삭제 확인 핸들러
   const handleDeleteConfirm = async () => {
     try {
-      await deleteMemo(memoToDelete.id).unwrap();
+      await remove({
+        user_id: user.id,
+        memo_id: memoToDelete.id
+      }).unwrap();
       dispatch(removeMemo(memoToDelete.id));
       setIsDeletePopupOpen(false);
       setMemoToDelete(null);

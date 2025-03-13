@@ -1,19 +1,25 @@
-from .mylog import (
+from .memo import (
     MemoCreate,
-    MemoResponse,
-    UserActivityLogBase,
-    UserActivityLogCreate,
-    UserActivityLogResponse,
-    ViewedLogCreate,
-    ViewedLogResponse
+    MemoUpdate,
+    MemoResponse
+)
+
+from .history import (
+    HistoryCreate,
+    HistoryResponse,
+    HistoryViewedCreate,
+    HistoryViewedResponse
 )
 
 __all__ = [
+    # Memo related schemas
     'MemoCreate',
+    'MemoUpdate',
     'MemoResponse',
-    'UserActivityLogBase',
-    'UserActivityLogCreate',
-    'UserActivityLogResponse',
-    'ViewedLogCreate',
-    'ViewedLogResponse'
+    
+    # History related schemas
+    'HistoryCreate',
+    'HistoryResponse',
+    'HistoryViewedCreate',
+    'HistoryViewedResponse'
 ]
