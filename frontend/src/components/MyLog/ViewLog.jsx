@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useCreateViewedLogMutation, useGetUserViewedLogsQuery } from "../../redux/slices/mylogApi";
+import { useCreateViewedMutation } from "../../redux/slices/historyApi";
 import { fetchConsultationDetail } from "../Consultation/consultaionApi";
 import { fetchPrecedentInfo } from "../Precedent/precedentApi";
 
-const Detail = ({ consultation_id, precedent_number }) => {
+const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
   const user = useSelector((state) => state.auth.user);
-  const [createViewedLog] = useCreateViewedLogMutation();
-  const { data: viewedLogs = [] } = useGetUserViewedLogsQuery(user?.id, { skip: !user?.id });
-
+  const [createViewed] = useCreateViewedMutation();
+  const [hasRecorded, setHasRecorded] = useState(false);
   const [caseData, setCaseData] = useState({
     title: "",
     caseNumber: "",
@@ -30,34 +29,32 @@ const Detail = ({ consultation_id, precedent_number }) => {
 
   // 상세 내용 가져오기
   useEffect(() => {
-    if (!consultation_id && !precedent_number) return;
+    if (!consultation_id && !precedent_id) return;
 
     const fetchContent = async () => {
       try {
-        let data;
-
         if (consultation_id) {
-          data = await fetchConsultationDetail(consultation_id);
-          // console.log("📌 상담사례 API 응답:", data); // ✅ 응답 확인용 로그
+          const data = await fetchConsultationDetail(consultation_id);
           setCaseData({
             title: data?.title || "제목 없음",
             caseNumber: "",
             court: "",
             date: "",
           });
-
-        } else if (precedent_number) {
-          data = await fetchPrecedentInfo(precedent_number);
-          console.log("📌 판례 API 응답:", data); // ✅ 응답 확인용 로그
-
-          // ✅ 데이터가 존재할 때만 업데이트
-          if (data) {
-            setCaseData({
-              title: data.title || "제목 없음",
-              caseNumber: data.caseNumber || "사건번호 없음",
-              court: data.court || "법원 정보 없음",
-              date: data.date || "날짜 없음",
-            });
+        } else if (precedent_id) {
+          // precedentData가 있으면 사용, 없으면 fetch
+          if (precedentData) {
+            setCaseData(precedentData);
+          } else {
+            const data = await fetchPrecedentInfo(precedent_id);
+            if (data) {
+              setCaseData({
+                title: data.title || "제목 없음",
+                caseNumber: data.caseNumber || "사건번호 없음",
+                court: data.court || "법원 정보 없음",
+                date: data.date || "날짜 없음",
+              });
+            }
           }
         }
       } catch (error) {
@@ -66,26 +63,48 @@ const Detail = ({ consultation_id, precedent_number }) => {
     };
 
     fetchContent();
-  }, [consultation_id, precedent_number]);
+  }, [consultation_id, precedent_id, precedentData]);
 
-  // 열람 기록 저장
+  // ✅ 열람 기록 저장
   useEffect(() => {
-    if (user?.id && (consultation_id || precedent_number)) {
-      const isAlreadyViewed = viewedLogs.some(
-        (log) =>
-          (log.consultation_id && log.consultation_id === consultation_id) ||
-          (log.precedent_number && log.precedent_number === precedent_number)
-      );
+    // ✅ 고유한 키 생성
+    const key = consultation_id 
+      ? `viewed_consultation_${user?.id}_${consultation_id}`
+      : `viewed_precedent_${user?.id}_${precedent_id}`;
+    
+    // 이미 저장된 기록인지 확인
+    if (localStorage.getItem(key)) {
+      return;
+    }
 
-      if (!isAlreadyViewed) {
-        createViewedLog({
+    const saveViewHistory = async () => {
+      if (!user?.id || (!consultation_id && !precedent_id)) {
+        return;
+      }
+
+      try {
+        console.log("열람 기록 저장 시도:", {
+          user_id: user.id,
+          consultation_id,
+          precedent_id
+        });
+
+        await createViewed({
           user_id: user.id,
           consultation_id: consultation_id || null,
-          precedent_number: precedent_number || null,
-        });
+          precedent_id: precedent_id || null,
+        }).unwrap();
+
+        console.log("열람 기록 저장 성공");
+        // 저장 성공 시 로컬 스토리지에 기록
+        localStorage.setItem(key, 'true');
+      } catch (error) {
+        console.error("열람 기록 저장 실패:", error);
       }
-    }
-  }, [user, consultation_id, precedent_number, createViewedLog, viewedLogs]);
+    };
+
+    saveViewHistory();
+  }, []);
 
   return (
     <div className="py-4 px-2">
@@ -97,7 +116,7 @@ const Detail = ({ consultation_id, precedent_number }) => {
           </h3>
         </div>
       ) : (
-        // 판례 표시 (JSON & HTML 동일한 UI 적용)
+        // 판례 표시
         <div>
           <h3 className="text-lg font-medium truncate mb-2">
             {truncateText(caseData.title, 30)}
@@ -114,4 +133,4 @@ const Detail = ({ consultation_id, precedent_number }) => {
   );
 };
 
-export default Detail;
+export default ViewLog;

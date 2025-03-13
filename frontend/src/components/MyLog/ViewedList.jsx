@@ -1,25 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import {
-  useGetUserViewedLogsQuery,
-  useDeleteViewedLogMutation,
-} from "../../redux/slices/mylogApi";
-import { setViewedLogs, removeViewedLog } from "../../redux/slices/mylogSlice";
+  useDeleteViewedMutation,
+  useDeleteAllViewedMutation,
+} from "../../redux/slices/historyApi";
 import ViewLog from "./ViewLog";
 import { Link } from "react-router-dom";
 import DeleteConfirm from "./DeleteConfirm";
 import { fetchPrecedentInfo } from "../Precedent/precedentApi";
+import { useGetViewedQuery } from "../../redux/slices/historyApi";
 
-const ViewedList = () => {
+const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch();
-  const [viewMode, setViewMode] = useState("consultation");
-  const [deleteViewedLog] = useDeleteViewedLogMutation();
+  const [deleteViewed] = useDeleteViewedMutation();
+  const [deleteAllViewed] = useDeleteAllViewedMutation();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
+  const [viewMode, setViewMode] = useState("consultation");
   const [caseDataMap, setCaseDataMap] = useState({});
+
+  const { data: viewedLogsData = [], isLoading: viewedLogsLoading, error: viewedLogsError } = useGetViewedQuery(user?.id, { 
+    skip: !user?.id 
+  });
 
   // ✅ 스크롤을 맨 위로 이동시키는 함수
   const scrollToTop = () => {
@@ -35,68 +39,59 @@ const ViewedList = () => {
     scrollToTop();
   };
 
-  // ✅ API 요청 실행
-  const {
-    data: viewedLogs = [],
-    isLoading,
-    error,
-  } = useGetUserViewedLogsQuery(user?.id, { skip: !user?.id });
+  // ✅ 필터링된 로그를 useMemo로 최적화
+  const filteredLogs = useMemo(() => {
+    return [...viewedLogsData]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .filter((log) => {
+        return viewMode === "consultation"
+          ? log.consultation_id && !log.precedent_id
+          : !log.consultation_id && log.precedent_id;
+      })
+      .filter((log, index, self) =>
+        viewMode === "consultation"
+          ? index === self.findIndex((l) => l.consultation_id === log.consultation_id)
+          : index === self.findIndex((l) => l.precedent_id === log.precedent_id)
+      );
+  }, [viewedLogsData, viewMode]);
 
-  // Redux Store에 저장
-  useEffect(() => {
-    if (viewedLogs.length > 0) {
-      dispatch(setViewedLogs(viewedLogs));
-    }
-  }, [viewedLogs, dispatch]);
-
-  // ✅ 필터링된 로그 정렬 및 중복 제거
-  const filteredLogs = [...viewedLogs]
-    .sort((a, b) => new Date(b.viewed_at) - new Date(a.viewed_at))
-    .filter((log) => {
-      return viewMode === "consultation"
-        ? log.consultation_id && !log.precedent_number
-        : !log.consultation_id && log.precedent_number;
-    })
-    .filter((log, index, self) =>
-      viewMode === "consultation"
-        ? index === self.findIndex((l) => l.consultation_id === log.consultation_id)
-        : index === self.findIndex((l) => l.precedent_number === log.precedent_number)
-    );
-
-  // ✅ 판례 정보를 개별적으로 가져오기
+  // ✅ 판례 정보를 개별적으로 가져오기 (수정)
   useEffect(() => {
     const fetchCaseData = async () => {
-      const newCaseDataMap = {}; 
+      const pendingPrecedents = filteredLogs.filter(
+        log => log.precedent_id && !caseDataMap[log.precedent_id]
+      );
 
-      const fetchPromises = filteredLogs.map(async (log) => {
-        if (log.precedent_number && !caseDataMap[log.precedent_number]) {
+      if (pendingPrecedents.length === 0) return;
+
+      const newCaseDataMap = { ...caseDataMap };  // 기존 데이터 복사
+
+      await Promise.all(
+        pendingPrecedents.map(async (log) => {
           try {
-            const data = await fetchPrecedentInfo(log.precedent_number);
+            const data = await fetchPrecedentInfo(log.precedent_id);
             if (data) {
-              newCaseDataMap[log.precedent_number] = {
+              newCaseDataMap[log.precedent_id] = {
                 title: data?.title || "제목 없음",
                 caseNumber: data?.caseNumber || "사건번호 없음",
                 court: data?.court || "법원 정보 없음",
                 date: data?.date || "날짜 없음",
               };
-            } else {
-              newCaseDataMap[log.precedent_number] = { title: "정보 없음" };
             }
           } catch (error) {
             console.error("📌 판례 정보 가져오기 실패:", error);
-            newCaseDataMap[log.precedent_number] = { title: "정보 없음" };
+            newCaseDataMap[log.precedent_id] = { title: "정보 없음" };
           }
-        }
-      });
+        })
+      );
 
-      await Promise.all(fetchPromises);
-      setCaseDataMap((prev) => ({ ...prev, ...newCaseDataMap }));
+      if (Object.keys(newCaseDataMap).length !== Object.keys(caseDataMap).length) {
+        setCaseDataMap(newCaseDataMap);
+      }
     };
 
-    if (filteredLogs.length > 0) {
-      fetchCaseData();
-    }
-  }, [filteredLogs]);
+    fetchCaseData();
+  }, [filteredLogs, caseDataMap]);  // caseDataMap 의존성 추가
   
   // ✅ 열람 기록 삭제
   const handleDelete = async (logId) => {
@@ -104,26 +99,20 @@ const ViewedList = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  // ✅ 전체 삭제 핸들러
+  // ✅ 전체 삭제
   const handleDeleteAll = () => {
     if (!user?.id || filteredLogs.length === 0) return;
     setIsAllDelete(true);
     setIsDeleteConfirmOpen(true);
   };
 
-  // 삭제 확인 핸들러 수정
+  // ✅ 삭제 확인 핸들러
   const handleConfirmDelete = async () => {
     try {
       if (isAllDelete) {
-        // 전체 삭제
-        for (const log of filteredLogs) {
-          await deleteViewedLog(log.id);
-          dispatch(removeViewedLog(log.id));
-        }
+        await deleteAllViewed(user.id).unwrap();
       } else {
-        // 단일 삭제
-        await deleteViewedLog(logToDelete);
-        dispatch(removeViewedLog(logToDelete));
+        await deleteViewed(logToDelete).unwrap();
       }
     } catch (error) {
       console.error("삭제 중 오류 발생:", error);
@@ -184,29 +173,29 @@ const ViewedList = () => {
 
         {/* ✅ 리스트 패널 크기 유지 */}
         <div className="h-[250px] px-4 pt-1 pb-4 overflow-y-auto viewed-logs-container">
-          {isLoading ? (
+          {viewedLogsLoading ? (
             <p className="text-center">로딩 중...</p>
-          ) : error ? (
-            <p className="text-center text-red-500">오류 발생: {error.message}</p>
-          ) : filteredLogs.length === 0 ? (
-            <p className="text-center text-gray-500">
-              {viewMode === "consultation" ? "열람한 상담사례가 없습니다." : "열람한 판례가 없습니다."}
+          ) : viewedLogsError ? (
+            <p className="text-center text-red-500">
+              {viewedLogsError.status === 404 ? "열람 기록이 없습니다." : "오류가 발생했습니다."}
             </p>
+          ) : filteredLogs.length === 0 ? (
+            <p className="text-center text-gray-500">열람한 기록이 없습니다.</p>
           ) : (
-            filteredLogs.map((log, index) => (
-              <div key={index} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
+            filteredLogs.map((log) => (
+              <div key={log.id} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
                 <Link
                   to={
-                    log.precedent_number
-                      ? `/precedent/detail/${log.precedent_number}`
-                      : `/consultation/detail/${log.consultation_id}`
+                    log.consultation_id
+                      ? `/consultation/detail/${log.consultation_id}`
+                      : `/precedent/detail/${log.precedent_id}`
                   }
                   className="block w-full transition-all duration-200 group-hover:pl-2"
                 >
                   <ViewLog
                     consultation_id={log.consultation_id}
-                    precedent_number={log.precedent_number}
-                    precedentData={caseDataMap[log.precedent_number]}
+                    precedent_id={log.precedent_id}
+                    precedentData={caseDataMap[log.precedent_id]}
                   />
                 </Link>
                 <button

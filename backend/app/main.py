@@ -7,7 +7,7 @@ if not hasattr(bcrypt, "__about__"):
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
-from app.routes import auth, check, detail, search, mylog
+from app.routes import auth, check, detail, search, memo, history
 from app.core.database import init_db
 import os
 import signal
@@ -31,7 +31,8 @@ app.include_router(check.router, prefix="/api/check", tags=["check"])
 app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(detail.router, prefix="/api/detail", tags=["detail"])
-app.include_router(mylog.router, prefix="/api/mylog", tags=["mylog"])
+app.include_router(memo.router, prefix="/api/mylog/memo", tags=["memo"])
+app.include_router(history.router, prefix="/api/mylog/history", tags=["history"])
 
 # ✅ 기본 엔드포인트 (테스트용)
 @app.get("/")

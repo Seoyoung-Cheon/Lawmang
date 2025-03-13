@@ -1,31 +1,17 @@
-import React, { useEffect, useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
-import { useGetUserViewedLogsQuery } from "../../redux/slices/mylogApi";
-import { setViewedLogs } from "../../redux/slices/mylogSlice";
+import { useGetViewedQuery } from "../../redux/slices/historyApi";
 import MemoBoard from "./MemoBoard";
 import ViewedList from "./ViewedList";
 
 const MyLogsPage = () => {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch();
 
   // ✅ API에서 열람 기록 데이터 가져오기
-  const { data: apiViewedLogs = [], isLoading, error } = useGetUserViewedLogsQuery(user?.id, { skip: !user?.id });
-
-  // ✅ Redux에 저장된 기존 열람 기록 가져오기
-  const reduxViewedLogs = useSelector((state) => state.mylog.viewedLogs);
-
-  // 🔥 `useMemo`를 사용하여 API 데이터가 변경되지 않으면 동일한 참조 유지
-  const viewedLogs = useMemo(() => apiViewedLogs, [apiViewedLogs]);
-
-  useEffect(() => {
-    // 🔥 기존 Redux 상태와 다를 때만 Redux 상태 업데이트 실행
-    if (viewedLogs.length > 0 && JSON.stringify(viewedLogs) !== JSON.stringify(reduxViewedLogs)) {
-      console.log("🔄 Redux 상태 업데이트 실행됨!");
-      dispatch(setViewedLogs(viewedLogs));
-    }
-  }, [viewedLogs, reduxViewedLogs, dispatch]); // ✅ `viewedLogs`가 변경될 때만 실행
+  const { data: viewedLogs = [], isLoading, error } = useGetViewedQuery(user?.id, { 
+    skip: !user?.id 
+  });
 
   return (
     <div className="min-h-screen w-full">
@@ -39,7 +25,7 @@ const MyLogsPage = () => {
 
             {/* 열람목록 (ViewedList) */}
             <div>
-              <ViewedList viewedLogs={viewedLogs} />
+              <ViewedList viewedLogs={viewedLogs} isLoading={isLoading} error={error} />
             </div>
           </div>
         </div>
