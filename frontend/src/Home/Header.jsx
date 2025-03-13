@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CiLogin, CiUser } from "react-icons/ci";
+import { CiLogin, CiUser, CiLogout } from "react-icons/ci";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoClose } from "react-icons/io5";
 import { useLogoutUserMutation } from "../redux/slices/authApi";
@@ -249,8 +249,9 @@ const Header = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="block w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
               >
+                <CiLogout className="w-5 h-5" />
                 로그아웃
               </button>
             </div>
