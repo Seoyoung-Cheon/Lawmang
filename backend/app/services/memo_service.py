@@ -1,9 +1,11 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
-from app.schemas.memo import MemoUpdate
-from app.models.memo import Memo
 import pytz
+from datetime import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
+
+from app.models.memo import Memo
+from app.schemas.memo import MemoUpdate
 
 
 # ✅ 메모리 캐시 추가 (전역 변수)
@@ -97,22 +99,33 @@ def remove(db: Session, memo_id: int, user_id: int):
 # ✅ 알림 전송 프로세스
 def check_and_send_notifications(db: Session):
     """
-    현재 날짜 기준으로 event_date가 도래한 메모 중,
-    notification이 활성화된 메모에 대해 이메일 알림을 전송합니다.
-    (모델은 변경하지 않고 event_date와 notification 필드를 활용합니다.)
+    로컬 타임존(Asia/Seoul)을 기준으로 오늘 날짜와 event_date가 일치하는 메모에 대해
+    알림 이메일을 전송합니다.
+    
+    이 함수는 매일 오전 7시에 실행되도록 스케줄러(CronTrigger 등)에 등록되어야 합니다.
     """
-    today = datetime.utcnow().date()
-    # event_date가 오늘 이전(또는 오늘)이고, notification이 True인 메모 조회
+    local_tz = pytz.timezone("Asia/Seoul")
+    now_local = datetime.now(local_tz)
+    today = now_local.date()
+    print(f"[DEBUG] 현재 로컬 시간: {now_local} (오늘 날짜: {today})")
+    
+    # event_date의 날짜 부분이 오늘과 동일한 메모 조회
     memos_to_notify = db.query(Memo).filter(
         Memo.notification == True,
         Memo.event_date != None,
-        Memo.event_date <= today
+        func.date(Memo.event_date) == today
     ).all()
-
+    
+    print(f"[DEBUG] 조건에 맞는 메모 수: {len(memos_to_notify)}")
     sent_count = 0
     for memo in memos_to_notify:
+        print(f"[DEBUG] 전송 시도: 메모 ID {memo.id}, event_date: {memo.event_date}")
         if send_memo_notification_email(db, memo):
             sent_count += 1
+        else:
+            print(f"[DEBUG] 메모 ID {memo.id} 전송 실패")
+    
+    print(f"[DEBUG] 총 전송 성공 건수: {sent_count}")
     return sent_count
 
 

@@ -70,10 +70,6 @@ def update_notification(
 
 # ✅ 스케줄러에 의해 실행되는 함수
 def scheduled_notification_job():
-    """
-    스케줄러에 의해 실행되는 함수로,
-    현재 날짜 기준으로 event_date가 도래하고 notification이 활성화된 메모에 대해 이메일 알림을 전송합니다.
-    """
     db = SessionLocal()
     try:
         sent_count = check_and_send_notifications(db)
@@ -82,12 +78,9 @@ def scheduled_notification_job():
         db.close()
 
 
-# ✅ 스케줄러 객체 생성 및 job 추가
+# ✅ 스케줄러 설정 - 매일 오전 7시
 scheduler = BackgroundScheduler()
-# 예시: 매일 오전 8시(UTC 기준)에 실행되도록 설정 (원하는 시간으로 변경 가능)
-trigger = CronTrigger(hour=8, minute=0)
+trigger = CronTrigger(hour=7, minute=0, timezone="Asia/Seoul")
 scheduler.add_job(scheduled_notification_job, trigger)
-
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
-
