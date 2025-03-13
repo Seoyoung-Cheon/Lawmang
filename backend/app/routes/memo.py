@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.core.database import get_db
+from app.core.database import get_db, SessionLocal
 from app.services.memo_service import (
     create, update_alert, remove,
-    get_list, update
+    get_list, update, check_and_send_notifications
 )
 from app.schemas.memo import MemoCreate, MemoUpdate, MemoResponse
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from datetime import datetime
+import atexit
 
 router = APIRouter()
 
@@ -63,6 +68,26 @@ def update_notification(
     }
 
 
-# 중복 요청 방지를 위한 캐시
-request_cache = {}
-CACHE_TIMEOUT = 2  # 2초
+# ✅ 스케줄러에 의해 실행되는 함수
+def scheduled_notification_job():
+    """
+    스케줄러에 의해 실행되는 함수로,
+    현재 날짜 기준으로 event_date가 도래하고 notification이 활성화된 메모에 대해 이메일 알림을 전송합니다.
+    """
+    db = SessionLocal()
+    try:
+        sent_count = check_and_send_notifications(db)
+        print(f"[{datetime.utcnow()}] 알림 전송: {sent_count}건")
+    finally:
+        db.close()
+
+
+# ✅ 스케줄러 객체 생성 및 job 추가
+scheduler = BackgroundScheduler()
+# 예시: 매일 오전 8시(UTC 기준)에 실행되도록 설정 (원하는 시간으로 변경 가능)
+trigger = CronTrigger(hour=8, minute=0)
+scheduler.add_job(scheduled_notification_job, trigger)
+
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
+

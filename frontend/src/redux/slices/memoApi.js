@@ -72,6 +72,15 @@ export const memoApi = createApi({
       }),
       invalidatesTags: ["Memos"],
     }),
+
+    // ✅ 알림 전송 프로세스 호출
+    triggerNotifications: builder.mutation({
+      query: (user_id) => ({
+        url: `/memo/${user_id}/trigger-notifications`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Memos"],
+    }),
   }),
 });
 
@@ -82,4 +91,5 @@ export const {
   useUpdateMutation,
   useRemoveMutation,
   useUpdateAlertMutation,
+  useTriggerNotificationsMutation,
 } = memoApi;

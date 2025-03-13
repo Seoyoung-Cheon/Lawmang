@@ -10,6 +10,8 @@ python-jose[cryptography]
 orjson
 httpx
 pgvector
+apscheduler
+
 # ✅ CrewAI 관련 패키지
 crewai
 exa_py
@@ -19,10 +21,12 @@ langchain-huggingface
 langchain-core
 langchain
 langchain-community
+
 # ✅ NLP 및 모델 관련
 transformers
 pandas
-#
+
+# ✅ 벡터 DB 관련
 faiss-cpu
 torch
 kiwipiepy
