@@ -37,18 +37,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 스크롤 방지추가
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isMenuOpen]);
-
   // 페이지 이동 시 모바일 메뉴 닫기
   useEffect(() => {
     setIsMenuOpen(false);
@@ -215,7 +203,7 @@ const Header = () => {
           )}
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-Main transition-colors z-[160]"
+            className="text-gray-600 hover:animate-spin-once"
           >
             <IoClose className="w-7 h-7" />
           </button>
