@@ -30,6 +30,10 @@ prec= precedent id
 
 python -m app.models.create_search
 
+python -m app.models.app
+
+
+
 지금 문제: faiss유사도 검색 -> SQL ilike 검색으로 바꾸니 유동적인 gpt 데이터 보강이 힘듬
 
 계획 :  llm 과정 2개 : 1. 변호사 감정가진놈 , 2. 변호사 지식을 가진놈 
@@ -83,3 +87,10 @@ sql 검색 실행후 비슷한 판례"따로따로" -> ex: 위 (지금 문제: A
 
 
 keyword: 앞에 민사, 형사 판사 같은 카테고리 붙이고 검색 
+
+
+conda activate C:\conda_envs\test_env
+
+uvicorn app.chatbot.app:app --reload  
+
+python -m app.chatbot.create_search

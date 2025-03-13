@@ -5,6 +5,9 @@ import asyncio
 import numpy as np
 from transformers import (
     BartForConditionalGeneration,
+    AutoTokenizer,
+    BertForSequenceClassification,
+    AutoConfig,
 )
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -24,7 +27,7 @@ kiwi = Kiwi()
 # ✅ 환경 변수 로드
 load_dotenv()
 # ✅ FAISS 벡터DB 로드
-DB_FAISS_PATH = "./app/models/vectorstore/db_faiss"
+DB_FAISS_PATH = "./app/chatbot/vectorstore/db_faiss"
 
 
 def load_faiss():
@@ -122,7 +125,7 @@ def find_most_relevant_case(query, cases):
 langchain_retriever = LangChainRetrieval()
 
 # ✅ BART 모델 경로
-MODEL_PATH = "./app/models/model/1_bart/checkpoint-26606"
+MODEL_PATH = "./app/chatbot/model/1_bart/checkpoint-26606"
 
 # ✅ 전역 캐싱
 bart_model = None
@@ -171,6 +174,7 @@ def summarize_case(text, tokenizer, model):
         input_ids = tokenizer.encode(
             text,
             return_tensors="pt",
+            max_length=768,  # ✅ 입력 길이 축소 (1024 → 768)
             truncation=True,
             padding=True,  # ✅ 패딩 추가로 안정적 토큰 생성
         )
@@ -201,10 +205,85 @@ def summarize_case(text, tokenizer, model):
         return "❌ 요약 실패"
 
 
+# ✅ BERT 판결 예측 모델 로드
+MODEL_PATH = "./app/chatbot/model/2_bert"
+JUDGMENT_MODEL_PATH = os.path.join(MODEL_PATH, "model.safetensors")
+
+
+bert_model = None
+bert_tokenizer = None
+
+
+def load_bert():
+    """BERT 모델 로드 (전역 캐싱 적용, safetensors 지원)"""
+    global bert_model, bert_tokenizer
+    if bert_model is None or bert_tokenizer is None:
+        try:
+            print("🔍 BERT 모델 로드 중...")
+
+            # ✅ Tokenizer 로드
+            bert_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+            # ✅ 모델 설정 로드
+            config = AutoConfig.from_pretrained("bert-base-uncased")
+            config.num_labels = 3
+            config.id2label = {0: "무죄", 1: "유죄", 2: "불명확"}
+            config.label2id = {"무죄": 0, "유죄": 1, "불명확": 2}
+
+            # ✅ BERT 모델 생성
+            bert_model = BertForSequenceClassification.from_pretrained(
+                "bert-base-uncased", config=config
+            )
+
+            # ✅ safetensors 가중치 로드
+            state_dict = load_file(
+                JUDGMENT_MODEL_PATH
+            )  # 🔹 `safetensors`에서 가중치 로드
+            bert_model.load_state_dict(state_dict, strict=False)
+
+            # ✅ 모델 평가 모드로 설정
+            bert_model.eval()
+            print("✅ BERT 모델 로드 성공 (safetensors 사용)")
+        except Exception as e:
+            print(f"❌ [BERT 로드 오류] {e}")
+            bert_model, bert_tokenizer = None, None
+    return bert_tokenizer, bert_model
+
+
+def predict_judgment(text, tokenizer, model):
+    """판결 예측"""
+    try:
+        inputs = tokenizer(
+            text,
+            return_tensors="pt",
+            max_length=300,  # ✅ 불필요한 연산 줄이기 위해 300으로 설정
+            truncation=True,
+            padding="longest",  # ✅ 불필요한 패딩 최소화
+        )  # 2차 조정
+
+        inputs["attention_mask"] = torch.ones_like(inputs["input_ids"])
+
+        with torch.no_grad():
+            logits = model(**inputs).logits
+            print(f"🔎 [DEBUG] BERT logits: {logits}")
+            probabilities = torch.nn.functional.softmax(logits, dim=1)
+
+        return probabilities.tolist()
+
+    except Exception as e:
+        print(f"❌ [판결 예측 오류] {e}")
+        return "❌ 예측 실패"
+
 
 @lru_cache(maxsize=1000)
 def get_bart_model():
     return load_bart()
+
+
+@lru_cache(maxsize=1000)
+def get_bert_model():
+    return load_bert()
+
 
 executor = ThreadPoolExecutor(max_workers=10)
 
@@ -299,6 +378,10 @@ async def search(query: str):
     summary = summarize_case(consultation_text, *get_bart_model())
     print(f"✅ [BART 요약 완료] {summary[:100]}...")
 
+    # ✅ **BERT 판결 예측 수행**
+    bert_prediction = predict_judgment(precedent_detail, *get_bert_model())
+    print(f"✅ [BERT 판결 예측 완료] {bert_prediction}")
+
     # ✅ **LangChain을 활용한 최종 답변 생성**
     final_answer = langchain_retriever.generate_legal_answer(query, summary)
     print(f"✅ [LLM 최종 답변 생성 완료] {final_answer[:100]}...")
@@ -309,6 +392,7 @@ async def search(query: str):
         "consultation_result": consultation_results,
         "precedent_detail": precedent_detail,
         "summary": summary,
+        "bert_prediction": bert_prediction,
         "final_answer": final_answer,
     }
 
