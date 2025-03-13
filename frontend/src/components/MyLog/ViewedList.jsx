@@ -160,11 +160,13 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
 
         <div className="h-[250px] px-4 pt-1 pb-4 overflow-y-auto viewed-logs-container">
           {viewedLogsLoading ? (
-            <p className="text-center">로딩 중...</p>
+            <div className="col-span-4 text-center text-gray-500 mt-[100px]">
+              로딩 중...
+            </div>
           ) : viewedLogsError ? (
-            <p className="text-center text-red-500">
+            <div className="col-span-4 text-center text-red-500 mt-[150px]">
               {viewedLogsError.status === 404 ? "열람 기록이 없습니다." : "오류가 발생했습니다."}
-            </p>
+            </div>
           ) : filteredLogs.length === 0 ? (
             <p className="text-center text-gray-500 mt-[100px]">열람한 기록이 없습니다.</p>
           ) : (

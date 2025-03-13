@@ -6,10 +6,11 @@ import {
   useCreateMutation,
   useUpdateMutation,
 } from "../../redux/slices/memoApi";
-import { removeMemo } from "../../redux/slices/mylogSlice";
+import { removeMemo } from "../../redux/slices/memoSlice";
 import MemoModal from "./MemoModal";
 import MemoDetail from "./MemoDetail";
 import { selectUser } from "../../redux/slices/authSlice";
+
 import { FaBell, FaRegBell, FaExchangeAlt } from "react-icons/fa";
 import { FiEdit2 } from "react-icons/fi";
 import DeleteConfirm from "./DeleteConfirm";
