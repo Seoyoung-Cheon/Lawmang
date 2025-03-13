@@ -11,19 +11,18 @@ const DocumentSection = ({
   documents,
   categoryMapping,
   selectedCategory,
-  setSelectedCategory,
   searchQuery,
   searchTrigger,
   setSearchTrigger,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filteredFiles, setFilteredFiles] = useState([]);
-  const [previewData, setPreviewData] = useState(null); // 미리보기 데이터 상태 추가
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false); // 모달 상태 추가
+  const [previewData, setPreviewData] = useState(null); 
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const itemsPerPage = 10;
   const pageNumbersToShow = 5;
 
-  // 파일명에서 숫자 제거하는 함수
+  // 파일명에서 숫자 제거
   const removeLeadingNumbers = (filename) => {
     return filename.replace(/^\d+[-\s]*/, "");
   };
@@ -34,6 +33,7 @@ const DocumentSection = ({
         return acc.concat(files.map((file) => ({ category, file })));
       }, []);
     }, [documents]);
+
 
   // 파일 다운로드 핸들러
   const handleDownload = async (category, file) => {

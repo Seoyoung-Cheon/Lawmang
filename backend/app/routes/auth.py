@@ -109,7 +109,6 @@ def read_users_me(current_user: dict = Depends(get_current_user), db: Session = 
     }
 
 
-
 # ✅ 로그아웃 API 추가 (JWT 토큰 무효화)
 @router.post("/logout")
 def logout_user(response: Response, current_user: dict = Depends(get_current_user)):

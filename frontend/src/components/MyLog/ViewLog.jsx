@@ -7,7 +7,6 @@ import { fetchPrecedentInfo } from "../Precedent/precedentApi";
 const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
   const user = useSelector((state) => state.auth.user);
   const [createViewed] = useCreateViewedMutation();
-  const [hasRecorded, setHasRecorded] = useState(false);
   const [caseData, setCaseData] = useState({
     title: "",
     caseNumber: "",
@@ -102,7 +101,7 @@ const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
     };
 
     saveViewHistory();
-  }, []);
+  }, [consultation_id, createViewed, precedent_id, user.id]);
 
   return (
     <div className="py-4 px-2">
