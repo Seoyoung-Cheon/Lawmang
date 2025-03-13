@@ -10,9 +10,9 @@ from app.services.user_service import (
 from app.core.dependencies import get_current_user
 import re
 from typing import Any
-from app.models.mylog import UserActivityLog
 
 router = APIRouter()
+
 
 # ✅ 이메일 인증 코드 발송 API (PostgreSQL 저장)
 @router.post("/send-code")
