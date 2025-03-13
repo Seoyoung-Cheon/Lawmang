@@ -37,7 +37,7 @@ const Template = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearched, setIsSearched] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(false);
 
   // 선택된 카테고리 설정
   useEffect(() => {
@@ -49,24 +49,15 @@ const Template = () => {
   // 검색어 입력 핸들러
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    setIsSearched(e.target.value.trim().length > 0); // 검색어가 있으면 true
   };
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      setIsSearched(true);
-      console.log("검색 실행됨! 검색어:", searchQuery);
-  
-      // 선택된 카테고리가 없거나 전체(all) 상태일 경우, 검색하면 all로 이동
-      if (!selectedCategory || selectedCategory === "all") {
-        navigate("/template/all");
-      } else {
-        navigate(`/template/${selectedCategory}`); // 현재 카테고리를 유지
-      }
+      setSearchTrigger(true); // ✅ 검색 실행
+      setSelectedCategory("all"); // ✅ 검색 시 전체에서 검색
     }
   };
 
-  
   // Enter 키 입력 핸들러
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -77,9 +68,14 @@ const Template = () => {
   // 카테고리 선택 핸들러 수정
   const handleCategorySelect = (key) => {
     setSelectedCategory(key);
-    setIsSearched(false); // 카테고리 변경 시 검색 상태 초기화
     setSearchQuery(""); // 검색어도 초기화
+    setSearchTrigger(false);
     navigate(`/template/${key}`);
+  };
+
+  // ✅ `handleCategoryClick`을 `handleCategorySelect` 아래에 배치
+  const handleCategoryClick = (category) => {
+    handleCategorySelect(category);
   };
 
   // 미리보기 모달 닫기
@@ -108,7 +104,7 @@ const Template = () => {
                 placeholder="문서 검색..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
                           transition-colors duration-200
@@ -146,7 +142,7 @@ const Template = () => {
             {Object.entries(categoryMapping).map(([key, value]) => (
               <button
                 key={key}
-                onClick={() => handleCategorySelect(key)}
+                onClick={() => handleCategoryClick(key)}
                 className={`px-3 py-1.5 border rounded-lg transition-colors duration-200
                   min-w-[100px] text-center
                   ${
@@ -166,9 +162,11 @@ const Template = () => {
             categoryMapping={categoryMapping}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
-            isSearched={isSearched}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
+            searchTrigger={searchTrigger}
+            setSearchTrigger={setSearchTrigger}
+            setSearchQuery={setSearchQuery}            
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
@@ -11,10 +11,13 @@ const DocumentSection = ({
   documents,
   categoryMapping,
   selectedCategory,
+  setSelectedCategory,
   searchQuery,
-  isSearched,
+  searchTrigger,
+  setSearchTrigger,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredFiles, setFilteredFiles] = useState([]);
   const [previewData, setPreviewData] = useState(null); // 미리보기 데이터 상태 추가
   const [isPreviewOpen, setIsPreviewOpen] = useState(false); // 모달 상태 추가
   const itemsPerPage = 10;
@@ -24,6 +27,13 @@ const DocumentSection = ({
   const removeLeadingNumbers = (filename) => {
     return filename.replace(/^\d+[-\s]*/, "");
   };
+
+    // ✅ 모든 파일을 하나의 배열로 합치는 함수 (useCallback 최적화)
+    const getAllFiles = useCallback(() => {
+      return Object.entries(documents).reduce((acc, [category, files]) => {
+        return acc.concat(files.map((file) => ({ category, file })));
+      }, []);
+    }, [documents]);
 
   // 파일 다운로드 핸들러
   const handleDownload = async (category, file) => {
@@ -77,50 +87,50 @@ const DocumentSection = ({
       console.error("미리보기 오류:", error);
       alert("미리보기 처리 중 오류가 발생했습니다.");
     }
-  };
+  }; 
 
-  // 모든 파일을 하나의 배열로 합치는 함수
-  const getAllFiles = () => {
-    return Object.entries(documents).reduce((acc, [category, files]) => {
-      return acc.concat(files.map((file) => ({ category, file })));
-    }, []);
-  };
-
-  // ✅ 검색이 실행되면 첫 페이지로 이동
+  // ✅ 검색 실행 시 `filteredFiles` 업데이트
   useEffect(() => {
-    if (isSearched) {
-      setCurrentPage(1);
-    }
-  }, [searchQuery, isSearched]);
-
-  const getFilteredFiles = () => {
-    let files =
-      selectedCategory === "all"
-        ? getAllFiles()
-        : (documents[selectedCategory] || []).map((file) => ({
+    if (searchTrigger) { 
+      if (searchQuery.trim()) { 
+        const query = searchQuery.toLowerCase();
+        const files = getAllFiles().filter(fileInfo =>
+          removeLeadingNumbers(fileInfo.file).toLowerCase().includes(query)
+        );
+        setFilteredFiles(files);
+        setCurrentPage(1);
+      } else {
+        setFilteredFiles([]);
+      }
+    } else {
+      // ✅ 검색을 하지 않은 경우, 카테고리에 따라 기본 리스트 표시
+      if (selectedCategory === "all") {
+        setFilteredFiles(getAllFiles());
+      } else {
+        setFilteredFiles(
+          (documents[selectedCategory] || []).map((file) => ({
             category: selectedCategory,
             file,
-          }));
-
-    if (isSearched && searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      files = files.filter((fileInfo) =>
-        removeLeadingNumbers(fileInfo.file).toLowerCase().includes(query)
-      );
+          }))
+        );
+      }
     }
+  }, [searchTrigger, searchQuery, selectedCategory, getAllFiles, documents]);
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return files.slice(startIndex, startIndex + itemsPerPage);
-  };
-
-  const filteredFiles = getFilteredFiles();
-  const currentFiles = filteredFiles;
+  // ✅ 검색어 입력 시 기존 검색 결과 초기화
+  useEffect(() => {
+    setSearchTrigger(false);
+  }, [searchQuery]);
+  
+  const currentFiles = filteredFiles.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   const getTotalPages = () => {
     return Math.ceil(filteredFiles.length / itemsPerPage);
   };
 
   const totalPages = getTotalPages();
-  const filteredTotalFiles = filteredFiles.length;
 
   const getPageRange = (totalPages) => {
     let start = Math.max(1, currentPage - Math.floor(pageNumbersToShow / 2));
@@ -137,7 +147,7 @@ const DocumentSection = ({
   const pageNumbers = getPageRange(totalPages);
 
   const SearchResultMessage = () => {
-    if (isSearched && searchQuery.trim() && currentFiles.length === 0) {
+    if (searchTrigger && searchQuery.trim() && currentFiles.length === 0) {
       return (
         <div className="flex justify-center items-center h-[400px]">
           <p className="text-lg text-gray-400">해당하는 서식이 없습니다.</p>
@@ -155,7 +165,7 @@ const DocumentSection = ({
             ? "전체"
             : categoryMapping[selectedCategory]}
           <span className="text-sm text-gray-500 ml-2">
-            (총 {filteredTotalFiles}개)
+            (총 {filteredFiles.length}개)
           </span>
         </h2>
 
