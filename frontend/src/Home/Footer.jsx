@@ -10,16 +10,15 @@ const Footer = () => {
           <div className="flex items-center mr-40 ml-[-50px] mt-5">
             <img src={Logo} alt="로망 로고" className="h-20 w-auto" />
             <div className="ml-4">
-              <h2 className="text-2xl font-basic">Lawmang</h2>
+              <h2 className="text-3xl font-basic">Lawmang</h2>
             </div>
           </div>
 
           {/* 회사 정보 섹션 */}
           <div className="text-gray-600 text-base mb-5 -mt-2">
             <p className="mb-7">
-              {" "}
               Lawmang | AI 법률 자문 및 판례 검색은 Lawmang <br />
-              AI로 빠르고 정확한 법률 자문을 받고, 최신 판례를 확인하세요.{" "}
+              AI로 빠르고 정확한 법률 자문을 받고, 최신 판례를 확인하세요.
             </p>
             <p className="mt-8 mb-3">
               서울특별시 금천구 주소 가산디지털2로 144 현대테라타워 가산DK A동
