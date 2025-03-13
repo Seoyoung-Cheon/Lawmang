@@ -54,15 +54,31 @@ export const historyApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["History"],
+      async onQueryStarted(historyId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("열람 기록 삭제 성공:", data);
+        } catch (error) {
+          console.error("열람 기록 삭제 실패:", error);
+        }
+      },
     }),
 
-    // ✅ 사용자의 모든 열람 기록 삭제 - 엔드포인트 수정
+    // ✅ 사용자의 모든 열람 기록 삭제
     deleteAllViewed: builder.mutation({
       query: (userId) => ({
         url: `/history/user/${userId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["History"],
+      async onQueryStarted(userId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("모든 열람 기록 삭제 성공:", data);
+        } catch (error) {
+          console.error("모든 열람 기록 삭제 실패:", error);
+        }
+      },
     }),
   }),
 });

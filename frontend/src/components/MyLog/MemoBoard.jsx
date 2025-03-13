@@ -175,8 +175,8 @@ const MemoBoard = () => {
               오류 발생: {error.message}
             </div>
           ) : filteredMemos.length === 0 ? (
-            <div className="col-span-4 text-center text-gray-500 mt-[150px]">
-              메모가 없습니다. 새 메모를 추가해보세요!
+            <div className="col-span-4 text-center text-gray-500 mt-[160px]">
+              작성한 메모가 없습니다.
             </div>
           ) : (
             filteredMemos.map((memo) => (

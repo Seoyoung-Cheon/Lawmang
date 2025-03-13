@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import DeleteConfirm from "./DeleteConfirm";
 import { fetchPrecedentInfo } from "../Precedent/precedentApi";
 import { useGetViewedQuery } from "../../redux/slices/historyApi";
+import { FaExchangeAlt } from "react-icons/fa";
 
 const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const user = useSelector(selectUser);
@@ -19,22 +20,27 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
   const [caseDataMap, setCaseDataMap] = useState({});
+  const [sortOrder, setSortOrder] = useState("latest");
 
   const { data: viewedLogsData = [], isLoading: viewedLogsLoading, error: viewedLogsError } = useGetViewedQuery(user?.id, { 
     skip: !user?.id 
   });
 
-  // ✅ 간순 정렬 및 중복 제거
+  // ✅ 정렬 로직이 포함된 필터링
   const filteredLogs = useMemo(() => {
     return [...viewedLogsData]
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
+      })
       .filter((log, index, self) => {
         if (log.consultation_id) {
           return index === self.findIndex((l) => l.consultation_id === log.consultation_id);
         }
         return index === self.findIndex((l) => l.precedent_id === log.precedent_id);
       });
-  }, [viewedLogsData]);
+  }, [viewedLogsData, sortOrder]);
 
   // ✅ 판례 정보를 개별적으로 가져오기
   useEffect(() => {
@@ -107,9 +113,27 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   return (
     <>
       <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">
-        <div className="border-b border-gray-300 p-2 bg-[#a7a28f] flex items-center">
-          <div className="flex-1"></div>
-          <h2 className="font-medium text-white flex-1 text-center mr-[50px]">열람목록</h2>
+        <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
+          <div className="flex items-center gap-4 ml-4 w-[100px]">
+            <button
+              onClick={() => setSortOrder(sortOrder === "latest" ? "oldest" : "latest")}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
+            >
+              <FaExchangeAlt
+                className={`transition-transform duration-300 ${
+                  sortOrder === "oldest" ? "rotate-180" : ""
+                }`}
+              />
+              <span className="font-medium w-[60px]">
+                {sortOrder === "latest" ? "최신순" : "오래된순"}
+              </span>
+            </button>
+          </div>
+
+          <h2 className="font-medium text-white flex-1 text-center">
+            열람목록
+          </h2>
+
           <div className="flex items-center gap-4 mr-4">
             <button
               onClick={handleDeleteAll}
@@ -134,7 +158,6 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
           </div>
         </div>
 
-        {/* ✅ 리스트 패널 크기 유지 */}
         <div className="h-[250px] px-4 pt-1 pb-4 overflow-y-auto viewed-logs-container">
           {viewedLogsLoading ? (
             <p className="text-center">로딩 중...</p>
@@ -143,7 +166,7 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
               {viewedLogsError.status === 404 ? "열람 기록이 없습니다." : "오류가 발생했습니다."}
             </p>
           ) : filteredLogs.length === 0 ? (
-            <p className="text-center text-gray-500">열람한 기록이 없습니다.</p>
+            <p className="text-center text-gray-500 mt-[100px]">열람한 기록이 없습니다.</p>
           ) : (
             filteredLogs.map((log) => (
               <div key={log.id} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
