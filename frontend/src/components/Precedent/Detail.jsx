@@ -176,7 +176,7 @@ const Detail = () => {
                 width="100%"
                 height="100%"
                 style={{ border: "none" }}
-                className="overflow-auto"
+                className="overflow-auto "
               />
             </div>
           </div>
@@ -211,8 +211,8 @@ const Detail = () => {
             <span>목록으로</span>
           </button>
 
-          <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
-            <div className="relative flex justify-center mb-6">
+          <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px] ">
+            <div className="relative flex justify-center mb-6 pb-6 border-b border-gray-200 shadow-sm">
               <h2 className="text-3xl font-bold">판례 상세</h2>
               <div className="absolute right-[20px]">
                 <button

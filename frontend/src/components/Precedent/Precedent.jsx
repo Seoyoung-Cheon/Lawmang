@@ -242,7 +242,9 @@ const Precedent = () => {
                 {currentItems.map((item) => (
                   <li
                     key={item.pre_number}
-                    className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
+                    className="border border-gray-300 rounded-lg p-4 transition-all duration-200 
+                               hover:border-gray-200 hover:shadow-md hover:bg-gray-50 
+                               hover:translate-x-1 group cursor-pointer"
                   >
                     <Link
                       to={`/precedent/detail/${item.pre_number}`}
@@ -260,9 +262,9 @@ const Precedent = () => {
                         </div>
                       </div>
                       <div
-                        className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border ${getCategoryColor(
-                          item.c_type
-                        )}`}
+                        className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border 
+                                   ${getCategoryColor(item.c_type)} 
+                                   group-hover:scale-105 transition-transform`}
                       >
                         {item.c_type}
                       </div>

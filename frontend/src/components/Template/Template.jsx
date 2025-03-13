@@ -49,21 +49,24 @@ const Template = () => {
   // 검색어 입력 핸들러
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    if (e.target.value === "") {
-      setIsSearched(false); // 검색어가 비어있으면 검색 상태 해제
-    }
+    setIsSearched(e.target.value.trim().length > 0); // 검색어가 있으면 true
   };
 
-  // 검색 버튼 클릭 핸들러
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      // 검색어가 있을 때만 검색 실행
       setIsSearched(true);
-      setSelectedCategory("all");
-      navigate("/template/all");
+      console.log("검색 실행됨! 검색어:", searchQuery);
+  
+      // 선택된 카테고리가 없거나 전체(all) 상태일 경우, 검색하면 all로 이동
+      if (!selectedCategory || selectedCategory === "all") {
+        navigate("/template/all");
+      } else {
+        navigate(`/template/${selectedCategory}`); // 현재 카테고리를 유지
+      }
     }
   };
 
+  
   // Enter 키 입력 핸들러
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {

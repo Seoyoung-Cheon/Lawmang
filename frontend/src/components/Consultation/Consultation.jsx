@@ -263,7 +263,9 @@ const Consultation = () => {
                 {currentItems.map((consultation) => (
                   <li
                     key={consultation.id}
-                    className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50"
+                    className="border border-gray-300 rounded-lg p-4 transition-all duration-200 
+                               hover:border-gray-200 hover:shadow-md hover:bg-gray-50 
+                               hover:translate-x-1 group cursor-pointer"
                   >
                     <Link
                       to={`/consultation/detail/${consultation.id}`}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
@@ -86,47 +86,15 @@ const DocumentSection = ({
     }, []);
   };
 
-  // 파일 필터링 함수 수정
-  const filterFiles = (files) => {
-    if (!isSearched) {
-      // 검색하지 않은 상태면 현재 카테고리의 모든 파일 표시
-      return files;
+  // ✅ 검색이 실행되면 첫 페이지로 이동
+  useEffect(() => {
+    if (isSearched) {
+      setCurrentPage(1);
     }
+  }, [searchQuery, isSearched]);
 
-    // 검색어가 있고 검색 상태일 때만 필터링
-    if (searchQuery.trim()) {
-      return files.filter((fileInfo) => {
-        const fileName = removeLeadingNumbers(fileInfo.file).toLowerCase();
-        const query = searchQuery.toLowerCase();
-        return fileName.includes(query);
-      });
-    }
-
-    return files; // 검색어가 없으면 모든 파일 표시
-  };
-
-  // getCurrentFiles 함수 수정
-  const getCurrentFiles = () => {
-    let files = [];
-    if (selectedCategory === "all") {
-      files = getAllFiles();
-    } else {
-      files = (documents[selectedCategory] || []).map((file) => ({
-        category: selectedCategory,
-        file,
-      }));
-    }
-
-    // 검색어로 필터링
-    const filteredFiles = filterFiles(files);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredFiles.slice(startIndex, endIndex);
-  };
-
-  // getTotalPages 함수 수정
-  const getTotalPages = () => {
-    let totalFiles =
+  const getFilteredFiles = () => {
+    let files =
       selectedCategory === "all"
         ? getAllFiles()
         : (documents[selectedCategory] || []).map((file) => ({
@@ -134,11 +102,26 @@ const DocumentSection = ({
             file,
           }));
 
-    const filteredFiles = filterFiles(totalFiles);
+    if (isSearched && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      files = files.filter((fileInfo) =>
+        removeLeadingNumbers(fileInfo.file).toLowerCase().includes(query)
+      );
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return files.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const filteredFiles = getFilteredFiles();
+  const currentFiles = filteredFiles;
+  const getTotalPages = () => {
     return Math.ceil(filteredFiles.length / itemsPerPage);
   };
 
-  // 페이지 범위 계산
+  const totalPages = getTotalPages();
+  const filteredTotalFiles = filteredFiles.length;
+
   const getPageRange = (totalPages) => {
     let start = Math.max(1, currentPage - Math.floor(pageNumbersToShow / 2));
     let end = start + pageNumbersToShow - 1;
@@ -151,24 +134,13 @@ const DocumentSection = ({
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  const totalPages = getTotalPages();
-  const currentFiles = getCurrentFiles();
   const pageNumbers = getPageRange(totalPages);
-  const filteredTotalFiles = filterFiles(
-    selectedCategory === "all"
-      ? getAllFiles()
-      : (documents[selectedCategory] || []).map((file) => ({
-          category: selectedCategory,
-          file,
-        }))
-  ).length;
 
-  // 검색 결과 메시지 컴포넌트
   const SearchResultMessage = () => {
     if (isSearched && searchQuery.trim() && currentFiles.length === 0) {
       return (
         <div className="flex justify-center items-center h-[400px]">
-          <p className="text-lg text-gray-400 ">해당하는 서식이 없습니다.</p>
+          <p className="text-lg text-gray-400">해당하는 서식이 없습니다.</p>
         </div>
       );
     }
@@ -194,7 +166,9 @@ const DocumentSection = ({
             {currentFiles.map((fileInfo, index) => (
               <div
                 key={index}
-                className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+                className="border border-gray-300 rounded-lg p-4 transition-all duration-200 
+                         hover:border-gray-200 hover:shadow-md hover:bg-gray-50 
+                         hover:translate-x-1 cursor-pointer"
               >
                 <div className="flex justify-between items-center gap-4">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -208,7 +182,9 @@ const DocumentSection = ({
                       onClick={() =>
                         handlePreview(fileInfo.category, fileInfo.file)
                       }
-                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 w-[90px]"
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg w-[90px]
+                               hover:border-gray-300 hover:shadow-sm transform 
+                               hover:-translate-y-0.5 transition-all duration-200"
                     >
                       미리보기
                     </button>
@@ -216,7 +192,9 @@ const DocumentSection = ({
                       onClick={() =>
                         handleDownload(fileInfo.category, fileInfo.file)
                       }
-                      className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200 w-[90px]"
+                      className="px-4 py-2 text-sm text-white bg-Main rounded-lg w-[90px]
+                               hover:bg-Main_hover hover:shadow-sm transform 
+                               hover:-translate-y-0.5 transition-all duration-200"
                     >
                       다운로드
                     </button>

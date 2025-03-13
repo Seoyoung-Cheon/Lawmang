@@ -13,18 +13,18 @@ from safetensors.torch import load_file
 from dotenv import load_dotenv
 from kobart import get_pytorch_kobart_model, get_kobart_tokenizer
 from kiwipiepy import Kiwi
-from app.models.langchain_retriever import LangChainRetrieval
+from app.chatbot.langchain_retriever import LangChainRetrieval
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
-from app.models.tool_agents.tools import search_precedents
-from app.models.tool_agents.tools import search_consultations
+from app.chatbot.tool_agents.tools import search_precedents
+from app.chatbot.tool_agents.tools import search_consultations
 
 # ✅ Kiwi 객체 전역 캐싱
 kiwi = Kiwi()
 # ✅ 환경 변수 로드
 load_dotenv()
 # ✅ FAISS 벡터DB 로드
-DB_FAISS_PATH = "./app/models/vectorstore/db_faiss"
+DB_FAISS_PATH = "./app/chatbot/vectorstore/db_faiss"
 
 
 def load_faiss():
@@ -122,7 +122,7 @@ def find_most_relevant_case(query, cases):
 langchain_retriever = LangChainRetrieval()
 
 # ✅ BART 모델 경로
-MODEL_PATH = "./app/models/model/1_bart/checkpoint-26606"
+MODEL_PATH = "./app/chatbot/model/1_bart/checkpoint-26606"
 
 # ✅ 전역 캐싱
 bart_model = None
