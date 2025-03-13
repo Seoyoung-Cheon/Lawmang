@@ -194,7 +194,9 @@ const DocumentSection = ({
             {currentFiles.map((fileInfo, index) => (
               <div
                 key={index}
-                className="border border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200"
+                className="border border-gray-300 rounded-lg p-4 transition-all duration-200 
+                           hover:border-gray-200 hover:shadow-md hover:bg-gray-50 
+                           hover:translate-x-1 cursor-pointer"
               >
                 <div className="flex justify-between items-center gap-4">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -208,7 +210,10 @@ const DocumentSection = ({
                       onClick={() =>
                         handlePreview(fileInfo.category, fileInfo.file)
                       }
-                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 w-[90px]"
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg w-[90px]
+                                 hover:border-gray-300 
+                                 hover:shadow-sm transform hover:-translate-y-0.5 
+                                 transition-all duration-200"
                     >
                       미리보기
                     </button>
@@ -216,7 +221,9 @@ const DocumentSection = ({
                       onClick={() =>
                         handleDownload(fileInfo.category, fileInfo.file)
                       }
-                      className="px-4 py-2 text-sm text-white bg-Main hover:bg-Main_hover rounded-lg transition-colors duration-200 w-[90px]"
+                      className="px-4 py-2 text-sm text-white bg-Main rounded-lg w-[90px]
+                                 hover:bg-Main_hover hover:shadow-sm transform hover:-translate-y-0.5 
+                                 transition-all duration-200"
                     >
                       다운로드
                     </button>
