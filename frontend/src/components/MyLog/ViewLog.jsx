@@ -13,6 +13,7 @@ const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
     caseNumber: "",
     court: "",
     date: "",
+    category: "",
   });
 
   // 텍스트 길이 제한 함수
@@ -37,12 +38,12 @@ const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
           const data = await fetchConsultationDetail(consultation_id);
           setCaseData({
             title: data?.title || "제목 없음",
+            category: data?.category || "분류 없음",
+            date: data?.date || "",
             caseNumber: "",
             court: "",
-            date: "",
           });
         } else if (precedent_id) {
-          // precedentData가 있으면 사용, 없으면 fetch
           if (precedentData) {
             setCaseData(precedentData);
           } else {
@@ -67,10 +68,7 @@ const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
 
   // ✅ 열람 기록 저장
   useEffect(() => {
-    // ✅ 고유한 키 생성
-    const key = consultation_id 
-      ? `viewed_consultation_${user?.id}_${consultation_id}`
-      : `viewed_precedent_${user?.id}_${precedent_id}`;
+    const key = `viewed_${user?.id}_${consultation_id || ''}_${precedent_id || ''}`;
     
     // 이미 저장된 기록인지 확인
     if (localStorage.getItem(key)) {
@@ -108,27 +106,49 @@ const ViewLog = ({ consultation_id, precedent_id, precedentData }) => {
 
   return (
     <div className="py-4 px-2">
-      {consultation_id ? (
-        // 상담사례 표시
-        <div>
-          <h3 className="text-lg font-medium text-blue-600 group-hover:text-blue-700 mb-2">
+      <div>
+        {/* 타입 표시 배지와 제목 */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`px-2 py-0.5 text-xs rounded ${
+            consultation_id 
+              ? 'bg-blue-100 text-blue-700' 
+              : 'bg-gray-200 text-gray-700'
+          }`}>
+            {consultation_id ? '상담사례' : '판례'}
+          </span>
+          <h3 className="text-lg font-medium truncate">
             {truncateText(caseData.title, 30)}
           </h3>
         </div>
-      ) : (
-        // 판례 표시
-        <div>
-          <h3 className="text-lg font-medium truncate mb-2">
-            {truncateText(caseData.title, 30)}
-          </h3>
-          <div className="flex justify-between items-end text-sm text-gray-600">
-            <div>
-              {truncateText(caseData.court, 15)} | {formatDate(caseData.date)}
-            </div>
-            <div>{truncateText(caseData.caseNumber, 20)}</div>
+
+        {/* 하단 정보 수정 */}
+        <div className="flex justify-between items-end text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            {consultation_id ? (
+              // 상담사례일 경우
+              <>
+                <span>상담사례</span>
+                <span className="text-gray-300">|</span>
+                <span>{caseData.category || '분류 없음'}</span>
+              </>
+            ) : (
+              // 판례일 경우
+              <>
+                <span>{truncateText(caseData.court, 15)}</span>
+                <span className="text-gray-300">|</span>
+                <span>{formatDate(caseData.date)}</span>
+              </>
+            )}
+          </div>
+          <div>
+            {consultation_id ? (
+              formatDate(caseData.date) || ''
+            ) : (
+              truncateText(caseData.caseNumber, 20)
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

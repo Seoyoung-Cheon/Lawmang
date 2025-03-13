@@ -18,44 +18,25 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
-  const [viewMode, setViewMode] = useState("consultation");
   const [caseDataMap, setCaseDataMap] = useState({});
 
   const { data: viewedLogsData = [], isLoading: viewedLogsLoading, error: viewedLogsError } = useGetViewedQuery(user?.id, { 
     skip: !user?.id 
   });
 
-  // ✅ 스크롤을 맨 위로 이동시키는 함수
-  const scrollToTop = () => {
-    const scrollContainer = document.querySelector(".viewed-logs-container");
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    }
-  };
-
-  // ✅ viewMode 변경 시 스크롤 유지
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    scrollToTop();
-  };
-
-  // ✅ 필터링된 로그를 useMemo로 최적화
+  // ✅ 간순 정렬 및 중복 제거
   const filteredLogs = useMemo(() => {
     return [...viewedLogsData]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .filter((log) => {
-        return viewMode === "consultation"
-          ? log.consultation_id && !log.precedent_id
-          : !log.consultation_id && log.precedent_id;
-      })
-      .filter((log, index, self) =>
-        viewMode === "consultation"
-          ? index === self.findIndex((l) => l.consultation_id === log.consultation_id)
-          : index === self.findIndex((l) => l.precedent_id === log.precedent_id)
-      );
-  }, [viewedLogsData, viewMode]);
+      .filter((log, index, self) => {
+        if (log.consultation_id) {
+          return index === self.findIndex((l) => l.consultation_id === log.consultation_id);
+        }
+        return index === self.findIndex((l) => l.precedent_id === log.precedent_id);
+      });
+  }, [viewedLogsData]);
 
-  // ✅ 판례 정보를 개별적으로 가져오기 (수정)
+  // ✅ 판례 정보를 개별적으로 가져오기
   useEffect(() => {
     const fetchCaseData = async () => {
       const pendingPrecedents = filteredLogs.filter(
@@ -64,7 +45,7 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
 
       if (pendingPrecedents.length === 0) return;
 
-      const newCaseDataMap = { ...caseDataMap };  // 기존 데이터 복사
+      const newCaseDataMap = { ...caseDataMap };
 
       await Promise.all(
         pendingPrecedents.map(async (log) => {
@@ -91,7 +72,8 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
     };
 
     fetchCaseData();
-  }, [filteredLogs, caseDataMap]);  // caseDataMap 의존성 추가
+  }, [filteredLogs, caseDataMap]);
+  
   
   // ✅ 열람 기록 삭제
   const handleDelete = async (logId) => {
@@ -129,25 +111,6 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
           <div className="flex-1"></div>
           <h2 className="font-medium text-white flex-1 text-center mr-[50px]">열람목록</h2>
           <div className="flex items-center gap-4 mr-4">
-            <div className="flex bg-white rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleViewModeChange("consultation")}
-                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "consultation" ? "bg-[#8b7b6e] text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                상담사례
-              </button>
-              <button
-                onClick={() => handleViewModeChange("precedent")}
-                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "precedent" ? "bg-[#8b7b6e] text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                판례
-              </button>
-            </div>
-            {/* 전체 삭제 버튼 추가 */}
             <button
               onClick={handleDeleteAll}
               className="flex items-center gap-1 text-white hover:underline"

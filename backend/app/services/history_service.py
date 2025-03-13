@@ -12,21 +12,7 @@ def create_viewed(db: Session, user_id: int, consultation_id=None, precedent_id=
     열람 기록 생성 함수 (유니크 제약조건으로 중복 방지)
     """
     try:
-        # ✅ 기존 기록 확인 (coalesce 사용하여 인덱스와 일치시킴)
-        existing_record = db.query(History).filter(
-            and_(
-                History.user_id == user_id,
-                func.coalesce(History.consultation_id, -1) == func.coalesce(consultation_id, -1),
-                func.coalesce(History.precedent_id, -1) == func.coalesce(precedent_id, -1)
-            )
-        ).first()
-
-        # ✅ 이미 존재하는 기록이면 그대로 반환
-        if existing_record:
-            print(f"Found existing record: user_id={user_id}, consultation_id={consultation_id}, precedent_id={precedent_id}")
-            return existing_record
-
-        # ✅ 새 기록 생성
+        # ✅ 새 기록 생성 시도
         new_history = History(
             user_id=user_id,
             consultation_id=consultation_id,
@@ -38,17 +24,17 @@ def create_viewed(db: Session, user_id: int, consultation_id=None, precedent_id=
         print(f"Created new record: user_id={user_id}, consultation_id={consultation_id}, precedent_id={precedent_id}")
         return new_history
 
-    except IntegrityError as e:
-        print(f"Integrity error: {e}")
+    except IntegrityError:
+        # ✅ 중복으로 인한 에러 발생 시 기존 기록 반환
         db.rollback()
-        # 중복 발생 시 다시 한번 조회
         existing_record = db.query(History).filter(
             and_(
                 History.user_id == user_id,
-                func.coalesce(History.consultation_id, -1) == func.coalesce(consultation_id, -1),
-                func.coalesce(History.precedent_id, -1) == func.coalesce(precedent_id, -1)
+                History.consultation_id == consultation_id,
+                History.precedent_id == precedent_id
             )
         ).first()
+        print(f"Found existing record: user_id={user_id}, consultation_id={consultation_id}, precedent_id={precedent_id}")
         return existing_record
 
     except SQLAlchemyError as e:
@@ -127,6 +113,7 @@ def get_precedent_detail(precedent_id: int):
     result = execute_sql(sql, {"precedent_id": precedent_id}, fetch_one=True)
 
     if not result:
+        print(f"판례 정보를 찾을 수 없음: precedent_id={precedent_id}")
         return None
 
     return {

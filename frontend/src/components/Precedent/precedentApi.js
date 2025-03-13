@@ -96,10 +96,10 @@ export async function fetchCaseDetail(pre_number) {
   return result;
 }
 
-export async function fetchPrecedentInfo(precedent_number) {
-  if (!precedent_number) throw new Error("유효한 precedent_number가 필요합니다.");
+export async function fetchPrecedentInfo(precedent_id) {
+  if (!precedent_id) throw new Error("유효한 precedent_id 필요합니다.");
 
-  const apiUrl = `/api/mylog/viewed/precedent-info/${precedent_number}`;
+  const apiUrl = `/api/mylog/history/precedent-info/${precedent_id}`;
   // console.log("📌 요청하는 API:", apiUrl);  // ✅ 로그 추가
 
   const result = await fetchData(apiUrl);
