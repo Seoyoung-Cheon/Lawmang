@@ -25,6 +25,7 @@ import ViewedList from "./components/MyLog/ViewedList";
 import MemoBoard from "./components/MyLog/MemoBoard";
 import MyLogsPage from "./components/MyLog/MyLogsPage";
 import ChatbotTest from "./chatbot/Chatbot_test/Chatbot_test";
+import Dictionary from "./components/Dictionary/Dictionary";
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
@@ -66,12 +67,18 @@ function ScrollToTop() {
 // ✅ 로그인, 회원가입 화면에서는 푸터 숨김
 function AppContent() {
   const location = useLocation();
-  const hideFooter = ["/login", "/signup", "/modify"].includes(location.pathname);
+  const hideFooter = ["/login", "/signup", "/modify"].includes(
+    location.pathname
+  );
 
   // 챗봇을 숨길 경로 추가
-  const hideChatbot = ["/login", "/signup", "/reset-password", "/modify",].includes(location.pathname);
+  const hideChatbot = [
+    "/login",
+    "/signup",
+    "/reset-password",
+    "/modify",
+  ].includes(location.pathname);
 
-  
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollToTop />
@@ -99,6 +106,7 @@ function AppContent() {
           <Route path="/mylog/viewed" element={<ViewedList />} />
           <Route path="/mylog/memo" element={<MemoBoard />} />
           <Route path="/mylog/logs" element={<MyLogsPage />} />
+          <Route path="/dictionary" element={<Dictionary />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

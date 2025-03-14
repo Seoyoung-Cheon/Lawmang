@@ -135,6 +135,14 @@ const Header = () => {
                 법률 서식
               </Link>
             </li>
+            <li>
+              <Link
+                to="/dictionary"
+                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+              >
+                법률용어사전
+              </Link>
+            </li>
           </ul>
 
           {/* 로그인/로그아웃 버튼 */}
@@ -241,6 +249,12 @@ const Header = () => {
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
             법률 서식
+          </Link>
+          <Link
+            to="/dictionary"
+            className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+          >
+            법률용어사전
           </Link>
         </div>
 
