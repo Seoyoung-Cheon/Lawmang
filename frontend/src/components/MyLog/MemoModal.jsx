@@ -5,7 +5,6 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [content, setContent] = useState("");
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [notificationDate, setNotificationDate] = useState("");
-  const [createdDate, setCreatedDate] = useState("");
 
   useEffect(() => {
     if (memoData) {
@@ -13,17 +12,11 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
       setContent(memoData.content || "");
       setIsNotificationEnabled(memoData.notification || false);
       setNotificationDate(memoData.event_date || "");
-      setCreatedDate(
-        memoData.created_at
-          ? new Date(memoData.created_at).toLocaleDateString()
-          : ""
-      );
     } else {
       setTitle("");
       setContent("");
       setIsNotificationEnabled(false);
       setNotificationDate("");
-      setCreatedDate("");
     }
   }, [memoData]);
 
