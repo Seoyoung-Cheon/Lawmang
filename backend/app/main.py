@@ -7,8 +7,10 @@ if not hasattr(bcrypt, "__about__"):
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from app.core.config import settings
 from app.routes import auth, check, detail, search, memo, history
 from app.core.database import init_db
+from app.chatbot.routes import router as chatbot_router
 import os
 import signal
 import sys
@@ -33,6 +35,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(detail.router, prefix="/api/detail", tags=["detail"])
 app.include_router(memo.router, prefix="/api/mylog/memo", tags=["memo"])
 app.include_router(history.router, prefix="/api/mylog/history", tags=["history"])
+app.include_router(chatbot_router, prefix="/api/chatbot", tags=["chatbot"])
 
 # ✅ 기본 엔드포인트 (테스트용)
 @app.get("/")

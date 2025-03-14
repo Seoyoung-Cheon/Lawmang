@@ -24,7 +24,7 @@ kiwi = Kiwi()
 # ✅ 환경 변수 로드
 load_dotenv()
 # ✅ FAISS 벡터DB 로드
-DB_FAISS_PATH = "./app/chatbot/vectorstore/db_faiss"
+DB_FAISS_PATH = "./app/chatbot/faiss"
 
 
 def load_faiss():
