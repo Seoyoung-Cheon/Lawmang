@@ -121,7 +121,7 @@ const DocumentSection = ({
   // ✅ 검색어 입력 시 기존 검색 결과 초기화
   useEffect(() => {
     setSearchTrigger(false);
-  }, [searchQuery]);
+  }, [searchQuery, setSearchTrigger]);
   
   const currentFiles = filteredFiles.slice(
     (currentPage - 1) * itemsPerPage,
