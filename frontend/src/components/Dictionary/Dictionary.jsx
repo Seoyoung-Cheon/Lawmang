@@ -35,7 +35,7 @@ const Dictionary = () => {
           {/* 헤더 섹션 */}
           <div className="flex items-center gap-4 mb-8">
             <PiBookOpenTextLight className="text-6xl text-Main" />
-            <h1 className="text-2xl font-medium">법률용어사전</h1>
+            <h1 className="text-2xl font-medium">법률 용어</h1>
           </div>
 
           {/* 검색바 */}

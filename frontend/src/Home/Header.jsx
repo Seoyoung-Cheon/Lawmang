@@ -140,7 +140,7 @@ const Header = () => {
                 to="/dictionary"
                 className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
-                법률용어사전
+                법률 용어
               </Link>
             </li>
           </ul>
@@ -254,7 +254,7 @@ const Header = () => {
             to="/dictionary"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
-            법률용어사전
+            법률 용어
           </Link>
         </div>
 
