@@ -42,6 +42,19 @@ const Header = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // 화면 크기 변경 감지하여 햄버거 메뉴 닫기
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // lg 브레이크포인트는 1024px
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // ✅ 로그아웃 버튼 클릭 시 실행
   const handleLogout = async () => {
     try {
