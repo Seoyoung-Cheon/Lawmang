@@ -6,6 +6,7 @@ import {
   MdKeyboardArrowRight,
 } from "react-icons/md";
 import PreviewModal from "./PreviewModal";
+import HighlightText from '../HighlightText';
 
 const DocumentSection = ({
   documents,
@@ -157,6 +158,10 @@ const DocumentSection = ({
     return null;
   };
 
+  const renderTitle = (title) => (
+    <HighlightText text={title} highlight={searchQuery} />
+  );
+
   return (
     <div className="w-full max-w-[900px]">
       <div className="mb-6">
@@ -184,7 +189,7 @@ const DocumentSection = ({
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-gray-600 flex-shrink-0">📄</span>
                     <span className="text-lg truncate">
-                      {removeLeadingNumbers(fileInfo.file)}
+                      {renderTitle(removeLeadingNumbers(fileInfo.file))}
                     </span>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">

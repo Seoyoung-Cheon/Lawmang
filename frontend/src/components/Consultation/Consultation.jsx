@@ -13,6 +13,7 @@ import {
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
 import { SlSpeech } from "react-icons/sl";
+import HighlightText from '../HighlightText';
 
 const Consultation = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -175,6 +176,10 @@ const Consultation = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
+  const renderTitle = (title) => (
+    <HighlightText text={title} highlight={searchQuery} />
+  );
+  
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -280,13 +285,15 @@ const Consultation = () => {
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium truncate mb-4">
-                          {consultation.title}
+                          {renderTitle(consultation.title)}
                         </h3>
                         <p className="text-gray-600 text-sm mb-3 truncate">
-                          {consultation.question}
+                          <HighlightText text={consultation.question} highlight={searchQuery} />
                         </p>
                         <div className="flex justify-between items-center text-sm text-gray-500">
-                          <span>{consultation.category}</span>
+                          <span>
+                            <HighlightText text={consultation.category} highlight={searchQuery} />
+                          </span>
                           <span>{consultation.date}</span>
                         </div>
                       </div>

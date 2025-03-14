@@ -10,6 +10,7 @@ import {
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
 import { ImHammer2 } from "react-icons/im";
+import HighlightText from '../HighlightText';
 
 const Precedent = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -164,6 +165,10 @@ const Precedent = () => {
     }
   };
 
+  const renderTitle = (title) => (
+    <HighlightText text={title} highlight={searchQuery} />
+  );
+
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -259,13 +264,13 @@ const Precedent = () => {
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium truncate mb-4">
-                          {item.c_name}
+                          {renderTitle(item.c_name)}
                         </h3>
                         <div className="text-sm text-gray-600">
-                          {item.c_number}
+                          <HighlightText text={item.c_number} highlight={searchQuery} />
                         </div>
                         <div className="text-sm text-gray-600">
-                          {item.court} | {item.j_date}
+                          <HighlightText text={`${item.court} | ${item.j_date}`} highlight={searchQuery} />
                         </div>
                       </div>
                       <div
