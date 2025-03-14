@@ -116,7 +116,7 @@ const Header = () => {
                 to="/consultation"
                 className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
-                상담사례
+                상담 사례
               </Link>
             </li>
             <li>
@@ -236,7 +236,7 @@ const Header = () => {
             to="/consultation"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
-            상담사례
+            상담 사례
           </Link>
           <Link
             to="/precedent"

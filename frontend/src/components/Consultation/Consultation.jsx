@@ -182,7 +182,7 @@ const Consultation = () => {
           {/* 헤더 섹션*/}
           <div className="flex items-center gap-4 mb-8">
             <SlSpeech className="text-6xl text-Main" />
-            <h1 className="text-2xl font-medium">상담사례</h1>
+            <h1 className="text-2xl font-medium">상담 사례</h1>
           </div>
 
           {/* 검색창 */}
