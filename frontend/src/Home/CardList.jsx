@@ -82,7 +82,7 @@ const CardList = () => {
                   <button
                     key={number}
                     onClick={() => handlePageChange(number)}
-                    className={`px-3 py-1 border rounded ${
+                    className={`px-3 py-1 border rounded hover:bg-gray-50 ${
                       currentPage === number
                         ? "bg-gray-500 text-white"
                         : "bg-white text-gray-700"
