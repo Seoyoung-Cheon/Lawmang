@@ -185,7 +185,7 @@ const Precedent = () => {
                           transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
+                onK={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
