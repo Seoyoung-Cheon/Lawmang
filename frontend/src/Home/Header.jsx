@@ -216,7 +216,7 @@ const Header = () => {
           )}
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="text-gray-600 hover:animate-spin-once"
+            className="text-gray-600 transition-transform duration-300 hover:rotate-90"
           >
             <IoClose className="w-7 h-7" />
           </button>
