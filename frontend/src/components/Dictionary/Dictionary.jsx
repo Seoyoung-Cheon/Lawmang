@@ -9,18 +9,9 @@ const Dictionary = () => {
   // 임시 법률용어 데이터 (나중에 DB에서 가져올 예정)
   const legalTerms = [
     {
-      term: "가압류",
-      definition:
-        "채권자가 금전채권의 집행을 보전하기 위하여 채무자의 재산을 임시로 압류하는 것을 말합니다. 법원의 가압류 결정에 따라 채무자는 가압류된 재산을 처분할 수 없게 됩니다.",
-      example:
-        "예시: A가 B에게 1억원을 빌려주었는데 B가 갚지 않을 것 같아 B의 부동산에 대해 가압류를 신청한 경우",
-    },
-    {
       term: "공소시효",
       definition:
         "범죄 후 일정 기간이 경과하면 검사가 더 이상 공소를 제기할 수 없게 되는 제도입니다. 이는 시간이 경과함에 따라 증거가 산일되고 공소의 가치가 감소하는 점을 고려한 것입니다.",
-      example:
-        "예시: 폭행죄의 공소시효는 5년으로, 범죄일로부터 5년이 지나면 검찰이 기소할 수 없습니다.",
     },
   ];
 
@@ -92,24 +83,19 @@ const Dictionary = () => {
             <div className="w-[900px]">
               {searchResult ? (
                 <div
-                  className="border border-gray-300 rounded-lg p-6 space-y-4 
+                  className="border border-gray-300 rounded-lg p-8 space-y-6 min-h-[580px] 
                                hover:border-gray-200 hover:shadow-md hover:bg-gray-50 
                                transition-all duration-200"
                 >
                   <h2 className="text-2xl font-medium text-Main">
                     {searchResult.term}
                   </h2>
-                  <div className="space-y-4">
-                    <p className="text-gray-800 leading-relaxed">
-                      {searchResult.definition}
-                    </p>
-                    <p className="text-gray-600 text-sm bg-gray-50 p-4 rounded-lg">
-                      {searchResult.example}
-                    </p>
-                  </div>
+                  <p className="text-gray-800 leading-relaxed text-lg">
+                    {searchResult.definition}
+                  </p>
                 </div>
               ) : (
-                <div className="flex justify-center items-center h-[400px]">
+                <div className="flex justify-center items-center h-[600px]">
                   <p className="text-lg text-gray-400">
                     검색하신 법률용어를 찾을 수 없습니다.
                   </p>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import documentStructure from "../../constants/document_structure.json";
 import PreviewModal from "./PreviewModal";
 import DocumentSection from "./DocumentSection";
+import { LuFileSearch } from "react-icons/lu";
 
 const categoryMapping = {
   all: "전체",
@@ -95,13 +96,19 @@ const Template = () => {
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
-        <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
-          {/* 검색바 수정 */}
+        <div className="px-0 pt-[135px] pb-10">
+          {/* 헤더 섹션 추가 */}
+          <div className="flex items-center gap-4 mb-8">
+            <LuFileSearch className="text-6xl text-Main" />
+            <h1 className="text-2xl font-medium">법률서식</h1>
+          </div>
+
+          {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
-                placeholder="문서 검색..."
+                placeholder="필요한 법률 서식을 검색하세요..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyPress}
@@ -166,7 +173,7 @@ const Template = () => {
             setPreviewUrl={setPreviewUrl}
             searchTrigger={searchTrigger}
             setSearchTrigger={setSearchTrigger}
-            setSearchQuery={setSearchQuery}            
+            setSearchQuery={setSearchQuery}
           />
         </div>
       </div>

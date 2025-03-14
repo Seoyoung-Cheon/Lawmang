@@ -9,6 +9,7 @@ import {
   MdKeyboardArrowRight,
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
+import { ImHammer2 } from "react-icons/im";
 
 const Precedent = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -167,6 +168,12 @@ const Precedent = () => {
     <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-0 pt-[135px] pb-10">
+          {/* 헤더 섹션 추가 */}
+          <div className="flex items-center gap-4 mb-8 ">
+            <ImHammer2 className="text-6xl text-Main mr-2" />
+            <h1 className="text-2xl font-medium">판례</h1>
+          </div>
+
           {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
