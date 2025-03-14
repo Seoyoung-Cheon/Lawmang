@@ -22,8 +22,12 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const [caseDataMap, setCaseDataMap] = useState({});
   const [sortOrder, setSortOrder] = useState("latest");
 
-  const { data: viewedLogsData = [], isLoading: viewedLogsLoading, error: viewedLogsError } = useGetViewedQuery(user?.id, { 
-    skip: !user?.id 
+  const {
+    data: viewedLogsData = [],
+    isLoading: viewedLogsLoading,
+    error: viewedLogsError,
+  } = useGetViewedQuery(user?.id, {
+    skip: !user?.id,
   });
 
   // ✅ 정렬 로직이 포함된 필터링
@@ -36,9 +40,14 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
       })
       .filter((log, index, self) => {
         if (log.consultation_id) {
-          return index === self.findIndex((l) => l.consultation_id === log.consultation_id);
+          return (
+            index ===
+            self.findIndex((l) => l.consultation_id === log.consultation_id)
+          );
         }
-        return index === self.findIndex((l) => l.precedent_id === log.precedent_id);
+        return (
+          index === self.findIndex((l) => l.precedent_id === log.precedent_id)
+        );
       });
   }, [viewedLogsData, sortOrder]);
 
@@ -46,7 +55,7 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   useEffect(() => {
     const fetchCaseData = async () => {
       const pendingPrecedents = filteredLogs.filter(
-        log => log.precedent_id && !caseDataMap[log.precedent_id]
+        (log) => log.precedent_id && !caseDataMap[log.precedent_id]
       );
 
       if (pendingPrecedents.length === 0) return;
@@ -72,15 +81,16 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
         })
       );
 
-      if (Object.keys(newCaseDataMap).length !== Object.keys(caseDataMap).length) {
+      if (
+        Object.keys(newCaseDataMap).length !== Object.keys(caseDataMap).length
+      ) {
         setCaseDataMap(newCaseDataMap);
       }
     };
 
     fetchCaseData();
   }, [filteredLogs, caseDataMap]);
-  
-  
+
   // ✅ 열람 기록 삭제
   const handleDelete = async (logId) => {
     setLogToDelete(logId);
@@ -116,7 +126,9 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
         <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
           <div className="flex items-center gap-4 ml-4 w-[100px]">
             <button
-              onClick={() => setSortOrder(sortOrder === "latest" ? "oldest" : "latest")}
+              onClick={() =>
+                setSortOrder(sortOrder === "latest" ? "oldest" : "latest")
+              }
               className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
             >
               <FaExchangeAlt
@@ -137,7 +149,7 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
           <div className="flex items-center gap-4 mr-4">
             <button
               onClick={handleDeleteAll}
-              className="flex items-center gap-1 text-white hover:underline"
+              className="flex items-center gap-1 text-white hover:text-red-500"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -165,13 +177,20 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
             </div>
           ) : viewedLogsError ? (
             <div className="col-span-4 text-center text-red-500 mt-[150px]">
-              {viewedLogsError.status === 404 ? "열람 기록이 없습니다." : "오류가 발생했습니다."}
+              {viewedLogsError.status === 404
+                ? "열람 기록이 없습니다."
+                : "오류가 발생했습니다."}
             </div>
           ) : filteredLogs.length === 0 ? (
-            <p className="text-center text-gray-500 mt-[100px]">열람한 기록이 없습니다.</p>
+            <p className="text-center text-gray-500 mt-[100px]">
+              열람한 기록이 없습니다.
+            </p>
           ) : (
             filteredLogs.map((log) => (
-              <div key={log.id} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
+              <div
+                key={log.id}
+                className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg"
+              >
                 <Link
                   to={
                     log.consultation_id
