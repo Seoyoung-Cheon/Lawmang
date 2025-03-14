@@ -33,17 +33,17 @@ const FAQ = () => {
         </div>
 
         <div className="mx-[-100px] mt-10">
-          <div className="w-[84%] border-t border-b border-gray-200 py-2 space-y-4">
+          <div className="w-[84%] border-t border-b border-gray-200">
             {displayedFAQs.map((faq, index) => (
               <div
                 key={index}
-                className="border-b border-gray-200 last:border-b-0"
+                className="border-b border-gray-200 last:border-b-0 py-2"
               >
                 <button
                   className={`w-full py-4 flex justify-between items-center text-left 
                               relative group transition-all duration-300
                               hover:pl-4 hover:bg-gray-50 rounded-lg
-                              ${openIndex === index ? "pl-4 bg-gray-50" : ""}`}
+                              ${openIndex === index ? "pl-4 bg-gray-100" : ""}`}
                   onClick={() => toggleAnswer(index)}
                 >
                   <span
@@ -63,7 +63,7 @@ const FAQ = () => {
                     {faq.question}
                   </span>
                   <IoIosArrowDown
-                    className={`transform transition-all duration-300 
+                    className={`transform transition-all duration-300 mr-4 
                                 ${openIndex === index ? "rotate-180" : ""}`}
                   />
                 </button>
@@ -83,7 +83,7 @@ const FAQ = () => {
             {[...Array(totalPages).keys()].map((num) => (
               <button
                 key={num + 1}
-                className={`px-3 py-1 border rounded-md ${
+                className={`px-3 py-1 border rounded-md hover:bg-gray-50 ${
                   currentPage === num + 1
                     ? "bg-gray-500 text-white"
                     : "bg-white text-gray-700"

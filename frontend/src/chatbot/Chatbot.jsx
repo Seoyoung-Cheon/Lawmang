@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectIsAuthenticated } from "../redux/slices/authSlice"; // ✅ Redux 로그인 상태 가져오기
-import { useSendMessageMutation } from "../redux/slices/authApi"; // ✅ RTK Query 챗봇 API 가져오기
+import { selectIsAuthenticated } from "../redux/slices/authSlice";
+import { useSendMessageMutation } from "../redux/slices/authApi";
 
 const Chatbot = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
 
-  const [sendMessage, { isLoading }] = useSendMessageMutation(); // ✅ RTK Query 훅 사용
+  const [sendMessage, { isLoading }] = useSendMessageMutation();
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
@@ -124,7 +124,7 @@ const Chatbot = () => {
                 <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] 2xl:leading-5 whitespace-nowrap">
                   ※ 구체적이고 전문적인 '법률상담'이 필요한 경우
                   <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;로그인 후 이용 가능합니다.
+                  로그인 후 이용 가능합니다.
                 </p>
               )}
             </div>

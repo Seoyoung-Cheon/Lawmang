@@ -20,8 +20,8 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
-  const token = useSelector(selectToken); // ✅ Redux에서 토큰 가져오기
-  const [logoutUser] = useLogoutUserMutation(); // ✅ RTK Query 로그아웃 훅 사용
+  const token = useSelector(selectToken);
+  const [logoutUser] = useLogoutUserMutation();
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
