@@ -6,15 +6,12 @@ conda activate C:/conda_envs/lawmang_env
 
 - 패키지 설치
 pip install -r requirements.txt
+pip install --no-deps -r requirements-kobart.txt
 
 # FastAPI 터미널에서 실행 (uvicorn 사용)
 uvicorn app.main:app --reload
 
 # 기본 api 확인
 localhost:8000
-
-# kobart 모델 불안정성 생각해서 수동설치
-# pip install --no-deps git+https://github.com/SKT-AI/KoBART#egg=kobart
-# pip install boto3
 
 # mylog.py 이름 체크 <- 혹시 배포 환경 문제 생길수도?

@@ -21,17 +21,16 @@ langchain-huggingface
 langchain-core
 langchain
 langchain-community
-langchain_openai
+langchain-openai
 
 # ✅ NLP 및 모델 관련
 transformers
 pandas
---no-deps git+https://github.com/SKT-AI/KoBART#egg=kobart
 boto3
 
 # ✅ 벡터 DB 관련
 faiss-cpu
-torch
+torch>=2.0.0
 kiwipiepy
 
 # 개발단계에서만 필요한 모듈
