@@ -113,85 +113,89 @@ const Youtube = () => {
   const handleMouseLeave = () => setAutoPlay(true);
 
   return (
-    <div className="container mx-auto px-20">
+    <div 
+      className="container !mt-[100px] !mb-[60px]"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="left-layout">
-        <div className="flex items-center gap-4 mx-[-100px]">
-          <ImYoutube2 className="text-9xl text-red-500" />
-          <p className="text-2xl font-medium">법률 관련 유튜브</p>
-        </div>
+        <div className="mx-[-100px]">
+          <div className="flex items-center gap-2">
+            <ImYoutube2 className="text-9xl text-red-500" />
+            <p className="text-2xl font-medium">법률 관련 유튜브</p>
+          </div>
 
-        {/* 에러 메시지 표시 */}
-        {error && <div className="text-red-500 p-4 text-center">{error}</div>}
+          {error && <div className="text-red-500 p-4 text-center">{error}</div>}
+          {loading && <div className="text-center p-4">로딩 중...</div>}
 
-        {/* 로딩 표시 */}
-        {loading && <div className="text-center p-4">로딩 중...</div>}
-
-        <ul
-          className="grid grid-cols-2 gap-6 ml-[-100px]"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          {currentVideos.map((video) => (
-            <li key={video.id.videoId} className="rounded-lg p-3 group">
-              <div className="w-[420px] overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
-                <a
-                  href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block relative"
-                >
-                  {/* 썸네일 이미지 */}
-                  <div className="relative overflow-hidden rounded-t-xl">
-                    <img
-                      src={video.snippet.thumbnails.medium.url}
-                      alt={video.snippet.title}
-                      className="w-[420px] h-[200px] object-cover transition-all duration-300 
-                               group-hover:scale-105 group-hover:brightness-90"
-                    />
-                    {/* 호버 시 나타나는 플레이 버튼 오버레이 */}
-                    <div
-                      className="absolute inset-0 flex items-center justify-center 
-                                  bg-black bg-opacity-0 group-hover:bg-opacity-30 
-                                  transition-all duration-300"
-                    >
+          {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
+          <ul
+            className="grid grid-cols-2 gap-2 justify-items-start w-[84%]"
+            onMouseEnter={() => setAutoPlay(false)}
+            onMouseLeave={() => setAutoPlay(true)}
+          >
+            {currentVideos.map((video) => (
+              <li
+                key={video.id.videoId || video.id}
+                className="rounded-lg p-3 w-full max-w-[500px]"
+              >
+                <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+                  <a
+                    href={`https://www.youtube.com/watch?v=${video.id.videoId || video.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block relative"
+                  >
+                    <div className="relative overflow-hidden rounded-t-xl">
+                      <img
+                        src={video.snippet.thumbnails.medium.url}
+                        alt={video.snippet.title}
+                        className="w-full h-[200px] object-cover transition-all duration-300 
+                                 group-hover:scale-105 group-hover:brightness-90"
+                      />
                       <div
-                        className="transform scale-0 group-hover:scale-100 
-                                    transition-transform duration-300"
+                        className="absolute inset-0 flex items-center justify-center 
+                                    bg-black bg-opacity-0 group-hover:bg-opacity-30 
+                                    transition-all duration-300"
                       >
-                        <GrYoutube className="text-white text-5xl opacity-80" />
+                        <div
+                          className="transform scale-0 group-hover:scale-100 
+                                      transition-transform duration-300"
+                        >
+                          <GrYoutube className="text-white text-5xl opacity-80" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 제목 */}
-                  <div className="h-[80px] p-3 bg-white">
-                    <h3
-                      className="text-lg font-medium text-gray-900 line-clamp-2 
-                                 group-hover:text-Main transition-colors duration-300"
-                    >
-                      {he.decode(video.snippet.title)}
-                    </h3>
-                  </div>
-                </a>
-              </div>
-            </li>
-          ))}
-        </ul>
+                    <div className="h-[80px] p-3 bg-white">
+                      <h3
+                        className="text-lg font-medium text-gray-900 line-clamp-2 
+                                   group-hover:text-Main transition-colors duration-300"
+                      >
+                        {he.decode(video.snippet.title)}
+                      </h3>
+                    </div>
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
 
-        {/* 페이지네이션 UI */}
-        <div className="flex justify-center gap-3 mt-8 mb-[100px] ml-[-130px]">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-            <button
-              key={number}
-              onClick={() => handlePageChange(number)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentPage === number
-                  ? "bg-gray-500 w-6" // 현재 페이지는 더 길게
-                  : "bg-gray-300 hover:bg-gray-400"
-              }`}
-              aria-label={`Page ${number}`}
-            />
-          ))}
+          {/* 페이지네이션 UI */}
+          <div className="flex justify-center gap-3 mt-8 mb-[100px]">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+              <button
+                key={number}
+                onClick={() => handlePageChange(number)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentPage === number
+                    ? "bg-gray-500 w-6"
+                    : "bg-gray-300 hover:bg-gray-400"
+                }`}
+                aria-label={`Page ${number}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <div className="right-layout"></div>

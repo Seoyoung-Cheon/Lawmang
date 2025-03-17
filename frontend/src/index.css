@@ -58,8 +58,8 @@ a {
   padding: 0 1rem;
 }
 
-/* lg(1024px) 이하에서 전체 너비 사용 */
-@media (max-width: 1024px) {
+/* lg(1380px) 이하에서 전체 너비 사용 */
+@media (max-width: 1380px) {
   .left-layout {
     width: 100%;
   }
