@@ -113,7 +113,7 @@ const Youtube = () => {
   const handleMouseLeave = () => setAutoPlay(true);
 
   return (
-    <div 
+    <div
       className="container !mt-[100px] !mb-[60px]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -141,7 +141,9 @@ const Youtube = () => {
               >
                 <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
                   <a
-                    href={`https://www.youtube.com/watch?v=${video.id.videoId || video.id}`}
+                    href={`https://www.youtube.com/watch?v=${
+                      video.id.videoId || video.id
+                    }`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block relative"
@@ -182,19 +184,21 @@ const Youtube = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="flex justify-center gap-3 mt-8 mb-[100px]">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-              <button
-                key={number}
-                onClick={() => handlePageChange(number)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentPage === number
-                    ? "bg-gray-500 w-6"
-                    : "bg-gray-300 hover:bg-gray-400"
-                }`}
-                aria-label={`Page ${number}`}
-              />
-            ))}
+          <div className="flex justify-center gap-3 mt-10 mb-8 -ml-[160px]">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (number) => (
+                <button
+                  key={number}
+                  onClick={() => handlePageChange(number)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentPage === number
+                      ? "bg-gray-500 w-6"
+                      : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Page ${number}`}
+                />
+              )
+            )}
           </div>
         </div>
       </div>

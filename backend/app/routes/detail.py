@@ -53,31 +53,35 @@ async def get_precedent_summary(pre_number: int):
         if not precedent_text:
             raise HTTPException(status_code=404, detail="판례 내용을 찾을 수 없습니다.")
 
-        # ✅ 판례 요약을 위한 프롬프트 생성
-        summary_prompt = f"""
+        # ✅ 판결 요약을 위한 프롬프트 생성
+        summary_prompt = """
         다음은 법원의 판결문입니다. 주어진 내용을 기반으로 판례의 핵심 내용을 요약해주세요.
-        
+
         **요약 조건**
-        - 사건 개요, 1심 판결, 2심(원심) 판결, 대법원 판결 순으로 정리할 것
+        - 사건 개요, 판결 과정, 판결 요약 순으로 정리할 것
         - 핵심 판결 이유와 법원이 적용한 법 조항을 포함할 것
         - 법원의 판단이 바뀐 주요 이유를 명확히 설명할 것
-        - **최소 200자 이상의 상세한 요약을 생성할 것**
-        
+        - 문장의 어미를 최대한 줄여서 통일할 것
+
         **출력 예시**
-        - 사건 개요 : 피고인은 [사건 개요 요약] 혐의로 기소됨.
-        - 1심 판결 : 1심 법원은 [1심 판결 이유 및 적용 법 조항]을 근거로 유죄 판결을 선고함.
-        - 2심(원심) 판결 : 원심은 [원심 판단 이유]을 이유로 무죄를 선고함.
-        - 대법원 판결 : 대법원은 [대법원 판단 이유 및 판례 적용 법리]을 근거로 원심을 파기하고 환송 판결을 내림.
-        
+        【 사건 개요 】 피고인은 '사건 개요 요약' 혐의로 기소됨.
+
+        【 판결 과정 】 법원은 '판결 과정'을 근거로 판결을 내림.
+
+        【 판결 요약 】 이 사건은 '핵심 판결 내용 및 적용 법리'에 대한 판결로, 최종적으로 '주요 판결 결과'가 내려짐.
+
         **판례 원문**
         {precedent_text}
         """
 
+        # ✅ 최종 프롬프트 완성
+        summary_prompt = summary_prompt.format(precedent_text=precedent_text)
+
         # ✅ OpenAI API 호출
         llm = get_openai_llm()
-
-        # ✅ 개행을 명확하게 추가하여 OpenAI 응답을 처리
         summary = str(llm.invoke(summary_prompt).content)
+
+        # ✅ 개행 처리 개선
         summary = summary.replace(". -", ".\n\n- ")  # 리스트 항목 개행 적용
         summary = summary.replace("판시함.", "판시함.\n\n")  # 법적 판단 개행 적용
         summary = summary.replace(". ", ".\n")  # 문장 끝 개행 추가
