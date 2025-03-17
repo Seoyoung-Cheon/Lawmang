@@ -261,14 +261,15 @@ const Detail = () => {
                 <div className="flex flex-col">
                   <span className="w-24 font-bold">판례내용:</span>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <span
-                      className="text-gray-800 leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
-                          precedentDetail?.판례내용 || "자료가 없습니다."
-                        ),
-                      }}
-                    />
+                  <span
+                    className="text-gray-800 leading-relaxed whitespace-pre-line"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(
+                        (precedentDetail?.판례내용 || "자료가 없습니다.")
+                          .replace(/\n/g, "<br />")
+                      ),
+                    }}
+                  />
                   </div>
                 </div>
               </div>

@@ -7,7 +7,6 @@ from app.services.consultation_detail_service import get_consultation_detail_by_
 from dotenv import load_dotenv
 
 load_dotenv()
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 router = APIRouter()
@@ -39,7 +38,7 @@ def fetch_consultation_detail(consultation_id: int):
         raise e
 
 
-# ✅ 판례 요약 생성
+# ✅ 판례 요약 생성 API
 @router.get("/precedent/summary/{pre_number}")
 async def get_precedent_summary(pre_number: int):
     """판례 번호를 받아 해당 판례의 요약을 반환하는 API"""
@@ -47,34 +46,46 @@ async def get_precedent_summary(pre_number: int):
     if pre_number <= 0:
         raise HTTPException(status_code=400, detail="유효하지 않은 판례 번호입니다.")
 
-    # 판례 정보 조회
-    query = """
-    SELECT c_name, court, j_date, c_number, pre_number, c_type, d_link
-    FROM precedent
-    WHERE pre_number = :pre_number;
-    """
-    params = {"pre_number": pre_number}
-    results = execute_sql(query, params)
-
-    if not results:
-        raise HTTPException(status_code=404, detail="해당 판례를 찾을 수 없습니다.")
-
-    precedent = dict(results[0])
-    precedent_text = f"판례명: {precedent['c_name']}\n법원: {precedent['court']}\n선고일자: {precedent['j_date']}\n판례번호: {precedent['pre_number']}\n판례 유형: {precedent['c_type']}"
-
     try:
-        # OpenAI 요약 호출
-        llm = get_openai_llm()
+        # ✅ 외부 API를 호출하여 판례 원문 가져오기
+        precedent_text = await fetch_external_precedent_detail(pre_number)
+
+        if not precedent_text:
+            raise HTTPException(status_code=404, detail="판례 내용을 찾을 수 없습니다.")
+
+        # ✅ 판례 요약을 위한 프롬프트 생성
         summary_prompt = f"""
-        다음 판례 내용을 바탕으로 상세한 요약을 생성해주세요. 
-        주요 판결 이유, 사건 개요 및 법률적 쟁점을 포함하여 5~7문장 이상의 요약을 작성해 주세요.
+        다음은 법원의 판결문입니다. 주어진 내용을 기반으로 판례의 핵심 내용을 요약해주세요.
         
-        판례 내용:
+        **요약 조건**
+        - 사건 개요, 1심 판결, 2심(원심) 판결, 대법원 판결 순으로 정리할 것
+        - 핵심 판결 이유와 법원이 적용한 법 조항을 포함할 것
+        - 법원의 판단이 바뀐 주요 이유를 명확히 설명할 것
+        - **최소 200자 이상의 상세한 요약을 생성할 것**
+        
+        **출력 예시**
+        - 사건 개요 : 피고인은 [사건 개요 요약] 혐의로 기소됨.
+        - 1심 판결 : 1심 법원은 [1심 판결 이유 및 적용 법 조항]을 근거로 유죄 판결을 선고함.
+        - 2심(원심) 판결 : 원심은 [원심 판단 이유]을 이유로 무죄를 선고함.
+        - 대법원 판결 : 대법원은 [대법원 판단 이유 및 판례 적용 법리]을 근거로 원심을 파기하고 환송 판결을 내림.
+        
+        **판례 원문**
         {precedent_text}
         """
-        summary = llm.invoke(summary_prompt)
 
-        return {"pre_number": pre_number, "summary": summary.content}
+        # ✅ OpenAI API 호출
+        llm = get_openai_llm()
+
+        # ✅ 개행을 명확하게 추가하여 OpenAI 응답을 처리
+        summary = str(llm.invoke(summary_prompt).content)
+        summary = summary.replace(". -", ".\n\n- ")  # 리스트 항목 개행 적용
+        summary = summary.replace("판시함.", "판시함.\n\n")  # 법적 판단 개행 적용
+        summary = summary.replace(". ", ".\n")  # 문장 끝 개행 추가
+
+        return {"pre_number": pre_number, "summary": summary}
+
+    except HTTPException as e:
+        raise e
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"요약 생성에 실패했습니다. 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail="판례 요약을 생성하는 중 오류가 발생했습니다. 다시 시도해주세요.")

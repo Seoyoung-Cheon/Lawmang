@@ -1,4 +1,6 @@
 import React from "react";
+import DOMPurify from "dompurify";
+
 
 const Popup = ({ isOpen, onClose, summary }) => {
   if (!isOpen) return null;
@@ -14,7 +16,12 @@ const Popup = ({ isOpen, onClose, summary }) => {
         </div>
 
         <div className="bg-gray-50 rounded-2xl p-6 h-[570px] overflow-y-auto">
-          <p className="text-gray-700">{summary || "요약을 불러오는 중입니다..."}</p>
+          <p
+            className="text-gray-700 whitespace-pre-line"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize((summary || "요약을 불러오는 중입니다...").replace(/\n/g, "<br />")),
+            }}
+          />
         </div>
       </div>
     </div>
