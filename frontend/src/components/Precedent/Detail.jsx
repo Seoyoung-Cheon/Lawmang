@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchCaseDetail } from "./precedentApi"; // API 요청 함수
+import { fetchCaseDetail, fetchPrecedentSummary } from "./precedentApi";
 import Popup from "./Popup";
 import DOMPurify from "dompurify"; // XSS 방지 라이브러리
 import loadingGif from "../../assets/loading.gif";
@@ -15,6 +15,7 @@ const Detail = () => {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [precedentDetail, setPrecedentDetail] = useState(null);
+  const [summary, setSummary] = useState(null);
   const [iframeUrl, setIframeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -91,6 +92,18 @@ const Detail = () => {
       fetchPrecedentDetail();
     }
   }, [id]);
+  
+  // 판례 요약 가져오기
+  const handleFetchSummary = async () => {
+    try {
+      setSummary(null); // 기존 요약 초기화
+      const summaryText = await fetchPrecedentSummary(id);
+      setSummary(summaryText);
+    } catch (error) {
+      console.error("요약 정보를 불러오는데 실패했습니다.");
+      setSummary("요약을 가져오는 중 오류가 발생했습니다.");
+    }
+  };
 
   // 뒤로가기 핸들러
   const handleGoBack = () => {
@@ -99,6 +112,7 @@ const Detail = () => {
     navigate(-1);
   };
 
+  // 로딩 상태 렌더링
   if (isLoading) {
     return (
       <div className="container">
@@ -114,6 +128,7 @@ const Detail = () => {
     );
   }
 
+  // 에러 상태 렌더링
   if (error) {
     return (
       <div className="container">
@@ -128,6 +143,7 @@ const Detail = () => {
     );
   }
 
+  // 판례 상세 정보가 없는 경우
   if (!precedentDetail) {
     return (
       <div className="container">
@@ -142,7 +158,7 @@ const Detail = () => {
     );
   }
 
-  // ✅ HTML 데이터일 경우 iframe으로 표시
+  // HTML 데이터일 경우 iframe으로 표시
   if (iframeUrl) {
     return (
       <div className="container">
@@ -216,7 +232,10 @@ const Detail = () => {
               <h2 className="text-3xl font-bold">판례 상세</h2>
               <div className="absolute right-[20px]">
                 <button
-                  onClick={() => setIsPopupOpen(true)}
+                  onClick={() => {
+                    setIsPopupOpen(true);
+                    handleFetchSummary();
+                  }}
                   className="px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
                 >
                   요약보기
@@ -224,6 +243,7 @@ const Detail = () => {
                 <Popup
                   isOpen={isPopupOpen}
                   onClose={() => setIsPopupOpen(false)}
+                  summary={summary}
                 />
               </div>
             </div>

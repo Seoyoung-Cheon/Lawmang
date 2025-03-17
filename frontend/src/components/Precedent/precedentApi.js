@@ -96,6 +96,23 @@ export async function fetchCaseDetail(pre_number) {
   return result;
 }
 
+/**
+ * 판례 요약 API 호출 함수 (중복 선언 문제 해결)
+ * @param {number|string} pre_number - 요약할 판례 번호.
+ * @returns {Promise<string>} - 판례 요약 결과
+ */
+export async function fetchPrecedentSummary(pre_number) {
+  if (!pre_number) throw new Error("유효한 pre_number가 필요합니다.");
+
+  const apiUrl = `/api/detail/precedent/summary/${pre_number}`;
+  console.log(`📌 [DEBUG] API 요청: ${apiUrl}`);  // ✅ 요청 URL 확인
+  const result = await fetchData(apiUrl);
+  console.log(`✅ [SUCCESS] 요약 응답:`, result); // ✅ 응답 로그 확인
+  return result?.summary || "요약 정보를 불러올 수 없습니다.";
+}
+
+
+// ✅ 판례 상세 정보 조회
 export async function fetchPrecedentInfo(precedent_id) {
   if (!precedent_id) throw new Error("유효한 precedent_id 필요합니다.");
 
