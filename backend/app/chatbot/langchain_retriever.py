@@ -63,7 +63,6 @@ class LangChainRetrieval:
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", return_messages=True
         )
-
         # ✅ LangChain 프롬프트 설정 (불필요한 요소 제거)
         self.prompt_template = PromptTemplate(
             template="""
