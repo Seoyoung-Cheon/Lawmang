@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../redux/slices/authSlice";
-import { useSendMessageMutation } from "../redux/slices/authApi";
+import axios from "axios";
 
 const Chatbot = () => {
   const navigate = useNavigate();
@@ -10,10 +10,10 @@ const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("general");
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState("");
-
-  const [sendMessage, { isLoading }] = useSendMessageMutation();
+  const [generalMessages, setGeneralMessages] = useState([]);
+  const [legalMessages, setLegalMessages] = useState([]);
+  const [userInput, setUserInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
@@ -21,6 +21,14 @@ const Chatbot = () => {
       setSelectedCategory("general");
     }
   }, [isAuthenticated]);
+
+  // messages 상태가 변경될 때마다 스크롤을 최하단으로 이동
+  useEffect(() => {
+    const chatContainer = document.querySelector(".messages-container");
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  }, [generalMessages, legalMessages]);
 
   const handleCategoryClick = (category) => {
     if (category === "legal" && !isAuthenticated) {
@@ -35,27 +43,76 @@ const Chatbot = () => {
     navigate("/login");
   };
 
-  // ✅ RTK Query를 사용하여 챗봇 메시지 전송
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  // messages 상태 제거하고 카테고리에 따라 메시지 선택
+  const currentMessages =
+    selectedCategory === "general" ? generalMessages : legalMessages;
+  const setCurrentMessages =
+    selectedCategory === "general" ? setGeneralMessages : setLegalMessages;
 
-    const newMessage = { role: "user", text: inputMessage };
-    setMessages([...messages, newMessage]);
-    setInputMessage("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userInput.trim()) return;
 
-    try {
-      const response = await sendMessage({
-        message: inputMessage,
-        category: selectedCategory,
-      }).unwrap(); // ✅ 응답 데이터 가져오기
+    // 사용자 메시지 추가
+    const userMessage = {
+      text: userInput,
+      isUser: true,
+      timestamp: new Date().toLocaleTimeString(),
+    };
 
-      setMessages((prev) => [...prev, { role: "bot", text: response.reply }]);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "bot", text: "오류가 발생했습니다. 다시 시도해주세요." },
-      ]);
+    // 현재 카테고리의 메시지 배열에 추가
+    setCurrentMessages((prev) => [...prev, userMessage]);
+    setUserInput("");
+    setIsTyping(true);
+
+    if (selectedCategory === "general") {
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/api/chatbot/search",
+          {
+            query: userInput,
+          }
+        );
+
+        setIsTyping(false);
+        const finalAnswer = response.data.data.final_answer;
+
+        const botMessage = {
+          text: "",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+
+        setGeneralMessages((prev) => [...prev, botMessage]);
+
+        let index = 0;
+        const timer = setInterval(() => {
+          if (index < finalAnswer.length) {
+            setGeneralMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                text: finalAnswer.slice(0, index + 1),
+              };
+              return updated;
+            });
+            index++;
+          } else {
+            clearInterval(timer);
+          }
+        }, 20);
+      } catch (error) {
+        setIsTyping(false);
+        console.error("API Error:", error);
+        const errorMessage = {
+          text: "죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setGeneralMessages((prev) => [...prev, errorMessage]);
+      }
     }
+    // 나중에 법률상담 API 추가 시 여기에 추가
   };
 
   return (
@@ -131,42 +188,67 @@ const Chatbot = () => {
           </div>
 
           {/* 챗봇 메시지 영역 */}
-          <div className="flex-1 p-6 overflow-y-auto ">
-            {messages.map((msg, index) => (
+          <div className="messages-container flex-1 p-6 overflow-y-auto">
+            {currentMessages.map((msg, index) => (
               <div
                 key={index}
                 className={`mb-4 ${
-                  msg.role === "user" ? "text-right" : "text-left"
+                  msg.isUser ? "flex justify-end" : "flex justify-start"
                 }`}
               >
-                <p
+                <div
                   className={`${
-                    msg.role === "user"
-                      ? "bg-[#a7a28f] text-white"
-                      : "bg-gray-200 text-black"
-                  } inline-block px-4 py-2 rounded-xl`}
+                    msg.isUser
+                      ? "bg-[#a7a28f] text-white relative before:content-[''] before:absolute before:right-0 before:top-[50%] before:translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-[#a7a28f]"
+                      : "bg-gray-200 text-black relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200"
+                  } px-4 py-2 rounded-xl max-w-[80%] relative`}
                 >
                   {msg.text}
-                </p>
+                </div>
               </div>
             ))}
+            {isTyping && (
+              <div className="flex justify-start mb-4">
+                <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200">
+                  <div className="flex gap-1.5">
+                    <div
+                      className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    ></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    ></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 입력창 */}
           <div className="p-6 border-t bg-gray-100 flex gap-3 rounded-b-xl">
             <input
               type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              className="flex-1 p-2 border rounded-xl focus:outline-none focus:border-Main"
               placeholder="메시지를 입력하세요..."
-              className="flex-1 px-4 py-3 border rounded-xl focus:outline-none"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
             />
             <button
-              onClick={handleSendMessage}
-              disabled={isLoading}
+              onClick={handleSubmit}
               className="px-6 py-3 bg-Main text-white rounded-xl"
             >
-              {isLoading ? "전송 중..." : "전송"}
+              전송
             </button>
           </div>
 
