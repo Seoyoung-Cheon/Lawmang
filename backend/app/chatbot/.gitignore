@@ -3,6 +3,7 @@
 
 # 모델 관련 파일
 /model/
+/2_bert/
 *.safetensors
 *.onnx
 *.pth

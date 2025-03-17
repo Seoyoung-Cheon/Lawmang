@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self):
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    
+    # 법률상담 챗봇
+    HF_TOKEN: str = os.getenv("HF_TOKEN")
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+    TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
+
+
+    if not HF_TOKEN:
+        raise ValueError("❌ 환경 변수 HF_TOKEN이 설정되지 않았습니다!")  
+    
 
 # ✅ 설정 객체 생성
 settings = Settings()
@@ -38,6 +48,11 @@ DB_NAME = settings.DB_NAME
 DB_USER = settings.DB_USER
 DB_PASSWORD = settings.DB_PASSWORD
 DB_PORT = settings.DB_PORT
+
+# 법률상담 챗봇
+HF_TOKEN = settings.HF_TOKEN
+OPENAI_API_KEY = settings.OPENAI_API_KEY
+TAVILY_API_KEY = settings.TAVILY_API_KEY
 
 # ✅ 개발 모드에서만 DB URL 출력 (보안 강화)
 if os.getenv("ENV") == "development":

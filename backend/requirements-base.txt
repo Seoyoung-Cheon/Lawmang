@@ -14,7 +14,7 @@ apscheduler
 
 # ✅ CrewAI 관련 패키지
 crewai
-exa_py
+tavily-python
 
 # ✅ LangChain 및 벡터 DB 관련
 langchain-huggingface

@@ -1,12 +1,21 @@
 from .config import (
+    # 데이터베이스 설정
     DATABASE_URL,
     DB_HOST,
     DB_NAME,
     DB_USER,
     DB_PASSWORD,
     DB_PORT,
-	SECRET_KEY,
+    
+    # JWT 관련
+    SECRET_KEY,
     ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    
+    # API 키
+    HF_TOKEN,
+    OPENAI_API_KEY,
+    TAVILY_API_KEY,
 )
 
 from .database import (
@@ -18,16 +27,23 @@ from .database import (
 )
 
 __all__ = [
-    # 설정 관련
+    # 데이터베이스 설정
     'DATABASE_URL',
     'DB_HOST',
     'DB_NAME',
     'DB_USER',
     'DB_PASSWORD',
     'DB_PORT',
-	'SECRET_KEY',
+    
+    # JWT 관련
+    'SECRET_KEY',
     'ALGORITHM',
-    'ACCESS_TOKEN_EXPIRE_MINUTES'
+    'ACCESS_TOKEN_EXPIRE_MINUTES',
+    
+    # API 키
+    'HF_TOKEN',
+    'OPENAI_API_KEY',
+    'TAVILY_API_KEY',
     
     # 데이터베이스 관련
     'Base',
