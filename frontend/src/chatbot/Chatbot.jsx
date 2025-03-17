@@ -236,19 +236,25 @@ const Chatbot = () => {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyPress={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !isTyping) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
               }}
               className="flex-1 p-2 border rounded-xl focus:outline-none focus:border-Main"
               placeholder="메시지를 입력하세요..."
+              disabled={isTyping}
             />
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 bg-Main text-white rounded-xl"
+              className={`px-6 py-3 ${
+                isTyping 
+                  ? "bg-gray-400 cursor-default" 
+                  : "bg-Main hover:bg-Main_hover"
+              } text-white rounded-xl transition-colors`}
+              disabled={isTyping}
             >
-              전송
+              {isTyping ? "답변 중..." : "전송"}
             </button>
           </div>
 
