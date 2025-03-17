@@ -5,7 +5,6 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [content, setContent] = useState("");
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [notificationDate, setNotificationDate] = useState("");
-  const [createdDate, setCreatedDate] = useState("");
 
   useEffect(() => {
     if (memoData) {
@@ -13,17 +12,11 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
       setContent(memoData.content || "");
       setIsNotificationEnabled(memoData.notification || false);
       setNotificationDate(memoData.event_date || "");
-      setCreatedDate(
-        memoData.created_at
-          ? new Date(memoData.created_at).toLocaleDateString()
-          : ""
-      );
     } else {
       setTitle("");
       setContent("");
       setIsNotificationEnabled(false);
       setNotificationDate("");
-      setCreatedDate("");
     }
   }, [memoData]);
 
@@ -43,7 +36,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="container mx-auto">
-        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[60px]">
+        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px]">
           {/* 상단 제목과 버튼 */}
           <div className="relative mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">

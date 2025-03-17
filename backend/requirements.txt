@@ -10,19 +10,29 @@ python-jose[cryptography]
 orjson
 httpx
 pgvector
+apscheduler
+
 # ✅ CrewAI 관련 패키지
 crewai
-exa_py
+tavily-python
 
 # ✅ LangChain 및 벡터 DB 관련
 langchain-huggingface
 langchain-core
 langchain
 langchain-community
+langchain_openai
+
 # ✅ NLP 및 모델 관련
 transformers
 pandas
-#
+--no-deps git+https://github.com/SKT-AI/KoBART#egg=kobart
+boto3
+
+# ✅ 벡터 DB 관련
 faiss-cpu
 torch
 kiwipiepy
+
+# 개발단계에서만 필요한 모듈
+langchain_teddynote

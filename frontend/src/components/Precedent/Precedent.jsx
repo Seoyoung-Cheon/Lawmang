@@ -9,6 +9,8 @@ import {
   MdKeyboardArrowRight,
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
+import { ImHammer2 } from "react-icons/im";
+import HighlightText from '../HighlightText';
 
 const Precedent = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -163,10 +165,20 @@ const Precedent = () => {
     }
   };
 
+  const renderTitle = (title) => (
+    <HighlightText text={title} highlight={searchQuery} />
+  );
+
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-0 pt-[135px] pb-10">
+          {/* 헤더 섹션 추가 */}
+          <div className="flex items-center gap-4 mb-8 ">
+            <ImHammer2 className="text-6xl text-Main mr-2" />
+            <h1 className="text-2xl font-medium">판례</h1>
+          </div>
+
           {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
@@ -178,7 +190,7 @@ const Precedent = () => {
                           transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                onKeyPress={handleKeyPress}
+                onK={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
@@ -252,13 +264,13 @@ const Precedent = () => {
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium truncate mb-4">
-                          {item.c_name}
+                          {renderTitle(item.c_name)}
                         </h3>
                         <div className="text-sm text-gray-600">
-                          {item.c_number}
+                          <HighlightText text={item.c_number} highlight={searchQuery} />
                         </div>
                         <div className="text-sm text-gray-600">
-                          {item.court} | {item.j_date}
+                          <HighlightText text={`${item.court} | ${item.j_date}`} highlight={searchQuery} />
                         </div>
                       </div>
                       <div

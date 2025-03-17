@@ -25,6 +25,8 @@ import ViewedList from "./components/MyLog/ViewedList";
 import MemoBoard from "./components/MyLog/MemoBoard";
 import MyLogsPage from "./components/MyLog/MyLogsPage";
 import ChatbotTest from "./chatbot/Chatbot_test/Chatbot_test";
+import Dictionary from "./components/Dictionary/Dictionary";
+
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
 
@@ -68,6 +70,7 @@ function AppContent() {
   const hideFooter = ["/login", "/signup", "/modify"].includes(
     location.pathname
   );
+
   // 챗봇을 숨길 경로 추가
   const hideChatbot = [
     "/login",
@@ -83,87 +86,27 @@ function AppContent() {
       {!hideChatbot && <Chatbot />}
       <div className="flex-grow">
         <Routes>
-          <Route
-            path="/"
-            element={<Main />}
-          />
-          <Route
-            path="/youtube"
-            element={<Youtube />}
-          />
-          <Route
-            path="/chatbot-test"
-            element={<ChatbotTest />}
-          />{" "}
-          {/* (╯°□°）╯︵ ┻━┻ */}
-          <Route
-            path="/consultation"
-            element={<Consultation />}
-          />
-          <Route
-            path="/precedent"
-            element={<Precedent />}
-          />
-          <Route
-            path="/template"
-            element={<Template />}
-          />
-          <Route
-            path="/template/:category"
-            element={<Template />}
-          />
-          <Route
-            path="/cardnews"
-            element={<Cardnews />}
-          />
-          <Route
-            path="/precedent/detail/:id"
-            element={<Detail />}
-          />
-          <Route
-            path="/cardnews/:id"
-            element={<Cardnews />}
-          />
-          <Route
-            path="/faq/:id"
-            element={<FAQ />}
-          />
-          <Route
-            path="/login"
-            element={<Login />}
-          />
-          <Route
-            path="/signup"
-            element={<Signup />}
-          />
-          <Route
-            path="/reset-password"
-            element={<ResetPassword />}
-          />
-          <Route
-            path="/modify"
-            element={<Modify />}
-          />
-          <Route
-            path="/consultation/detail/:id"
-            element={<ConsDetail />}
-          />
-          <Route
-            path="/mylog"
-            element={<MyLogsPage />}
-          />
-          <Route
-            path="/mylog/viewed"
-            element={<ViewedList />}
-          />
-          <Route
-            path="/mylog/memo"
-            element={<MemoBoard />}
-          />
-          <Route
-            path="/mylog/logs"
-            element={<MyLogsPage />}
-          />
+          <Route path="/" element={<Main />} />
+          <Route path="/youtube" element={<Youtube />} />
+          <Route path="/chatbot-test" element={<ChatbotTest />} />
+          <Route path="/consultation" element={<Consultation />} />
+          <Route path="/precedent" element={<Precedent />} />
+          <Route path="/template" element={<Template />} />
+          <Route path="/template/:category" element={<Template />} />
+          <Route path="/cardnews" element={<Cardnews />} />
+          <Route path="/precedent/detail/:id" element={<Detail />} />
+          <Route path="/cardnews/:id" element={<Cardnews />} />
+          <Route path="/faq/:id" element={<FAQ />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/modify" element={<Modify />} />
+          <Route path="/consultation/detail/:id" element={<ConsDetail />} />
+          <Route path="/mylog" element={<MyLogsPage />} />
+          <Route path="/mylog/viewed" element={<ViewedList />} />
+          <Route path="/mylog/memo" element={<MemoBoard />} />
+          <Route path="/mylog/logs" element={<MyLogsPage />} />
+          <Route path="/dictionary" element={<Dictionary />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

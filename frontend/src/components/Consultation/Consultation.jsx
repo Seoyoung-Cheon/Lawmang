@@ -12,6 +12,8 @@ import {
   MdKeyboardArrowRight,
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
+import { SlSpeech } from "react-icons/sl";
+import HighlightText from '../HighlightText';
 
 const Consultation = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -174,16 +176,26 @@ const Consultation = () => {
   const pageNumbers = getPageRange(totalPages);
   const currentItems = getCurrentItems();
 
+  const renderTitle = (title) => (
+    <HighlightText text={title} highlight={searchQuery} />
+  );
+  
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-0 pt-[135px] pb-10">
+          {/* 헤더 섹션*/}
+          <div className="flex items-center gap-4 mb-8">
+            <SlSpeech className="text-6xl text-Main" />
+            <h1 className="text-2xl font-medium">상담 사례</h1>
+          </div>
+
           {/* 검색창 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
-                placeholder="사례 검색..."
+                placeholder="궁금한 법률 상담 사례를 검색하세요..."
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
                           transition-colors duration-200 bg-gray-50/50 hover:bg-white"
@@ -273,13 +285,15 @@ const Consultation = () => {
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium truncate mb-4">
-                          {consultation.title}
+                          {renderTitle(consultation.title)}
                         </h3>
                         <p className="text-gray-600 text-sm mb-3 truncate">
-                          {consultation.question}
+                          <HighlightText text={consultation.question} highlight={searchQuery} />
                         </p>
                         <div className="flex justify-between items-center text-sm text-gray-500">
-                          <span>{consultation.category}</span>
+                          <span>
+                            <HighlightText text={consultation.category} highlight={searchQuery} />
+                          </span>
                           <span>{consultation.date}</span>
                         </div>
                       </div>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import documentStructure from "../../constants/document_structure.json";
 import PreviewModal from "./PreviewModal";
 import DocumentSection from "./DocumentSection";
+import { LuFileSearch } from "react-icons/lu";
 
 const categoryMapping = {
   all: "전체",
@@ -37,7 +38,7 @@ const Template = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearched, setIsSearched] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(false);
 
   // 선택된 카테고리 설정
   useEffect(() => {
@@ -49,18 +50,12 @@ const Template = () => {
   // 검색어 입력 핸들러
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    if (e.target.value === "") {
-      setIsSearched(false); // 검색어가 비어있으면 검색 상태 해제
-    }
   };
 
-  // 검색 버튼 클릭 핸들러
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      // 검색어가 있을 때만 검색 실행
-      setIsSearched(true);
-      setSelectedCategory("all");
-      navigate("/template/all");
+      setSearchTrigger(true); // ✅ 검색 실행
+      setSelectedCategory("all"); // ✅ 검색 시 전체에서 검색
     }
   };
 
@@ -74,9 +69,14 @@ const Template = () => {
   // 카테고리 선택 핸들러 수정
   const handleCategorySelect = (key) => {
     setSelectedCategory(key);
-    setIsSearched(false); // 카테고리 변경 시 검색 상태 초기화
     setSearchQuery(""); // 검색어도 초기화
+    setSearchTrigger(false);
     navigate(`/template/${key}`);
+  };
+
+  // ✅ `handleCategoryClick`을 `handleCategorySelect` 아래에 배치
+  const handleCategoryClick = (category) => {
+    handleCategorySelect(category);
   };
 
   // 미리보기 모달 닫기
@@ -96,16 +96,22 @@ const Template = () => {
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
-        <div className="px-4 sm:px-6 lg:px-8 xl:px-0 pt-[135px] pb-10">
-          {/* 검색바 수정 */}
+        <div className="px-0 pt-[135px] pb-10">
+          {/* 헤더 섹션 추가 */}
+          <div className="flex items-center gap-4 mb-8">
+            <LuFileSearch className="text-6xl text-Main" />
+            <h1 className="text-2xl font-medium">법률 서식</h1>
+          </div>
+
+          {/* 검색바 */}
           <div className="relative mb-8">
             <div className="relative w-full max-w-[900px]">
               <input
                 type="text"
-                placeholder="문서 검색..."
+                placeholder="필요한 법률 서식을 검색하세요..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 className="w-full p-4 pl-12 text-lg border border-gray-300 rounded-xl shadow-sm 
                          focus:outline-none focus:border-Main focus:ring-1 focus:ring-[#d7d5cc] 
                           transition-colors duration-200
@@ -143,7 +149,7 @@ const Template = () => {
             {Object.entries(categoryMapping).map(([key, value]) => (
               <button
                 key={key}
-                onClick={() => handleCategorySelect(key)}
+                onClick={() => handleCategoryClick(key)}
                 className={`px-3 py-1.5 border rounded-lg transition-colors duration-200
                   min-w-[100px] text-center
                   ${
@@ -163,9 +169,11 @@ const Template = () => {
             categoryMapping={categoryMapping}
             selectedCategory={selectedCategory}
             searchQuery={searchQuery}
-            isSearched={isSearched}
             setSelectedFile={setSelectedFile}
             setPreviewUrl={setPreviewUrl}
+            searchTrigger={searchTrigger}
+            setSearchTrigger={setSearchTrigger}
+            setSearchQuery={setSearchQuery}
           />
         </div>
       </div>

@@ -4,29 +4,49 @@ import openLicenseImg from "../../assets/open_license.jpg";
 import { TbCircleLetterQFilled, TbCircleLetterA } from "react-icons/tb";
 import { fetchConsultationDetail } from "./consultaionApi";
 import loadingGif from "../../assets/loading.gif";
-import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
+import { useCreateViewedMutation } from "../../redux/slices/historyApi";
 import { useSelector } from "react-redux";
 
 const ConsDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  const [createViewedLog] = useCreateViewedLogMutation();
+  const [createViewed] = useCreateViewedMutation();
 
   const [consultation, setConsultation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isViewedSaved, setIsViewedSaved] = useState(false);
 
   // ✅ 상담 사례 열람 기록 저장
   useEffect(() => {
-    if (user?.id && id) {
-      createViewedLog({
-        user_id: user.id,
-        consultation_id: id,
-        precedent_number: null,
-      });
-    }
-  }, [id, user, createViewedLog]);
+    const saveViewHistory = async () => {
+      if (!user?.id || !id || isViewedSaved) {
+        return;
+      }
+
+      try {
+        console.log('ConsDetail - 열람 기록 저장 시도:', {
+          시간: new Date().toISOString(),
+          user_id: user.id,
+          consultation_id: id
+        });
+
+        await createViewed({
+          user_id: user.id,
+          consultation_id: id,
+          precedent_id: null,
+        }).unwrap();
+
+        setIsViewedSaved(true);
+        console.log('ConsDetail - 열람 기록 저장 성공');
+      } catch (error) {
+        console.error('ConsDetail - 열람 기록 저장 실패:', error);
+      }
+    };
+
+    saveViewHistory();
+  }, [id, user, createViewed, isViewedSaved]);
 
   // 페이지 진입 시 스크롤 위치 초기화
   useEffect(() => {

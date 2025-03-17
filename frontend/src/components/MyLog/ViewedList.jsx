@@ -1,129 +1,116 @@
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { selectUser } from "../../redux/slices/authSlice";
 import {
-  useGetUserViewedLogsQuery,
-  useDeleteViewedLogMutation,
-} from "../../redux/slices/mylogApi";
-import { setViewedLogs, removeViewedLog } from "../../redux/slices/mylogSlice";
+  useDeleteViewedMutation,
+  useDeleteAllViewedMutation,
+} from "../../redux/slices/historyApi";
 import ViewLog from "./ViewLog";
 import { Link } from "react-router-dom";
 import DeleteConfirm from "./DeleteConfirm";
 import { fetchPrecedentInfo } from "../Precedent/precedentApi";
+import { useGetViewedQuery } from "../../redux/slices/historyApi";
+import { FaExchangeAlt } from "react-icons/fa";
 
-const ViewedList = () => {
+const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
   const user = useSelector(selectUser);
-  const dispatch = useDispatch();
-  const [viewMode, setViewMode] = useState("consultation");
-  const [deleteViewedLog] = useDeleteViewedLogMutation();
+  const [deleteViewed] = useDeleteViewedMutation();
+  const [deleteAllViewed] = useDeleteAllViewedMutation();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [logToDelete, setLogToDelete] = useState(null);
   const [isAllDelete, setIsAllDelete] = useState(false);
   const [caseDataMap, setCaseDataMap] = useState({});
+  const [sortOrder, setSortOrder] = useState("latest");
 
-  // ✅ 스크롤을 맨 위로 이동시키는 함수
-  const scrollToTop = () => {
-    const scrollContainer = document.querySelector(".viewed-logs-container");
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    }
-  };
-
-  // ✅ viewMode 변경 시 스크롤 유지
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    scrollToTop();
-  };
-
-  // ✅ API 요청 실행
   const {
-    data: viewedLogs = [],
-    isLoading,
-    error,
-  } = useGetUserViewedLogsQuery(user?.id, { skip: !user?.id });
+    data: viewedLogsData = [],
+    isLoading: viewedLogsLoading,
+    error: viewedLogsError,
+  } = useGetViewedQuery(user?.id, {
+    skip: !user?.id,
+  });
 
-  // Redux Store에 저장
-  useEffect(() => {
-    if (viewedLogs.length > 0) {
-      dispatch(setViewedLogs(viewedLogs));
-    }
-  }, [viewedLogs, dispatch]);
-
-  // ✅ 필터링된 로그 정렬 및 중복 제거
-  const filteredLogs = [...viewedLogs]
-    .sort((a, b) => new Date(b.viewed_at) - new Date(a.viewed_at))
-    .filter((log) => {
-      return viewMode === "consultation"
-        ? log.consultation_id && !log.precedent_number
-        : !log.consultation_id && log.precedent_number;
-    })
-    .filter((log, index, self) =>
-      viewMode === "consultation"
-        ? index === self.findIndex((l) => l.consultation_id === log.consultation_id)
-        : index === self.findIndex((l) => l.precedent_number === log.precedent_number)
-    );
+  // ✅ 정렬 로직이 포함된 필터링
+  const filteredLogs = useMemo(() => {
+    return [...viewedLogsData]
+      .sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
+      })
+      .filter((log, index, self) => {
+        if (log.consultation_id) {
+          return (
+            index ===
+            self.findIndex((l) => l.consultation_id === log.consultation_id)
+          );
+        }
+        return (
+          index === self.findIndex((l) => l.precedent_id === log.precedent_id)
+        );
+      });
+  }, [viewedLogsData, sortOrder]);
 
   // ✅ 판례 정보를 개별적으로 가져오기
   useEffect(() => {
     const fetchCaseData = async () => {
-      const newCaseDataMap = {}; 
+      const pendingPrecedents = filteredLogs.filter(
+        (log) => log.precedent_id && !caseDataMap[log.precedent_id]
+      );
 
-      const fetchPromises = filteredLogs.map(async (log) => {
-        if (log.precedent_number && !caseDataMap[log.precedent_number]) {
+      if (pendingPrecedents.length === 0) return;
+
+      const newCaseDataMap = { ...caseDataMap };
+
+      await Promise.all(
+        pendingPrecedents.map(async (log) => {
           try {
-            const data = await fetchPrecedentInfo(log.precedent_number);
+            const data = await fetchPrecedentInfo(log.precedent_id);
             if (data) {
-              newCaseDataMap[log.precedent_number] = {
+              newCaseDataMap[log.precedent_id] = {
                 title: data?.title || "제목 없음",
                 caseNumber: data?.caseNumber || "사건번호 없음",
                 court: data?.court || "법원 정보 없음",
                 date: data?.date || "날짜 없음",
               };
-            } else {
-              newCaseDataMap[log.precedent_number] = { title: "정보 없음" };
             }
           } catch (error) {
             console.error("📌 판례 정보 가져오기 실패:", error);
-            newCaseDataMap[log.precedent_number] = { title: "정보 없음" };
+            newCaseDataMap[log.precedent_id] = { title: "정보 없음" };
           }
-        }
-      });
+        })
+      );
 
-      await Promise.all(fetchPromises);
-      setCaseDataMap((prev) => ({ ...prev, ...newCaseDataMap }));
+      if (
+        Object.keys(newCaseDataMap).length !== Object.keys(caseDataMap).length
+      ) {
+        setCaseDataMap(newCaseDataMap);
+      }
     };
 
-    if (filteredLogs.length > 0) {
-      fetchCaseData();
-    }
-  }, [filteredLogs]);
-  
+    fetchCaseData();
+  }, [filteredLogs, caseDataMap]);
+
   // ✅ 열람 기록 삭제
   const handleDelete = async (logId) => {
     setLogToDelete(logId);
     setIsDeleteConfirmOpen(true);
   };
 
-  // ✅ 전체 삭제 핸들러
+  // ✅ 전체 삭제
   const handleDeleteAll = () => {
     if (!user?.id || filteredLogs.length === 0) return;
     setIsAllDelete(true);
     setIsDeleteConfirmOpen(true);
   };
 
-  // 삭제 확인 핸들러 수정
+  // ✅ 삭제 확인 핸들러
   const handleConfirmDelete = async () => {
     try {
       if (isAllDelete) {
-        // 전체 삭제
-        for (const log of filteredLogs) {
-          await deleteViewedLog(log.id);
-          dispatch(removeViewedLog(log.id));
-        }
+        await deleteAllViewed(user.id).unwrap();
       } else {
-        // 단일 삭제
-        await deleteViewedLog(logToDelete);
-        dispatch(removeViewedLog(logToDelete));
+        await deleteViewed(logToDelete).unwrap();
       }
     } catch (error) {
       console.error("삭제 중 오류 발생:", error);
@@ -136,32 +123,33 @@ const ViewedList = () => {
   return (
     <>
       <div className="border border-gray-300 rounded-lg bg-[#f5f4f2] overflow-hidden">
-        <div className="border-b border-gray-300 p-2 bg-[#a7a28f] flex items-center">
-          <div className="flex-1"></div>
-          <h2 className="font-medium text-white flex-1 text-center mr-[50px]">열람목록</h2>
+        <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
+          <div className="flex items-center gap-4 ml-4 w-[100px]">
+            <button
+              onClick={() =>
+                setSortOrder(sortOrder === "latest" ? "oldest" : "latest")
+              }
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
+            >
+              <FaExchangeAlt
+                className={`transition-transform duration-300 ${
+                  sortOrder === "oldest" ? "rotate-180" : ""
+                }`}
+              />
+              <span className="font-medium w-[60px]">
+                {sortOrder === "latest" ? "최신순" : "오래된순"}
+              </span>
+            </button>
+          </div>
+
+          <h2 className="font-medium text-white flex-1 text-center">
+            열람목록
+          </h2>
+
           <div className="flex items-center gap-4 mr-4">
-            <div className="flex bg-white rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleViewModeChange("consultation")}
-                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "consultation" ? "bg-[#8b7b6e] text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                상담사례
-              </button>
-              <button
-                onClick={() => handleViewModeChange("precedent")}
-                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "precedent" ? "bg-[#8b7b6e] text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                판례
-              </button>
-            </div>
-            {/* 전체 삭제 버튼 추가 */}
             <button
               onClick={handleDeleteAll}
-              className="flex items-center gap-1 text-white hover:underline"
+              className="flex items-center gap-1 text-white hover:text-red-500"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -182,31 +170,39 @@ const ViewedList = () => {
           </div>
         </div>
 
-        {/* ✅ 리스트 패널 크기 유지 */}
         <div className="h-[250px] px-4 pt-1 pb-4 overflow-y-auto viewed-logs-container">
-          {isLoading ? (
-            <p className="text-center">로딩 중...</p>
-          ) : error ? (
-            <p className="text-center text-red-500">오류 발생: {error.message}</p>
+          {viewedLogsLoading ? (
+            <div className="col-span-4 text-center text-gray-500 mt-[100px]">
+              로딩 중...
+            </div>
+          ) : viewedLogsError ? (
+            <div className="col-span-4 text-center text-red-500 mt-[150px]">
+              {viewedLogsError.status === 404
+                ? "열람 기록이 없습니다."
+                : "오류가 발생했습니다."}
+            </div>
           ) : filteredLogs.length === 0 ? (
-            <p className="text-center text-gray-500">
-              {viewMode === "consultation" ? "열람한 상담사례가 없습니다." : "열람한 판례가 없습니다."}
+            <p className="text-center text-gray-500 mt-[100px]">
+              열람한 기록이 없습니다.
             </p>
           ) : (
-            filteredLogs.map((log, index) => (
-              <div key={index} className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg">
+            filteredLogs.map((log) => (
+              <div
+                key={log.id}
+                className="border-b border-gray-200 relative group hover:bg-white hover:shadow-md rounded-lg"
+              >
                 <Link
                   to={
-                    log.precedent_number
-                      ? `/precedent/detail/${log.precedent_number}`
-                      : `/consultation/detail/${log.consultation_id}`
+                    log.consultation_id
+                      ? `/consultation/detail/${log.consultation_id}`
+                      : `/precedent/detail/${log.precedent_id}`
                   }
                   className="block w-full transition-all duration-200 group-hover:pl-2"
                 >
                   <ViewLog
                     consultation_id={log.consultation_id}
-                    precedent_number={log.precedent_number}
-                    precedentData={caseDataMap[log.precedent_number]}
+                    precedent_id={log.precedent_id}
+                    precedentData={caseDataMap[log.precedent_id]}
                   />
                 </Link>
                 <button

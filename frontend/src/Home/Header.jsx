@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CiLogin, CiUser } from "react-icons/ci";
+import { CiLogin, CiUser, CiLogout } from "react-icons/ci";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoClose } from "react-icons/io5";
 import { useLogoutUserMutation } from "../redux/slices/authApi";
@@ -20,8 +20,8 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const isDarkText = location.pathname === "/" && !isScrolled;
   const textColorClass = isDarkText ? "text-white" : "text-black";
-  const token = useSelector(selectToken); // ✅ Redux에서 토큰 가져오기
-  const [logoutUser] = useLogoutUserMutation(); // ✅ RTK Query 로그아웃 훅 사용
+  const token = useSelector(selectToken);
+  const [logoutUser] = useLogoutUserMutation();
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,22 +37,23 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 스크롤 방지추가
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isMenuOpen]);
-
   // 페이지 이동 시 모바일 메뉴 닫기
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
+
+  // 화면 크기 변경 감지하여 햄버거 메뉴 닫기
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // lg 브레이크포인트는 1024px
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // ✅ 로그아웃 버튼 클릭 시 실행
   const handleLogout = async () => {
@@ -115,7 +116,7 @@ const Header = () => {
                 to="/consultation"
                 className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
-                상담사례
+                상담 사례
               </Link>
             </li>
             <li>
@@ -132,6 +133,14 @@ const Header = () => {
                 className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
                 법률 서식
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dictionary"
+                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+              >
+                법률 용어
               </Link>
             </li>
           </ul>
@@ -215,7 +224,7 @@ const Header = () => {
           )}
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-Main transition-colors z-[160]"
+            className="text-gray-600 transition-transform duration-300 hover:rotate-90"
           >
             <IoClose className="w-7 h-7" />
           </button>
@@ -227,7 +236,7 @@ const Header = () => {
             to="/consultation"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
-            상담사례
+            상담 사례
           </Link>
           <Link
             to="/precedent"
@@ -240,6 +249,12 @@ const Header = () => {
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
             법률 서식
+          </Link>
+          <Link
+            to="/dictionary"
+            className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
+          >
+            법률 용어
           </Link>
         </div>
 
@@ -261,8 +276,9 @@ const Header = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="block w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
               >
+                <CiLogout className="w-5 h-5" />
                 로그아웃
               </button>
             </div>

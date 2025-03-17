@@ -5,30 +5,50 @@ import Popup from "./Popup";
 import DOMPurify from "dompurify"; // XSS 방지 라이브러리
 import loadingGif from "../../assets/loading.gif";
 import { useSelector } from "react-redux";
-import { useCreateViewedLogMutation } from "../../redux/slices/mylogApi";
+import { useCreateViewedMutation } from "../../redux/slices/historyApi";
 
 const Detail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  const [createViewedLog] = useCreateViewedLogMutation();
+  const [createViewed] = useCreateViewedMutation();
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [precedentDetail, setPrecedentDetail] = useState(null);
   const [iframeUrl, setIframeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isViewedSaved, setIsViewedSaved] = useState(false);  // 저장 여부 체크용
 
   // ✅ 판례 열람 기록 저장
   useEffect(() => {
-    if (user?.id && id) {
-      createViewedLog({
-        user_id: user.id,
-        consultation_id: null,
-        precedent_number: id,
-      });
-    }
-  }, [id, user, createViewedLog]);
+    const saveViewHistory = async () => {
+      if (!user?.id || !id || isViewedSaved) {  // isViewedSaved 체크 추가
+        return;
+      }
+
+      try {
+        console.log('Detail - 열람 기록 저장 시도:', {
+          시간: new Date().toISOString(),
+          user_id: user.id,
+          precedent_id: parseInt(id)
+        });
+
+        await createViewed({
+          user_id: user.id,
+          consultation_id: null,
+          precedent_id: parseInt(id),
+        }).unwrap();
+
+        setIsViewedSaved(true);  // 저장 완료 표시
+        console.log('Detail - 열람 기록 저장 성공');
+      } catch (error) {
+        console.error('Detail - 열람 기록 저장 실패:', error);
+      }
+    };
+
+    saveViewHistory();
+  }, [id, user, createViewed, isViewedSaved]);  // isViewedSaved 의존성 추가
 
   useEffect(() => {
     window.scrollTo(0, 0);

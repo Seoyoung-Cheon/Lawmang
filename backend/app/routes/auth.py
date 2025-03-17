@@ -10,9 +10,9 @@ from app.services.user_service import (
 from app.core.dependencies import get_current_user
 import re
 from typing import Any
-from app.models.mylog import UserActivityLog
 
 router = APIRouter()
+
 
 # ✅ 이메일 인증 코드 발송 API (PostgreSQL 저장)
 @router.post("/send-code")
@@ -107,7 +107,6 @@ def read_users_me(current_user: dict = Depends(get_current_user), db: Session = 
         "nickname": user.nickname,
         "id": user.id
     }
-
 
 
 # ✅ 로그아웃 API 추가 (JWT 토큰 무효화)

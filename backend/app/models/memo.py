@@ -11,7 +11,6 @@ class Memo(Base):
     user_id = Column(Integer, nullable=False)  # 🔥 외래 키 없이 관리
     title = Column(Text, nullable=True)  # 메모 제목
     content = Column(Text, nullable=True)  # 메모 내용
-    event_date = Column(Date, nullable=True)  # 관련 날짜 (YYYY-MM-DD 형식)
-    notification = Column(Boolean, default=False, server_default="false")  # 알림 설정 여부
+    event_date = Column(Date, nullable=True)  # 알림 날짜
+    notification = Column(Boolean, default=False, server_default="false")  # 알림 설정
     created_at = Column(DateTime, server_default=func.now())  # 메모 생성 시간
-    is_deleted = Column(Boolean, default=False)  # 삭제 여부 (기본값: False)

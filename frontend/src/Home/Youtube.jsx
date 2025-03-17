@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ImYoutube2 } from "react-icons/im";
+import { GrYoutube } from "react-icons/gr";
 import he from "he";
 
 const Youtube = () => {
@@ -126,25 +127,50 @@ const Youtube = () => {
         {loading && <div className="text-center p-4">로딩 중...</div>}
 
         <ul
-          className="grid grid-cols-2 gap-8 ml-[-100px]"
+          className="grid grid-cols-2 gap-6 ml-[-100px]"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           {currentVideos.map((video) => (
-            <li key={video.id.videoId} className="rounded-lg p-4">
-              <div className="w-full">
+            <li key={video.id.videoId} className="rounded-lg p-3 group">
+              <div className="w-[420px] overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
                 <a
                   href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="block relative"
                 >
-                  <img
-                    src={video.snippet.thumbnails.medium.url}
-                    alt={video.snippet.title}
-                    className="w-full h-[230px] object-cover rounded-xl transition-transform duration-300 hover:scale-105"
-                  />
-                  <div className="mt-4 text-xl font-medium text-gray-900 line-clamp-2 hover:text-gray-500">
-                    {he.decode(video.snippet.title)}
+                  {/* 썸네일 이미지 */}
+                  <div className="relative overflow-hidden rounded-t-xl">
+                    <img
+                      src={video.snippet.thumbnails.medium.url}
+                      alt={video.snippet.title}
+                      className="w-[420px] h-[200px] object-cover transition-all duration-300 
+                               group-hover:scale-105 group-hover:brightness-90"
+                    />
+                    {/* 호버 시 나타나는 플레이 버튼 오버레이 */}
+                    <div
+                      className="absolute inset-0 flex items-center justify-center 
+                                  bg-black bg-opacity-0 group-hover:bg-opacity-30 
+                                  transition-all duration-300"
+                    >
+                      <div
+                        className="transform scale-0 group-hover:scale-100 
+                                    transition-transform duration-300"
+                      >
+                        <GrYoutube className="text-white text-5xl opacity-80" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 제목 */}
+                  <div className="h-[80px] p-3 bg-white">
+                    <h3
+                      className="text-lg font-medium text-gray-900 line-clamp-2 
+                                 group-hover:text-Main transition-colors duration-300"
+                    >
+                      {he.decode(video.snippet.title)}
+                    </h3>
                   </div>
                 </a>
               </div>
@@ -153,7 +179,7 @@ const Youtube = () => {
         </ul>
 
         {/* 페이지네이션 UI */}
-        <div className="flex justify-center gap-3 mt-8 mb-[100px] ml-[-100px]">
+        <div className="flex justify-center gap-3 mt-8 mb-[100px] ml-[-130px]">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
             <button
               key={number}
