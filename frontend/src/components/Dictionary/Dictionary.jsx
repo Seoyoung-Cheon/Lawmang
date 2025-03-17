@@ -43,7 +43,7 @@ const Dictionary = () => {
       definition:
         "법적으로 요구할 수 있는 권리입니다. 예를 들어, 금전적 배상을 요구하는 권리나 특정 행동을 취하라는 요청을 할 수 있는 권리입니다.",
     },
-  ];  
+  ];
 
   const handleSearch = (e) => {
     e.preventDefault();
