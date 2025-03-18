@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../redux/slices/authSlice";
+import Logo from "../assets/icon-180.png";
 import axios from "axios";
 
 const Chatbot = () => {
@@ -188,14 +189,22 @@ const Chatbot = () => {
           </div>
 
           {/* 챗봇 메시지 영역 */}
-          <div className="messages-container flex-1 p-6 overflow-y-auto">
+          <div className="messages-container flex-1 py-6 pr-6 pl-0 overflow-y-auto">
             {currentMessages.map((msg, index) => (
               <div
                 key={index}
                 className={`mb-4 ${
-                  msg.isUser ? "flex justify-end" : "flex justify-start"
+                  msg.isUser ? "flex justify-end pr-0" : "flex justify-start items-center gap-4 pl-4"
                 }`}
               >
+                {/* 챗봇 프로필 이미지 */}
+                {!msg.isUser && (
+                  <img 
+                    src={Logo} 
+                    alt="Lawmang 로고" 
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  />
+                )}
                 <div
                   className={`${
                     msg.isUser
@@ -208,7 +217,13 @@ const Chatbot = () => {
               </div>
             ))}
             {isTyping && (
-              <div className="flex justify-start mb-4">
+              <div className="flex justify-start items-center gap-4 mb-4 pl-4">
+                {/* 타이핑 중일 때도 프로필 이미지 */}
+                <img 
+                  src={Logo} 
+                  alt="Lawmang 로고" 
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                />
                 <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200">
                   <div className="flex gap-1.5">
                     <div
@@ -313,5 +328,5 @@ const Chatbot = () => {
     </div>
   );
 };
-// ㅇㅇ
+
 export default Chatbot;

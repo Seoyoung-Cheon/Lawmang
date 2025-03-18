@@ -19,22 +19,22 @@ const Youtube = () => {
 
   // Intersection Observer 설정
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
+    const observerCallback = ([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      }
+    };
 
-    if (youtubeRef.current) {
-      observer.observe(youtubeRef.current);
+    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+
+    const currentRef = youtubeRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (youtubeRef.current) {
-        observer.unobserve(youtubeRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
@@ -141,7 +141,7 @@ const Youtube = () => {
   return (
     <div
       ref={youtubeRef}
-      className={`container !mt-[100px] !mb-[60px] transition-all duration-1000 transform 
+      className={`container !mt-[60px] !mb-[40px] transition-all duration-1000 transform 
         ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
         }`}
@@ -150,7 +150,7 @@ const Youtube = () => {
     >
       <div className="left-layout">
         <div className="mx-[-100px]">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
           </div>

@@ -13,22 +13,22 @@ const CardList = () => {
 
   // Intersection Observer 설정
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
+    const observerCallback = ([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      }
+    };
 
-    if (cardListRef.current) {
-      observer.observe(cardListRef.current);
+    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+
+    const currentRef = cardListRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (cardListRef.current) {
-        observer.unobserve(cardListRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
@@ -110,10 +110,10 @@ const CardList = () => {
                 <button
                   key={number}
                   onClick={() => handlePageChange(number)}
-                  className={`px-3 py-1 border rounded hover:bg-gray-50 ${
+                  className={`px-3 py-1 border rounded ${
                     currentPage === number
-                      ? "bg-gray-500 text-white"
-                      : "bg-white text-gray-700"
+                      ? "bg-gray-500 text-white hover:bg-gray-500"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   {number}
