@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ImYoutube2 } from "react-icons/im";
-import { GrYoutube } from "react-icons/gr";
+import { FaYoutube } from "react-icons/fa";
 import he from "he";
 
 const Youtube = () => {
@@ -139,7 +139,7 @@ const Youtube = () => {
                 key={video.id.videoId || video.id}
                 className="rounded-lg p-3 w-full max-w-[500px]"
               >
-                <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+                <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group">
                   <a
                     href={`https://www.youtube.com/watch?v=${
                       video.id.videoId || video.id
@@ -152,20 +152,11 @@ const Youtube = () => {
                       <img
                         src={video.snippet.thumbnails.medium.url}
                         alt={video.snippet.title}
-                        className="w-full h-[200px] object-cover transition-all duration-300 
-                                 group-hover:scale-105 group-hover:brightness-90"
+                        className="w-full h-[200px] object-cover transition-all duration-300"
                       />
-                      <div
-                        className="absolute inset-0 flex items-center justify-center 
-                                    bg-black bg-opacity-0 group-hover:bg-opacity-30 
-                                    transition-all duration-300"
-                      >
-                        <div
-                          className="transform scale-0 group-hover:scale-100 
-                                      transition-transform duration-300"
-                        >
-                          <GrYoutube className="text-white text-5xl opacity-80" />
-                        </div>
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <FaYoutube className="text-white text-5xl transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                       </div>
                     </div>
 
