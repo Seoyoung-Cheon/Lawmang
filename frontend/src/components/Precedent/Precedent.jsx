@@ -10,7 +10,7 @@ import {
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
 import { ImHammer2 } from "react-icons/im";
-import HighlightText from '../HighlightText';
+import HighlightText from "../HighlightText";
 
 const Precedent = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -190,7 +190,7 @@ const Precedent = () => {
                           transition-colors duration-200 bg-gray-50/50 hover:bg-white"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
-                onK={handleKeyPress}
+                onKeyPress={handleKeyPress}
               />
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <svg
@@ -267,10 +267,16 @@ const Precedent = () => {
                           {renderTitle(item.c_name)}
                         </h3>
                         <div className="text-sm text-gray-600">
-                          <HighlightText text={item.c_number} highlight={searchQuery} />
+                          <HighlightText
+                            text={item.c_number}
+                            highlight={searchQuery}
+                          />
                         </div>
                         <div className="text-sm text-gray-600">
-                          <HighlightText text={`${item.court} | ${item.j_date}`} highlight={searchQuery} />
+                          <HighlightText
+                            text={`${item.court} | ${item.j_date}`}
+                            highlight={searchQuery}
+                          />
                         </div>
                       </div>
                       <div
