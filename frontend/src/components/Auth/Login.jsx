@@ -5,18 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../../redux/slices/authSlice"; // ✅ Redux에 토큰 저장
 import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
-import { MdOutlinePersonOutline } from "react-icons/md";
 import { Link } from "react-router-dom";
-import { selectIsAuthenticated } from '../../redux/slices/authSlice';
-import { useAuth } from './AuthContext';
-import axios from 'axios';
+import { selectIsAuthenticated } from "../../redux/slices/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [credentials, setCredentialsState] = useState({ email: "", password: "" });
+  const [credentials, setCredentialsState] = useState({
+    email: "",
+    password: "",
+  });
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const { login } = useAuth();
 
   // ✅ FastAPI 로그인 API 호출
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
@@ -31,10 +30,12 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await loginUser(credentials).unwrap();
-      dispatch(setCredentials({ 
-        token: response.access_token,
-        user: response.user // 사용자 정보도 함께 저장
-      }));
+      dispatch(
+        setCredentials({
+          token: response.access_token,
+          user: response.user, // 사용자 정보도 함께 저장
+        })
+      );
       navigate("/");
     } catch (err) {
       alert("로그인 실패: " + (err.data?.detail || "서버 오류"));
@@ -43,7 +44,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
@@ -90,9 +91,17 @@ const Login = () => {
 
           {/* 비밀번호 재설정/회원가입 링크 */}
           <div className="text-center text-gray-600">
-            <Link to="/reset-password" className="hover:text-gray-800 hover:underline font-normal">비밀번호 찾기</Link>
+            <Link
+              to="/reset-password"
+              className="hover:text-gray-800 hover:underline font-normal"
+            >
+              비밀번호 찾기
+            </Link>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <Link to="/signup" className="hover:text-gray-800 hover:underline font-normal">
+            <Link
+              to="/signup"
+              className="hover:text-gray-800 hover:underline font-normal"
+            >
               회원가입 하기
             </Link>
           </div>
@@ -107,7 +116,11 @@ const Login = () => {
           </button>
 
           {/* 로그인 에러 메시지 표시 */}
-          {error && <p className="text-red-500 text-center">로그인 실패: {error.data?.detail || "서버 오류"}</p>}
+          {error && (
+            <p className="text-red-500 text-center">
+              로그인 실패: {error.data?.detail || "서버 오류"}
+            </p>
+          )}
         </form>
       </div>
     </div>
