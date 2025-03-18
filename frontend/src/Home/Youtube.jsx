@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ImYoutube2 } from "react-icons/im";
 import { FaYoutube } from "react-icons/fa";
@@ -12,6 +12,32 @@ const Youtube = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const videosPerPage = 4;
   const [autoPlay, setAutoPlay] = useState(true);
+
+  // 애니메이션을 위한 state와 ref 추가
+  const [isVisible, setIsVisible] = useState(false);
+  const youtubeRef = useRef(null);
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (youtubeRef.current) {
+      observer.observe(youtubeRef.current);
+    }
+
+    return () => {
+      if (youtubeRef.current) {
+        observer.unobserve(youtubeRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const lastRequestTime = localStorage.getItem("lastRequestTime");
@@ -114,7 +140,11 @@ const Youtube = () => {
 
   return (
     <div
-      className="container !mt-[100px] !mb-[60px]"
+      ref={youtubeRef}
+      className={`container !mt-[100px] !mb-[60px] transition-all duration-1000 transform 
+        ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+        }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -161,10 +191,7 @@ const Youtube = () => {
                     </div>
 
                     <div className="h-[80px] p-3 bg-white">
-                      <h3
-                        className="text-lg font-medium text-gray-900 line-clamp-2 
-                                   group-hover:text-Main transition-colors duration-300"
-                      >
+                      <h3 className="text-lg font-medium text-gray-900 line-clamp-2 group-hover:text-Main transition-colors duration-300">
                         {he.decode(video.snippet.title)}
                       </h3>
                     </div>

@@ -87,3 +87,8 @@ a {
   scrollbar-width: thin; /* Firefox에서 얇은 스크롤바 */
   scrollbar-color: #928e79 transparent; /* Firefox 색상 */
 }
+
+.scroll-section.show {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}

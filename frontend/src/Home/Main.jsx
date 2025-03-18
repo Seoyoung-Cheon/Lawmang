@@ -39,7 +39,7 @@ const Main = () => {
 
   return (
     <div className="overflow-x-hidden">
-      <div className="relative w-full h-screen">
+      <div className="fixed w-full h-screen">
         <div className="opacity-50 overlay w-full h-full bg-black left-0 top-0 z-10 absolute"></div>
         <div className="video_container w-screen h-screen absolute top-0 left-0 overflow-hidden">
           <video
@@ -56,7 +56,7 @@ const Main = () => {
         </div>
 
         {/* 메인 문구 */}
-        <div className="absolute bottom-[125px] left-20 z-20 text-white animate-slide-up">
+        <div className="fixed bottom-[125px] left-20 z-20 text-white">
           <h1 className="text-6xl font-bold mb-10">
             법망 안의 새로운 시작
             <br />
@@ -65,18 +65,28 @@ const Main = () => {
         </div>
 
         {/* 스크롤 유도 애니메이션 */}
-        <div className="absolute bottom-10 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
+        <div className="fixed bottom-10 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce">
           <HiOutlineChevronDoubleDown size={40} className="scale-x-130" />
         </div>
       </div>
-      {/* 왼쪽 여백만 추가 */}
-      <div className="ml-[100px]">
-        <Youtube />
-        <CardList />
-        <FAQ />
+
+      {/* 빈 공간을 위한 div는 유지 */}
+      <div className="relative h-screen"></div>
+
+      {/* 콘텐츠 섹션들 */}
+      <div className="relative z-10">
+        <div className="bg-gradient-to-b from-white/95 to-white backdrop-blur-md border-b border-gray-100 rounded-t-[20px]">
+          <Youtube />
+        </div>
+        <div className="bg-gradient-to-b from-white/95 to-white backdrop-blur-md border-b border-gray-200">
+          <CardList />
+        </div>
+        <div className="bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-md border-b border-gray-200">
+          <FAQ />
+        </div>
       </div>
 
-      {/* 맨위로 스크롤 버튼 */}
+      {/* 스크롤 탑 버튼 */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}

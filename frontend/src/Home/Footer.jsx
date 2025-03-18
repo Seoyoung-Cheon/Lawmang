@@ -3,8 +3,8 @@ import Logo from "../assets/icon-180.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#e1e0df] border-t min-h-[100px]">
-      <div className="container mx-auto">
+    <footer className="bg-[#e1e0df] border-t min-h-[100px] relative z-10">
+      <div className="container mx-auto bg-[#e1e0df]">
         <div className="flex items-start justify-between mt-10 py-8">
           {/* 로고 섹션 */}
           <div className="flex items-center mr-40 ml-[-50px] mt-5">
