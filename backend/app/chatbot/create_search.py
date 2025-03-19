@@ -16,8 +16,9 @@ from kiwipiepy import Kiwi
 from app.chatbot.langchain_retriever import LangChainRetrieval
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
-from app.chatbot.tool_agents.tools import search_precedents
-from app.chatbot.tool_agents.tools import search_consultations
+# from app.chatbot.tool_agents.tools import search_precedents
+from app.chatbot.tool_agents.tools import async_search_consultation
+from app.chatbot.tool_agents.tools import async_search_precedent
 
 # ✅ Kiwi 객체 전역 캐싱
 kiwi = Kiwi()
@@ -75,6 +76,21 @@ def filter_keywords_with_jaccard(user_keywords, faiss_keywords, threshold=0.15):
 
     return list(filtered_keywords)  # ✅ 최종 키워드 반환 (유저 키워드 포함)
 
+def filter_consultation_keywords(user_keywords, consultation_keywords, threshold=0.15):
+    """🔎 Jaccard 유사도를 활용하여 법률 상담 키워드를 필터링"""
+    filtered_keywords = set(user_keywords)  # ✅ 유저 입력 키워드는 무조건 포함
+
+    for cons_word in consultation_keywords:
+        cons_word_set = set(cons_word.split())  # ✅ 단어 단위로 분리
+        max_sim = max(
+            jaccard_similarity(cons_word_set, set(user_word.split()))
+            for user_word in user_keywords
+        )
+        if max_sim >= threshold:  # ✅ 일정 유사도 이상이면 추가
+            filtered_keywords.add(cons_word)
+
+    return list(filtered_keywords)  # ✅ 최종 필터링된 키워드 반환
+
 
 def adjust_faiss_keywords(user_input, faiss_keywords):
     """유저 입력 키워드와 FAISS 키워드를 모두 포함하여 검색"""
@@ -87,11 +103,11 @@ def adjust_faiss_keywords(user_input, faiss_keywords):
     return adjusted_keywords
 
 
-def extract_top_keywords_faiss(user_input, faiss_db, top_k=8):
+def extract_top_keywords_faiss(user_input, faiss_db, top_k=5):
     """FAISS 검색 후 상위 키워드 추출 (유저 입력 반영)"""
     print(f"🔍 [FAISS 키워드 추출] 입력: {user_input}")
 
-    search_results = faiss_db.similarity_search(user_input, k=16)
+    search_results = faiss_db.similarity_search(user_input, k=15)
     all_text = " ".join([doc.page_content for doc in search_results])
 
     faiss_keywords = extract_keywords(all_text, top_k)  # ✅ FAISS에서 추출한 키워드
@@ -101,22 +117,6 @@ def extract_top_keywords_faiss(user_input, faiss_db, top_k=8):
     )  # ✅ 유저 키워드 반영
     print(f"✅ [FAISS 최종 검색 키워드] {adjusted_keywords}")
     return adjusted_keywords
-
-
-def find_most_relevant_case(query, cases):
-    """가장 연관성이 높은 판례 선택"""
-    try:
-        embedding_model = HuggingFaceEmbeddings(
-            model_name="jhgan/ko-sroberta-multitask"
-        )
-        query_vector = embedding_model.embed_query(query)
-        case_vectors = [embedding_model.embed_query(case["c_name"]) for case in cases]
-        similarities = cosine_similarity([query_vector], case_vectors)[0]
-        most_relevant_index = np.argmax(similarities)
-        return cases[most_relevant_index]
-    except Exception as e:
-        print(f"❌ [유사도 계산 오류] {e}")
-        return cases[0]
 
 
 langchain_retriever = LangChainRetrieval()
@@ -208,49 +208,35 @@ def get_bart_model():
 
 executor = ThreadPoolExecutor(max_workers=10)
 
-
-async def async_search_precedent(keyword):
-    """비동기 SQL 판례 검색 (멀티스레딩 활용)"""
-    loop = asyncio.get_running_loop()  # ✅ Python 3.10+에서는 get_running_loop() 사용
-    return await loop.run_in_executor(executor, search_precedents, keyword)
-
-
-async def async_search_consultation(keyword):
-    """비동기 법률 상담 검색 (멀티스레딩 활용)"""
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(executor, search_consultations, keyword)
+executor = ThreadPoolExecutor(max_workers=10)
 
 
 async def search(query: str):
-    """FAISS + SQL + 법률 상담 검색 최적화 (비동기 적용)"""
+    """FAISS + SQL + 법률 상담 & 판례 검색 최적화 (비동기 적용)"""
     print(f"\n🔎 [INFO] 검색 실행: {query}")
 
+    # ✅ FAISS 로드
     faiss_db = load_faiss()
     if not faiss_db:
         print("❌ [오류] FAISS 데이터베이스를 로드할 수 없습니다.")
         return {"error": "FAISS 데이터베이스를 로드할 수 없습니다."}
 
-    # ✅ **FAISS 키워드 추출**
-    keywords = extract_top_keywords_faiss(query, faiss_db, 5)
-    print(f"✅ [FAISS 키워드 추출] {keywords}")
+    # ✅ 1단계: 검색 키워드 추출 (최대 5개 사용)
+    search_keywords = extract_top_keywords_faiss(query, faiss_db, top_k=5)
+    print(f"✅ [최종 검색 키워드]: {search_keywords}")
 
-    # ✅ **각 키워드별 판례 검색을 병렬 실행**
-    search_tasks = [
-        asyncio.create_task(async_search_precedent(keyword)) for keyword in keywords
-    ]
-    results_list = await asyncio.gather(*search_tasks)
+    # ✅ 2단계: 법률 상담 데이터 검색
+    (
+        consultation_results,
+        consultation_categories,
+        consultation_titles,
+    ) = await async_search_consultation(search_keywords)
 
-    # 😉 알아서 조정
-    all_results = [item for sublist in results_list for item in sublist]
-    unique_results = {r["pre_number"]: r for r in all_results}.values()
-    results_sql = list(unique_results)[:2]
-    print(f"✅ [SQL 최종 검색 결과] 총 {len(results_sql)}개 판례 선택")
-
-    if not results_sql:
-        print("❌ [SQL 검색 실패] 해당 판례를 찾을 수 없습니다.")
+    if not consultation_results:
+        print("❌ [SQL 검색 실패] 해당 상담 데이터를 찾을 수 없습니다.")
         return {
-            "search_result": "해당 판례를 찾을 수 없습니다.",
-            "keywords_used": keywords,
+            "search_result": "해당 상담 데이터를 찾을 수 없습니다.",
+            "keywords_used": search_keywords,
             "consultation_result": "법률 상담 검색 실패",
             "precedent_detail": "없음",
             "summary": "BART 모델이 로드되지 않음",
@@ -258,54 +244,73 @@ async def search(query: str):
             "final_answer": "관련 데이터를 찾을 수 없습니다.",
         }
 
-    # ✅ **가장 연관성 높은 판례 선택**
-    most_relevant_precedent = find_most_relevant_case(query, results_sql)
-    print(f"✅ [선택된 판례] {most_relevant_precedent['c_name']}")
-
-    # ✅ **판례 상세 정보**
-    precedent_detail = f"""
-     사건번호: {most_relevant_precedent["c_number"]}
-     사건종류: {most_relevant_precedent["c_type"]}
-     판결일: {most_relevant_precedent["j_date"]}
-     법원: {most_relevant_precedent["court"]}
-     내용요약: {most_relevant_precedent["c_name"]}
-     원문 링크: {most_relevant_precedent["d_link"]}
-    """
-
-    # ✅ **법률 상담 검색 키워드 추출**
-    consultation_keywords = extract_keywords(most_relevant_precedent["c_name"])
-
-    # ✅ **법률 상담 검색을 비동기 실행 (완전한 병렬화)**
-    consultation_tasks = [
-        asyncio.create_task(async_search_consultation(keyword))
-        for keyword in consultation_keywords
-    ]
-    consultation_results_list = await asyncio.gather(*consultation_tasks)
-
-    # ✅ **법률 상담 결과 병합 및 중복 제거**
-    all_consultations = [
-        item for sublist in consultation_results_list for item in sublist
-    ]
-    unique_consultations = {r["id"]: r for r in all_consultations}.values()
-    consultation_results = list(unique_consultations)[:5]  # ✅ 최대 5개 선택
-    print(f"✅ [법률 상담 검색 결과] 개수: {len(consultation_results)}")
-
-    # ✅ **법률 상담 결과를 `BART` 요약에 입력**
-    consultation_text = "\n\n".join(
-        [c["answer"] for c in consultation_results]  # ✅ 답변만 사용
+    # ✅ 3단계: 상담 데이터를 기반으로 판례 검색 (사용자 입력 키워드 추가)
+    precedent_results = await async_search_precedent(
+        consultation_categories,
+        consultation_titles,
+        search_keywords,  # ✅ 추가됨
     )
 
+    if not precedent_results:
+        print("❌ [SQL 검색 실패] 해당 판례를 찾을 수 없습니다.")
+        return {
+            "search_result": "해당 판례를 찾을 수 없습니다.",
+            "keywords_used": search_keywords,
+            "consultation_result": consultation_results,
+            "precedent_detail": "없음",
+            "summary": "BART 모델이 로드되지 않음",
+            "bert_prediction": "BERT 모델이 로드되지 않음",
+            "final_answer": "관련 데이터를 찾을 수 없습니다.",
+        }
+
+    # ✅ **가장 연관성 높은 판례 선택**
+    most_relevant_precedent = precedent_results[0] if precedent_results else None
+    print(f"✅ [선택된 판례]: {most_relevant_precedent}")
+
+    # ✅ **판례 상세 정보 생성**
+    precedent_detail = (
+        f"""
+        사건번호: {most_relevant_precedent["c_number"]}
+        사건종류: {most_relevant_precedent["c_type"]}
+        판결일: {most_relevant_precedent["j_date"]}
+        법원: {most_relevant_precedent["court"]}
+        내용요약: {most_relevant_precedent["c_name"]}
+        원문 링크: {most_relevant_precedent["d_link"]}
+        """
+        if most_relevant_precedent
+        else "해당 판례를 찾을 수 없습니다."
+    )
+
+    # ✅ **BART 요약 데이터 구성**
+    selected_answers = "\n\n".join(
+        [c["answer"] for c in consultation_results[:2]]
+    )  # 🔥 상담 데이터 답변 2개
+    selected_consultations = "\n\n".join(
+        [
+            f"ID: {c['id']}, 카테고리: {c['category']}, 서브 카테고리: {c['sub_category']}, 제목: {c['title']}, 질문: {c['question']}"
+            for c in consultation_results[:2]
+        ]
+    )  # 🔥 상담 데이터 2개
+
+    summary_input = f"""
+    [상담 답변 2개]
+    {selected_answers}
+
+    [상담 검색 데이터 2개]
+    {selected_consultations}
+    """
+
     # ✅ **BART 요약 수행**
-    summary = summarize_case(consultation_text, *get_bart_model())
+    summary = summarize_case(summary_input, *get_bart_model())
     print(f"✅ [BART 요약 완료] {summary[:100]}...")
 
-    # ✅ **LangChain을 활용한 최종 답변 생성**
+    # ✅ **최종 답변 생성**
     final_answer = langchain_retriever.generate_legal_answer(query, summary)
     print(f"✅ [LLM 최종 답변 생성 완료] {final_answer[:100]}...")
 
     return {
-        "search_result": results_sql,
-        "keywords_used": keywords,
+        "search_result": precedent_results,
+        "keywords_used": search_keywords,
         "consultation_result": consultation_results,
         "precedent_detail": precedent_detail,
         "summary": summary,
