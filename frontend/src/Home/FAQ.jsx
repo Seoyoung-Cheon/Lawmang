@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { GrCircleQuestion } from "react-icons/gr";
 import FAQdata from "../constants/FAQdata";
@@ -6,8 +6,31 @@ import FAQdata from "../constants/FAQdata";
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
+  const faqRef = useRef(null);
   const itemsPerPage = 4;
   const totalPages = Math.ceil(FAQdata.length / itemsPerPage);
+
+  useEffect(() => {
+    const observerCallback = ([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      }
+    };
+
+    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+
+    const currentRef = faqRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
 
   const toggleAnswer = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -25,9 +48,9 @@ const FAQ = () => {
   );
 
   return (
-    <div className="container !mt-[100px] !mb-[60px]">
+    <div ref={faqRef} className="container !mt-[100px] !mb-[60px] h-[500px]">
       <div className="left-layout">
-        <div className="flex items-center gap-4 mx-[-100px]">
+        <div className="flex items-center gap-4 mx-[-100px] -pt-12">
           <GrCircleQuestion className="text-6xl text-black" />
           <p className="text-2xl font-medium">자주 묻는 질문</p>
         </div>
@@ -37,7 +60,15 @@ const FAQ = () => {
             {displayedFAQs.map((faq, index) => (
               <div
                 key={index}
-                className="border-b border-gray-200 last:border-b-0 py-2"
+                className={`border-b border-gray-200 last:border-b-0 py-2
+                  transition-all duration-700 transform
+                  ${isVisible 
+                    ? 'translate-x-0 opacity-100' 
+                    : 'translate-x-[-50px] opacity-0'
+                  }`}
+                style={{ 
+                  transitionDelay: `${index * 150}ms`
+                }}
               >
                 <button
                   className={`w-full py-4 flex justify-between items-center text-left 
@@ -72,21 +103,25 @@ const FAQ = () => {
                     openIndex === index ? "max-h-40 pb-4" : "max-h-0"
                   }`}
                 >
-                  <p className="text-gray-600">{faq.answer}</p>
+                  <p className="text-gray-600 ml-8">{faq.answer}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* 페이지네이션 */}
-          <div className="flex justify-center mt-10 space-x-2 ml-[-120px]">
+          <div className={`flex justify-center mt-10 space-x-2 ml-[-120px]
+            transition-all duration-700 transform
+            ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
+            style={{ transitionDelay: `${displayedFAQs.length * 150}ms` }}
+          >
             {[...Array(totalPages).keys()].map((num) => (
               <button
                 key={num + 1}
-                className={`px-3 py-1 border rounded-md hover:bg-gray-50 ${
+                className={`px-3 py-1 border rounded-md ${
                   currentPage === num + 1
-                    ? "bg-gray-500 text-white"
-                    : "bg-white text-gray-700"
+                    ? "bg-gray-500 text-white hover:bg-gray-500"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
                 }`}
                 onClick={() => paginate(num + 1)}
               >

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ImYoutube2 } from "react-icons/im";
-import { GrYoutube } from "react-icons/gr";
+import { FaYoutube } from "react-icons/fa";
 import he from "he";
 
 const Youtube = () => {
@@ -12,6 +12,32 @@ const Youtube = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const videosPerPage = 4;
   const [autoPlay, setAutoPlay] = useState(true);
+
+  // 애니메이션을 위한 state와 ref 추가
+  const [isVisible, setIsVisible] = useState(false);
+  const youtubeRef = useRef(null);
+
+  // Intersection Observer 설정
+  useEffect(() => {
+    const observerCallback = ([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      }
+    };
+
+    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+
+    const currentRef = youtubeRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const lastRequestTime = localStorage.getItem("lastRequestTime");
@@ -114,13 +140,17 @@ const Youtube = () => {
 
   return (
     <div
-      className="container !mt-[100px] !mb-[60px]"
+      ref={youtubeRef}
+      className={`container !mt-[60px] !mb-[40px] transition-all duration-1000 transform 
+        ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+        }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div className="left-layout">
         <div className="mx-[-100px]">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
           </div>
@@ -139,7 +169,7 @@ const Youtube = () => {
                 key={video.id.videoId || video.id}
                 className="rounded-lg p-3 w-full max-w-[500px]"
               >
-                <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+                <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group">
                   <a
                     href={`https://www.youtube.com/watch?v=${
                       video.id.videoId || video.id
@@ -152,28 +182,16 @@ const Youtube = () => {
                       <img
                         src={video.snippet.thumbnails.medium.url}
                         alt={video.snippet.title}
-                        className="w-full h-[200px] object-cover transition-all duration-300 
-                                 group-hover:scale-105 group-hover:brightness-90"
+                        className="w-full h-[200px] object-cover transition-all duration-300"
                       />
-                      <div
-                        className="absolute inset-0 flex items-center justify-center 
-                                    bg-black bg-opacity-0 group-hover:bg-opacity-30 
-                                    transition-all duration-300"
-                      >
-                        <div
-                          className="transform scale-0 group-hover:scale-100 
-                                      transition-transform duration-300"
-                        >
-                          <GrYoutube className="text-white text-5xl opacity-80" />
-                        </div>
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <FaYoutube className="text-white text-5xl transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                       </div>
                     </div>
 
                     <div className="h-[80px] p-3 bg-white">
-                      <h3
-                        className="text-lg font-medium text-gray-900 line-clamp-2 
-                                   group-hover:text-Main transition-colors duration-300"
-                      >
+                      <h3 className="text-lg font-medium text-gray-900 line-clamp-2 group-hover:text-Main transition-colors duration-300">
                         {he.decode(video.snippet.title)}
                       </h3>
                     </div>
