@@ -19,7 +19,6 @@ load_dotenv()
 HF_TOKEN = os.environ.get("HF_TOKEN")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-search_tool = TavilySearchResults(max_results=1)
 # ----------------------------------------------------------#
 HUGGINGFACE_REPO_ID = "meta-llama/Llama-3.3-70B-Instruct"
 #-----------------------------------------------------------#
@@ -50,6 +49,54 @@ def load_llm(use_chatgpt=True):
     except Exception as e:
         print(f"❌ [LLM 로드 오류] {e}")
         return None
+    
+class LawGoKRTavilySearch:
+    """
+    Tavily를 사용하여 law.go.kr에서만 검색하도록 제한하는 클래스
+    """
+    def __init__(self, max_results=1):  # ✅ 검색 결과 개수 조정 가능
+        self.search_tool = TavilySearchResults(max_results=max_results)
+
+    def run(self, query):
+        """
+        Tavily를 사용하여 특정 URL(law.go.kr)에서만 검색 실행
+        """
+        # ✅ 특정 사이트(law.go.kr)에서만 검색하도록 site 필터 적용
+        site_restrict_query = f"site:law.go.kr {query}"
+
+        try:
+            # ✅ Tavily 검색 실행
+            results = self.search_tool.run(site_restrict_query)
+
+            # ✅ 결과 출력 (디버깅용)
+            print("🔍 Tavily 응답:", results)
+
+            # ✅ 응답이 리스트인지 확인
+            if not isinstance(results, list):
+                return (
+                    f"❌ Tavily 검색 오류: 결과가 리스트가 아닙니다. ({type(results)})"
+                )
+
+            # ✅ `law.go.kr`이 포함된 결과만 필터링
+            filtered_results = [
+                result
+                for result in results
+                if isinstance(result, dict)
+                and "url" in result
+                and "law.go.kr" in result["url"]
+            ]
+
+            # ✅ 검색 결과가 없을 경우 처리
+            if not filtered_results:
+                return "❌ 관련 법률 정보를 찾을 수 없습니다."
+
+            return filtered_results
+        except Exception as e:
+            return f"❌ Tavily 검색 오류: {str(e)}"
+
+
+search_tool = LawGoKRTavilySearch(max_results=1)
+
 
 class LangChainRetrieval:
     """LangChain 기반 법률 응답 생성 클래스"""
@@ -79,11 +126,10 @@ class LangChainRetrieval:
     **Tavily Search Result:**
     {search_result}
 
-    Relevant case summary:
+   **AI-generated case summary **
     {summary}
 
-
-Now, provide your answer in fluent, formal Korean:
+    Now, based on both the Tavily search result and the AI-generated summary, provide a refined legal answer in fluent, formal Korean:
 """,
             input_variables=[
                 "chat_history",
@@ -102,13 +148,11 @@ Now, provide your answer in fluent, formal Korean:
         try:
             chat_history = self.memory.load_memory_variables({}).get("chat_history", "")
 
-            search_result = search_tool.run(user_query)
-
             prompt = self.prompt_template.format(
                 chat_history=chat_history,
                 user_query=user_query,
-                search_tool="https://stdict.korean.go.kr/main/main.do",
-                search_result=search_result,
+                search_tool="Tavily Legal Search",
+                search_result=search_tool.run(user_query),
                 summary=summary,
             )
 
