@@ -5,7 +5,7 @@ conda create --prefix C:/conda_envs/lawmang_env python=3.11
 conda activate C:/conda_envs/lawmang_env
 
 - 패키지 설치
-pip install -r requirements.txt
+pip install -r requirements-base.txt
 pip install --no-deps -r requirements-kobart.txt
 
 # FastAPI 터미널에서 실행 (uvicorn 사용)
