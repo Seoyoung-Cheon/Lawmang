@@ -70,7 +70,7 @@ const Main = () => {
           </div>
 
           {/* 스크롤 유도 애니메이션 */}
-          <div 
+          <div
             onClick={handleScrollDown}
             className="fixed bottom-10 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce cursor-pointer"
           >
@@ -80,15 +80,24 @@ const Main = () => {
       </div>
 
       {/* 콘텐츠 섹션들 */}
-      <div ref={contentRef} className="relative z-10 flex flex-col -space-y-[1px] w-full overflow-hidden">
+      <div
+        ref={contentRef}
+        className="relative z-10 flex flex-col -space-y-[1px] w-full overflow-hidden"
+      >
         <div className="bg-white border-b border-gray-100 rounded-t-[20px] w-full overflow-hidden">
-          <Youtube />
+          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+            <Youtube />
+          </div>
         </div>
         <div className="bg-gray-100 w-full">
-          <CardList />
+          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+            <CardList />
+          </div>
         </div>
-        <div className="bg-white  w-full">
-          <FAQ />
+        <div className="bg-white w-full">
+          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+            <FAQ />
+          </div>
         </div>
       </div>
 
