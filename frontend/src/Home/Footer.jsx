@@ -16,11 +16,11 @@ const Footer = () => {
 
           {/* 회사 정보 섹션 */}
           <div className="text-gray-600 text-base mb-5 -mt-2">
-            <p className="mb-7">
+            <p className="mb-5">
               Lawmang | AI 법률 자문 및 판례 검색은 Lawmang <br />
               AI로 빠르고 정확한 법률 자문을 받고, 최신 판례를 확인하세요.
             </p>
-            <p className="mt-8 mb-3">
+            <p className="mt-6 mb-3">
               서울특별시 금천구 주소 가산디지털2로 144 현대테라타워 가산DK A동
               20층 2013~2018호
             </p>
