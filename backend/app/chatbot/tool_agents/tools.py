@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import requests
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from langchain.tools import Tool
@@ -92,13 +93,19 @@ async def async_search_consultation(keywords):
     SET pg_trgm.similarity_threshold = 0.04;
 
     WITH filtered_by_category AS (
-        SELECT id, category, sub_category, title, question, answer,
-               GREATEST({", ".join([f"similarity(sub_category, '{kw}')" for kw in keywords])}) AS max_score
-        FROM legal_consultation
-        WHERE sub_category % ANY(ARRAY[{formatted_keywords}])
-        ORDER BY max_score DESC
-        LIMIT 50
+    SELECT id, category, sub_category, title, question, answer,
+           (
+               (GREATEST({", ".join([f"COALESCE(similarity(title, '{kw}'), 0)" for kw in keywords])}) * 0.6)  -- ✅ title 가중치 90%
+               +
+               (GREATEST({", ".join([f"COALESCE(similarity(sub_category, '{kw}'), 0)" for kw in keywords])}) * 0.4)  -- ✅ sub_category 가중치 10%
+           ) AS weighted_score  -- ✅ 가중 평균 적용
+    FROM legal_consultation
+    WHERE (sub_category % ANY(ARRAY[{formatted_keywords}]) OR title % ANY(ARRAY[{formatted_keywords}]))  -- ✅ title도 검색 조건에 포함
+    ORDER BY weighted_score DESC
+    LIMIT 50
     )
+
+
     SELECT fc.id, fc.category, fc.sub_category, fc.title, fc.question, fc.answer,
            GREATEST({", ".join([f"similarity(fc.question, '{kw}')" for kw in keywords])}) AS question_score,
            GREATEST({", ".join([f"similarity(fc.answer, '{kw}')" for kw in keywords])}) AS answer_score,
@@ -183,7 +190,7 @@ async def async_search_precedent(categories, titles, user_input_keywords):
             OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{t}%'" for t in title_words])}])
         )
         ORDER BY avg_score DESC
-        LIMIT 50
+        LIMIT 10
     )
     SELECT fp.id, fp.c_number, fp.c_type, fp.j_date, fp.court, fp.c_name, fp.d_link,
         (
@@ -193,7 +200,7 @@ async def async_search_precedent(categories, titles, user_input_keywords):
         ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS final_avg_score
     FROM filtered_precedents fp
     ORDER BY final_avg_score DESC
-    LIMIT 20;
+    LIMIT 5;
     """
 
     print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
@@ -207,12 +214,61 @@ async def async_search_precedent(categories, titles, user_input_keywords):
 
 
 # ---------------------------------------------------------------------------------
+
+async def search_tavily_for_precedents(precedent: dict):
+    """
+    📌 선택된 판례에 대해 Tavily를 이용한 요약을 시도하되,
+    precSeq와 정확히 일치하는 결과만 사용함.
+    """
+    tavily_result = "❌ Tavily 요약 정보를 찾을 수 없습니다."
+    casenote_url = ""
+
+    if not precedent:
+        return tavily_result, casenote_url
+
+    # ✅ precSeq 추출
+    d_link = precedent.get("d_link", "")
+    if "ID=" not in d_link:
+        return tavily_result, casenote_url
+
+    prec_seq = d_link.split("ID=")[-1].split("&")[0]
+    casenote_url = f"https://law.go.kr/LSW/precInfoP.do?precSeq={prec_seq}"
+
+    # ✅ search_tool 인스턴스 생성 (내부에서 정의)
+    search_tool = LawGoKRTavilySearch(max_results=5)
+    query_path = f"/LSW/precInfoP.do?precSeq={prec_seq}"
+
+    try:
+        results = search_tool.run(query_path)
+
+        if isinstance(results, list):
+            for result in results:
+                url = result.get("url", "")
+                content = (
+                    result.get("content") or result.get("snippet") or result.get("text")
+                )
+
+                if url and f"precSeq={prec_seq}" in url and content:
+                    tavily_result = content
+                    casenote_url = url
+                    break
+                else:
+                    print(f"⚠️ [Tavily 불일치] 요청: {prec_seq} | 응답: {url}")
+        elif isinstance(results, str):
+            print(f"❗ Tavily 오류 메시지: {results}")
+    except Exception as e:
+        print(f"❌ [Tavily 요청 실패]: {e}")
+
+    return tavily_result, casenote_url
+
+
+# ---------------------------------------------------------------------------------
 class LawGoKRTavilySearch:
     """
     Tavily를 사용하여 law.go.kr에서만 검색하도록 제한하는 클래스
     """
 
-    def __init__(self, max_results=1):  # ✅ 검색 결과 개수 조정 가능
+    def __init__(self, max_results=3):  # ✅ 검색 결과 개수 조정 가능
         self.search_tool = TavilySearchResults(max_results=max_results)
 
     def run(self, query):
@@ -225,9 +281,6 @@ class LawGoKRTavilySearch:
         try:
             # ✅ Tavily 검색 실행
             results = self.search_tool.run(site_restrict_query)
-
-            # ✅ 결과 출력 (디버깅용)
-            print("🔍 Tavily 응답:", results)
 
             # ✅ 응답이 리스트인지 확인
             if not isinstance(results, list):

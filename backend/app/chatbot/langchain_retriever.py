@@ -335,3 +335,4 @@ class summary_agent:
 #             return response if response else "❌ 정상적인 응답을 생성하지 못했습니다."
 #         except Exception as e:
 #             return f"❌ LLM 오류: {str(e)}"
+

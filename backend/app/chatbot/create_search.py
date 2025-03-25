@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 # from app.chatbot.tool_agents.tools import search_precedents
 from app.chatbot.tool_agents.tools import async_search_consultation
 from app.chatbot.tool_agents.tools import async_search_precedent
+from app.chatbot.tool_agents.tools import search_tavily_for_precedents
 
 # ✅ Kiwi 객체 전역 캐싱
 kiwi = Kiwi()
@@ -208,24 +209,23 @@ def get_bart_model():
 
 executor = ThreadPoolExecutor(max_workers=10)
 
-executor = ThreadPoolExecutor(max_workers=10)
 
 
 async def search(query: str):
     """FAISS + SQL + 법률 상담 & 판례 검색 최적화 (비동기 적용)"""
     print(f"\n🔎 [INFO] 검색 실행: {query}")
 
-    # ✅ FAISS 로드
+    # ✅ 1. FAISS 로드
     faiss_db = load_faiss()
     if not faiss_db:
         print("❌ [오류] FAISS 데이터베이스를 로드할 수 없습니다.")
         return {"error": "FAISS 데이터베이스를 로드할 수 없습니다."}
 
-    # ✅ 1단계: 검색 키워드 추출 (최대 5개 사용)
+    # ✅ 2. 검색 키워드 추출 (최대 5개 사용)
     search_keywords = extract_top_keywords_faiss(query, faiss_db, top_k=5)
     print(f"✅ [최종 검색 키워드]: {search_keywords}")
 
-    # ✅ 2단계: 법률 상담 데이터 검색
+    # ✅ 3. 법률 상담 데이터 검색
     (
         consultation_results,
         consultation_categories,
@@ -244,11 +244,11 @@ async def search(query: str):
             "final_answer": "관련 데이터를 찾을 수 없습니다.",
         }
 
-    # ✅ 3단계: 상담 데이터를 기반으로 판례 검색 (사용자 입력 키워드 추가)
+    # ✅ 4. 상담 기반 판례 검색
     precedent_results = await async_search_precedent(
         consultation_categories,
         consultation_titles,
-        search_keywords,  # ✅ 추가됨
+        search_keywords,
     )
 
     if not precedent_results:
@@ -263,35 +263,33 @@ async def search(query: str):
             "final_answer": "관련 데이터를 찾을 수 없습니다.",
         }
 
-    # ✅ **가장 연관성 높은 판례 선택**
-    most_relevant_precedent = precedent_results[0] if precedent_results else None
+    # ✅ 5. 가장 연관성 높은 판례 선택
+    most_relevant_precedent = precedent_results[0]
     print(f"✅ [선택된 판례]: {most_relevant_precedent}")
 
-    # ✅ **판례 상세 정보 생성**
-    precedent_detail = (
-        f"""
-        사건번호: {most_relevant_precedent["c_number"]}
-        사건종류: {most_relevant_precedent["c_type"]}
-        판결일: {most_relevant_precedent["j_date"]}
-        법원: {most_relevant_precedent["court"]}
-        내용요약: {most_relevant_precedent["c_name"]}
-        원문 링크: {most_relevant_precedent["d_link"]}
-        """
-        if most_relevant_precedent
-        else "해당 판례를 찾을 수 없습니다."
+    # ✅ 6. Tavily 요약 검색
+    tavily_result, casenote_url = await search_tavily_for_precedents(
+        most_relevant_precedent
     )
 
-    # ✅ **BART 요약 데이터 구성**
-    selected_answers = "\n\n".join(
-        [c["answer"] for c in consultation_results[:2]]
-    )  # 🔥 상담 데이터 답변 2개
+    # ✅ 7. 판례 상세 정보 구성
+    precedent_detail = f"""
+    사건번호: {most_relevant_precedent["c_number"]}
+    사건종류: {most_relevant_precedent["c_type"]}
+    판결일: {most_relevant_precedent["j_date"]}
+    법원: {most_relevant_precedent["court"]}
+    내용요약: {tavily_result}
+    원문 링크: {casenote_url}
+    """
+
+    # ✅ 8. BART 요약 생성 입력 준비
+    selected_answers = "\n\n".join([c["answer"] for c in consultation_results[:2]])
     selected_consultations = "\n\n".join(
         [
             f"ID: {c['id']}, 카테고리: {c['category']}, 서브 카테고리: {c['sub_category']}, 제목: {c['title']}, 질문: {c['question']}"
             for c in consultation_results[:2]
         ]
-    )  # 🔥 상담 데이터 2개
-
+    )
     summary_input = f"""
     [상담 답변 2개]
     {selected_answers}
@@ -300,14 +298,15 @@ async def search(query: str):
     {selected_consultations}
     """
 
-    # ✅ **BART 요약 수행**
+    # ✅ 9. BART 요약 수행
     summary = summarize_case(summary_input, *get_bart_model())
     print(f"✅ [BART 요약 완료] {summary[:100]}...")
 
-    # ✅ **최종 답변 생성**
+    # ✅ 10. 최종 답변 생성
     final_answer = langchain_retriever.generate_legal_answer(query, summary)
     print(f"✅ [LLM 최종 답변 생성 완료] {final_answer[:100]}...")
 
+    # ✅ 11. 결과 반환
     return {
         "search_result": precedent_results,
         "keywords_used": search_keywords,
@@ -315,6 +314,8 @@ async def search(query: str):
         "precedent_detail": precedent_detail,
         "summary": summary,
         "final_answer": final_answer,
+        "tavily_result": tavily_result,
+        "casenote_url": casenote_url,
     }
 
 
