@@ -10,7 +10,7 @@ const Footer = () => {
           <div className="flex items-center mr-40 ml-[-50px] mt-5">
             <img src={Logo} alt="로망 로고" className="h-20 w-auto" />
             <div className="ml-4">
-              <h2 className="text-3xl font-basic">Lawmang</h2>
+              <h2 className="text-3xl font-basic font-['Oswald']">Lawmang</h2>
             </div>
           </div>
 

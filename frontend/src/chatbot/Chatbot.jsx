@@ -150,7 +150,7 @@ const Chatbot = () => {
           )}
 
           <div className="p-6 bg-Main text-white rounded-t-xl">
-            <h3 className="text-2xl">Lawmang 챗봇</h3>
+            <h3 className="text-2xl  font-['Oswald']">Lawmang 챗봇</h3>
           </div>
 
           <div className="flex justify-between p-4 border-b">
@@ -180,7 +180,7 @@ const Chatbot = () => {
               </button>
               {selectedCategory === "general" && (
                 <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] 2xl:leading-5 whitespace-nowrap">
-                  ※ 구체적이고 전문적인 '법률상담'이 필요한 경우
+                  ※ '법률용어' 풀이가 필요한 경우
                   <br />
                   로그인 후 이용 가능합니다.
                 </p>
