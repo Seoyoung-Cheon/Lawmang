@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from app.chatbot import create_search
+from backend.app.chatbot import main
 import uvicorn
 import asyncio
 import sys
@@ -53,7 +53,7 @@ async def run_search(request: QueryRequest):
     try:
         # ✅ 비동기 실행 (FastAPI의 Background Task처럼 실행)
         loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, create_search.search, query)
+        result = await loop.run_in_executor(None, main.search, query)
 
         # ✅ 결과 반환 (JSON 보장)
         return {"status": "success", "data": result}

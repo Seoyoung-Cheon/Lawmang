@@ -1,12 +1,23 @@
-# planner.py
-
+import os
 import json
-import openai
-from tools import LawGoKRTavilySearch
+from langchain_openai import ChatOpenAI
+from typing import List, Dict
+from app.chatbot.tool_agents.tools import LawGoKRTavilySearch
 
-openai.api_key = "YOUR_OPENAI_API_KEY"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 
+# ✅ LLM 인스턴스 선언 함수 (온도만 유동적으로)
+def get_llm(model: str, temperature: float) -> ChatOpenAI:
+    return ChatOpenAI(
+        model=model,
+        api_key=OPENAI_API_KEY,
+        temperature=temperature,
+        streaming=False
+    )
+
+
+# ✅ 프롬프트 및 구조 그대로 유지
 async def generate_response_template(
     title: str,
     question: str,
@@ -14,11 +25,6 @@ async def generate_response_template(
     user_query: str,
     model: str = "gpt-3.5-turbo",
 ) -> dict:
-    """
-    📌 선택된 상담(title, question, answer)을 바탕으로,
-    LLM이 쉽게 활용할 수 있는 응답 템플릿(summary, explanation, 링크 등)을 구성.
-    """
-
     prompt = f"""
 당신은 법률 상담 응답 템플릿을 구성하는 AI입니다.
 
@@ -51,21 +57,19 @@ async def generate_response_template(
 반드시 위 JSON 형식 그대로 응답하세요.
 """
 
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": "당신은 법률 응답 템플릿을 생성하는 전문가입니다.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
-    )
+    llm = get_llm(model, temperature=0.3)
 
-    result_text = response.choices[0].message["content"]
+    messages = [
+        {
+            "role": "system",
+            "content": "당신은 법률 응답 템플릿을 생성하는 전문가입니다.",
+        },
+        {"role": "user", "content": prompt},
+    ]
+
+    response = llm.invoke(messages)
+    result_text = response.content
     print("✅ [응답 템플릿 결과]:", result_text)
-
 
     try:
         return json.loads(result_text)
@@ -73,16 +77,10 @@ async def generate_response_template(
         print("❌ JSON 파싱 오류:", e)
         return {"error": "GPT 응답 파싱 실패"}
 
-# planner.py 내부
 
 async def evaluate_strategy_with_tavily(
     strategy: dict, tavily_results: list, model: str = "gpt-3.5-turbo"
 ) -> dict:
-    """
-    📌 Tavily에서 가져온 여러 요약과 전략을 비교하여,
-    전략이 부실하면 needs_revision: True로 판단
-    """
-
     if not tavily_results or not isinstance(tavily_results, list):
         return {
             "needs_revision": False,
@@ -90,7 +88,6 @@ async def evaluate_strategy_with_tavily(
             "tavily_snippets": [],
         }
 
-    # 최대 3개의 요약 추출
     tavily_snippets = []
     for result in tavily_results[:3]:
         text = result.get("content") or result.get("snippet") or result.get("text")
@@ -104,7 +101,6 @@ async def evaluate_strategy_with_tavily(
             "tavily_snippets": [],
         }
 
-    # Tavily 요약 내용 하나로 합치기
     combined_snippets = "\n\n".join(
         [f"[요약 {i + 1}]\n{text}" for i, text in enumerate(tavily_snippets)]
     )
@@ -133,19 +129,18 @@ Tavily 요약 1~3개를 모두 참고하여, GPT 전략이 부실하거나 중�
 }}
 """
 
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": "당신은 GPT 전략과 법률 요약의 질적 차이를 평가하는 법률 분석가입니다.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-    )
+    llm = get_llm(model, temperature=0.2)
 
-    result_text = response.choices[0].message["content"]
+    messages = [
+        {
+            "role": "system",
+            "content": "당신은 GPT 전략과 법률 요약의 질적 차이를 평가하는 법률 분석가입니다.",
+        },
+        {"role": "user", "content": prompt},
+    ]
+
+    response = llm.invoke(messages)
+    result_text = response.content
     print("✅ [Tavily 기반 전략 평가 결과]:", result_text)
 
     try:
@@ -164,9 +159,6 @@ async def revise_strategy_with_feedback(
     tavily_snippets: list,
     model: str = "gpt-3.5-turbo",
 ) -> dict:
-    """
-    📌 전략이 부족하다고 판단되었을 경우, Tavily 요약을 참고해 전략을 보완
-    """
     combined_snippets = "\n\n".join(
         [
             f"[Tavily 요약 {i + 1}]\n{snippet}"
@@ -198,19 +190,15 @@ GPT가 만든 기존 전략이 너무 모호하거나 핵심 정보를 누락한
 }}
 """
 
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": "당신은 전략을 보완하는 법률 응답 전문가입니다.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-    )
+    llm = get_llm(model, temperature=0.2)
 
-    result_text = response.choices[0].message["content"]
+    messages = [
+        {"role": "system", "content": "당신은 전략을 보완하는 법률 응답 전문가입니다."},
+        {"role": "user", "content": prompt},
+    ]
+
+    response = llm.invoke(messages)
+    result_text = response.content
     print("✅ [전략 보완 결과]:", result_text)
 
     try:
@@ -219,15 +207,13 @@ GPT가 만든 기존 전략이 너무 모호하거나 핵심 정보를 누락한
         print("❌ 전략 보완 파싱 실패:", e)
         return {"error": "GPT 전략 보완 실패"}
 
+
 async def generate_response_strategy(
     explanation: str,
     user_query: str,
     hyperlinks: list = None,
     model: str = "gpt-3.5-turbo",
 ) -> dict:
-    """
-    📌 설명 초안을 기반으로 전략 설계 + Tavily 평가까지 자동 수행
-    """
     hyperlinks = hyperlinks or []
 
     hyperlink_text = (
@@ -236,7 +222,6 @@ async def generate_response_strategy(
         else "없음"
     )
 
-    # 1️⃣ 전략 설계 프롬프트
     prompt = f"""
 당신은 법률 응답 전략을 설계하는 전문가입니다.
 
@@ -266,17 +251,15 @@ async def generate_response_strategy(
 }}
 """
 
-    # 2️⃣ 전략 생성
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "당신은 법률 상담 전략을 설계하는 AI입니다."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
-    )
+    llm = get_llm(model, temperature=0.3)
 
-    strategy_raw = response.choices[0].message["content"]
+    messages = [
+        {"role": "system", "content": "당신은 법률 상담 전략을 설계하는 AI입니다."},
+        {"role": "user", "content": prompt},
+    ]
+
+    response = llm.invoke(messages)
+    strategy_raw = response.content
     print("✅ [전략 설계 결과]:", strategy_raw)
 
     try:
@@ -285,14 +268,9 @@ async def generate_response_strategy(
         print("❌ 전략 파싱 실패:", e)
         return {"error": "GPT 전략 파싱 실패"}
 
-
-    # 3️⃣ Tavily 평가 자동 포함
     search_tool = LawGoKRTavilySearch(max_results=3)
     tavily_results = search_tool.run(user_query)
-
     evaluation = await evaluate_strategy_with_tavily(strategy, tavily_results)
-
-    # 평가 결과 추가
     strategy["evaluation"] = evaluation
 
     return strategy
@@ -301,10 +279,6 @@ async def generate_response_strategy(
 async def run_response_strategy_with_limit(
     explanation, user_query, hyperlinks, model="gpt-3.5-turbo"
 ):
-    """
-    📌 전략 생성 후, Tavily 평가 → 필요시 1회 보완만 허용
-    """
-    # 1️⃣ 전략 생성
     strategy = await generate_response_strategy(
         explanation, user_query, hyperlinks, model
     )

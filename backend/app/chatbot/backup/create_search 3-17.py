@@ -13,7 +13,7 @@ from safetensors.torch import load_file
 from dotenv import load_dotenv
 from kobart import get_pytorch_kobart_model, get_kobart_tokenizer
 from kiwipiepy import Kiwi
-from app.chatbot.langchain_retriever import LangChainRetrieval
+from backend.app.chatbot.legal_response_generator import LangChainRetrieval
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 from app.chatbot.tool_agents.tools import search_precedents
