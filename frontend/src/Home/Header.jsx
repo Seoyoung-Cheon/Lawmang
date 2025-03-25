@@ -104,7 +104,10 @@ const Header = () => {
         <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
           <div className="relative z-10 mb-4 pt-2">
-            <Link to="/" className={`${textColorClass} text-5xl font-normal`}>
+            <Link 
+              to="/" 
+              className={`${textColorClass} text-5xl font-normal font-['Oswald']`}
+            >
               Lawmang
             </Link>
           </div>
@@ -140,7 +143,7 @@ const Header = () => {
                 to="/dictionary"
                 className={`${textColorClass} hover:opacity-70 cursor-pointer`}
               >
-                법률 용어
+                AI 리포트
               </Link>
             </li>
           </ul>
@@ -254,7 +257,7 @@ const Header = () => {
             to="/dictionary"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
-            법률 용어
+            AI 리포트
           </Link>
         </div>
 
