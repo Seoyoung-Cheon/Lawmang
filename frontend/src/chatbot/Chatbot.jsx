@@ -129,7 +129,7 @@ const Chatbot = () => {
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white rounded-lg p-6 shadow-2xl">
                 <p className="text-center text-lg mb-6">
-                  법률상담은 로그인이 필요합니다.
+                  법률용어 검색은 로그인이 필요합니다.
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -163,7 +163,7 @@ const Chatbot = () => {
                     : "bg-gray-100"
                 }`}
               >
-                일반상담
+                법률상담
               </button>
 
               <button
@@ -176,7 +176,7 @@ const Chatbot = () => {
                 disabled={!isAuthenticated}
                 title={!isAuthenticated ? "로그인이 필요합니다" : ""}
               >
-                법률상담
+                법률용어
               </button>
               {selectedCategory === "general" && (
                 <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] 2xl:leading-5 whitespace-nowrap">
