@@ -15,7 +15,6 @@ import { FaBell, FaRegBell, FaExchangeAlt } from "react-icons/fa";
 import { FiEdit2 } from "react-icons/fi";
 import DeleteConfirm from "./DeleteConfirm";
 
-
 const MemoBoard = () => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
@@ -53,12 +52,12 @@ const MemoBoard = () => {
         await update({
           user_id: user.id,
           memo_id: memoData.id,
-          ...memoData
+          ...memoData,
         }).unwrap();
       } else {
-        await create({ 
+        await create({
           user_id: user.id,
-          ...memoData 
+          ...memoData,
         }).unwrap();
       }
       setIsPopupOpen(false);
@@ -97,7 +96,7 @@ const MemoBoard = () => {
     try {
       await remove({
         user_id: user.id,
-        memo_id: memoToDelete.id
+        memo_id: memoToDelete.id,
       }).unwrap();
       dispatch(removeMemo(memoToDelete.id));
       setIsDeletePopupOpen(false);
@@ -110,34 +109,34 @@ const MemoBoard = () => {
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden bg-[#f5f4f2]">
       <div className="border-b border-gray-300 p-2 flex items-center bg-[#a7a28f]">
-        <div className="flex items-center gap-4 ml-4 w-[100px]">
+        <div className="flex items-center gap-2 sm:gap-4 ml-2 sm:ml-4">
           <button
             onClick={() =>
               setSortOrder(sortOrder === "latest" ? "oldest" : "latest")
             }
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white opacity-80 hover:opacity-100 transition-all"
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-white opacity-80 hover:opacity-100 transition-all"
           >
             <FaExchangeAlt
               className={`transition-transform duration-300 ${
                 sortOrder === "oldest" ? "rotate-180" : ""
               }`}
             />
-            <span className="font-medium w-[60px]">
+            <span className="font-medium w-[50px] sm:w-[60px]">
               {sortOrder === "latest" ? "최신순" : "오래된순"}
             </span>
           </button>
         </div>
 
-        <h2 className="font-medium text-white flex-1 text-center ml-[80px]">
+        <h2 className="font-medium text-white text-center mx-2 sm:mx-4 text-sm sm:text-base">
           메모장
         </h2>
 
-        <div className="flex items-center gap-4 mr-4">
+        <div className="flex items-center gap-2 sm:gap-4 ml-auto">
           {/* 기록/알림 토글 버튼 */}
           <div className="flex bg-white rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode("recent")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "recent"
                   ? "bg-[#8b7b6e] text-white"
                   : "bg-white text-gray-600 hover:bg-gray-100"
@@ -147,7 +146,7 @@ const MemoBoard = () => {
             </button>
             <button
               onClick={() => setViewMode("notification")}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
                 viewMode === "notification"
                   ? "bg-[#8b7b6e] text-white"
                   : "bg-white text-gray-600 hover:bg-gray-100"
@@ -159,7 +158,7 @@ const MemoBoard = () => {
           {/* 메모 추가 버튼 */}
           <button
             onClick={handleAddMemo}
-            className="px-4 py-1.5 bg-gray-100 text-black text-sm rounded-md hover:bg-gray-200 transition-colors"
+            className="px-3 sm:px-4 py-1.5 bg-gray-100 text-black text-xs sm:text-sm rounded-md hover:bg-gray-200 transition-colors"
           >
             메모 추가
           </button>
