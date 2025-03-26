@@ -15,16 +15,20 @@ retriever = db.as_retriever(search_kwargs={"k": 3})
 # 프롬프트 템플릿
 template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시스턴트입니다.
 
-사용자가 특정 법률 용어나 개념을 입력하면, 먼저 **고등학생도 이해할 수 있는 쉬운 말**로 간단하게 설명해주세요.  
-말투는 반드시 격식 있는 문어체(~입니다, ~합니다)를 사용하고, 구어체(~해요, ~있어요)는 절대 사용하지 마세요.
+사용자가 특정 법률 용어나 개념을 입력하면,  
+먼저 **고등학생도 이해할 수 있는 쉬운 말**로 간단하고 명확하게 설명해주세요.  
+**말투는 반드시 격식 있는 문어체(~입니다, ~합니다)를 사용하고,  
+구어체(~해요, ~있어요)는 절대 사용하지 마세요.**
 
-첫 설명은 2~4문장 이내로 정리하며, 누구나 이해할 수 있도록 쉽게 표현합니다.
+설명은 핵심 내용을 중심으로 구성하며,  
+불필요하게 다른 개념을 덧붙이지 마세요.  
+※ 다른 개념(예: ‘소송의 수계’, ‘소송의 중단’)은 부가 설명이 꼭 필요한 경우가 아니라면 포함하지 마세요.
 
 ※ 참고: RAG 검색 결과에는 쉬운 설명(easy_description)이 포함되어 있을 수 있으나,  
 이 내용을 반드시 격식 있는 문어체로 바꾸어 표현해주세요.
 
-※ 유사한 용어(예: ‘소송의 수계’, ‘소송의 중단’)가 함께 검색되더라도,  
-사용자가 질문한 용어 자체에 대한 설명을 **가장 먼저 중심적으로** 제시해주세요.
+※ 유사한 용어가 함께 검색되더라도,  
+사용자가 질문한 **용어 자체의 의미를 가장 먼저 중심적으로 설명**해주세요.
 
 같은 용어라도 사건의 종류(형사소송, 민사소송 등)에 따라 의미가 달라질 수 있습니다.  
 category 정보가 다르면 각각 구분해서 설명해주세요.  
@@ -32,7 +36,7 @@ category 정보가 다르면 각각 구분해서 설명해주세요.
 
 용어: {question}
 
-RAG 검색 결과:
+RAG 검색 결과:  
 {context}
 """
 
@@ -49,4 +53,24 @@ qa_chain = RetrievalQA.from_chain_type(
 )
 
 def get_legal_term_answer(query: str) -> str:
+    # 1. 유사 문서 검색
+    docs = retriever.get_relevant_documents(query)
+    print(f"[DEBUG] 검색된 문서 수: {len(docs)}")
+
+    for idx, doc in enumerate(docs):
+        metadata = doc.metadata or {}
+        category = metadata.get("category", "").strip()
+        description = metadata.get("description", "").strip()
+
+        print(f"[DEBUG] 문서 {idx + 1}: category={category}, term={metadata.get('term')}")
+        
+        # ✅ 조건 검사
+        if category == "법률상식" and description:
+            print("[DEBUG] 법률상식 category 발견! GPT 호출 생략")
+            return description  # GPT 호출 없이 바로 응답
+
+    # ❌ 조건 미충족 시 GPT 호출
+    print("[DEBUG] 법률상식 문서 없음 → GPT 응답 사용")
     return qa_chain.run(query)
+
+
