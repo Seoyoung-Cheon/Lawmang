@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../redux/slices/authSlice";
 import Logo from "../assets/icon-180.png";
 import axios from "axios";
+import { IoIosSend } from "react-icons/io";
+import { IoMdPause } from "react-icons/io";
 
 const Chatbot = () => {
   const navigate = useNavigate();
@@ -309,14 +311,21 @@ const Chatbot = () => {
             />
             <button
               onClick={handleSubmit}
-              className={`px-6 py-3 ${
+              className={`px-4 py-2 ${
                 isTyping
                   ? "bg-gray-400 cursor-default"
                   : "bg-Main hover:bg-Main_hover"
-              } text-white rounded-xl transition-colors`}
+              } text-white rounded-xl transition-colors flex flex-col items-center justify-center gap-0.5 group`}
               disabled={isTyping}
             >
-              {isTyping ? "답변 중..." : "전송"}
+              {isTyping ? (
+                <div className="relative">
+                  <IoMdPause className="w-5 h-5 animate-pulse" />
+                  <div className="absolute -inset-1 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <IoIosSend className="w-8 h-6 group-hover:animate-bounce-diagonal" />
+              )}
             </button>
           </div>
 
