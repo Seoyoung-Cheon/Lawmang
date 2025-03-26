@@ -32,10 +32,9 @@ def load_faiss():
         print(f"❌ [FAISS 로드 실패] {e}")
         return None
 
+
 async def run_search_pipeline(query: str):
-    """
-    전체 파이프라인 실행: FAISS → 키워드 추출 → SQL 상담/판례 → LLM 실행
-    """
+    """전체 파이프라인 실행"""
     print(f"\n🔍 [INFO] 검색 실행 시작: {query}")
 
     # ✅ 1. FAISS 로드
@@ -43,16 +42,23 @@ async def run_search_pipeline(query: str):
     if not faiss_db:
         return {"error": "FAISS 로드 실패"}
 
-    # ✅ 2. 키워드 추출 및 정제 (유틸 적용)
+    # ✅ 2. 키워드 추출
     search_keywords = faiss_kiwi.extract_top_keywords_faiss(query, faiss_db, top_k=5)
-    print(f"✅ [키워드 최종]: {search_keywords}")
+    print(f"✅ [키워드]: {search_keywords}")
 
-    # ✅ 3. controller 전체 흐름 실행
-    result = await run_full_consultation(
-        user_query=query, search_keywords=search_keywords
-    )
+    # ✅ 3. 상담 실행
+    result = await run_full_consultation(user_query=query, search_keywords=search_keywords)
 
     return result
+
+
+async def search(query: str):
+    """🔍 검색 실행 (FastAPI에서 호출)"""
+    try:
+        result = await run_search_pipeline(query)
+        return result if "error" not in result else {"error": result["error"]}
+    except Exception as e:
+        return {"error": f"검색 중 오류 발생: {str(e)}"}
 
 
 def main():
@@ -66,13 +72,10 @@ def main():
 
         result = asyncio.run(run_search_pipeline(user_query))
 
-        print("\n📌 [최종 결과 요약]")
+        print("\n📌 [최종 결과 요약]")  
         print("🟦 사용자 질문:", result.get("user_query"))
         print("📄 템플릿 요약:", result.get("template", {}).get("summary", "없음"))
-        print(
-            "🧠 전략 요약:",
-            result.get("strategy", {}).get("final_strategy_summary", "없음"),
-        )
+        print("🧠 전략 요약:", result.get("strategy", {}).get("final_strategy_summary", "없음"))
         print("📚 판례 요약:", result.get("precedent", {}).get("summary", "없음"))
         print("🔗 링크:", result.get("precedent", {}).get("casenote_url", "없음"))
         print("🤖 최종 GPT 응답:\n", result.get("final_answer", "응답 생성 실패"))
