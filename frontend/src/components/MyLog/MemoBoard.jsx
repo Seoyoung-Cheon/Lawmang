@@ -127,7 +127,7 @@ const MemoBoard = () => {
           </button>
         </div>
 
-        <h2 className="font-medium text-white text-center mx-2 sm:mx-4 text-sm sm:text-base">
+        <h2 className="font-medium text-white text-center flex-1 text-sm sm:text-base ml-4">
           메모장
         </h2>
 
