@@ -10,7 +10,7 @@ DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
 # 임베딩 모델 및 벡터 DB 로드
 embedding = OpenAIEmbeddings()
 db = FAISS.load_local(DB_FAISS_PATH, embedding, allow_dangerous_deserialization=True)
-retriever = db.as_retriever(search_kwargs={"k": 4})
+retriever = db.as_retriever(search_kwargs={"k": 3})
 
 # 프롬프트 템플릿
 template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시스턴트입니다.
@@ -22,6 +22,9 @@ template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시
 
 ※ 참고: RAG 검색 결과에는 쉬운 설명(easy_description)이 포함되어 있을 수 있으나,  
 이 내용을 반드시 격식 있는 문어체로 바꾸어 표현해주세요.
+
+※ 유사한 용어(예: ‘소송의 수계’, ‘소송의 중단’)가 함께 검색되더라도,  
+사용자가 질문한 용어 자체에 대한 설명을 **가장 먼저 중심적으로** 제시해주세요.
 
 같은 용어라도 사건의 종류(형사소송, 민사소송 등)에 따라 의미가 달라질 수 있습니다.  
 category 정보가 다르면 각각 구분해서 설명해주세요.  
