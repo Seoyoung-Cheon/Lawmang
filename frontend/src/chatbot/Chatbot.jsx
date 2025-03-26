@@ -112,8 +112,53 @@ const Chatbot = () => {
         };
         setGeneralMessages((prev) => [...prev, errorMessage]);
       }
+    } else if (selectedCategory === "legal") {
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/api/chatbot_term/legal-term",
+          {
+            question: userInput,
+          }
+        );
+
+        setIsTyping(false);
+        const result = response.data.result;
+
+        const botMessage = {
+          text: "",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+
+        setLegalMessages((prev) => [...prev, botMessage]);
+
+        let index = 0;
+        const timer = setInterval(() => {
+          if (index < result.length) {
+            setLegalMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                text: result.slice(0, index + 1),
+              };
+              return updated;
+            });
+            index++;
+          } else {
+            clearInterval(timer);
+          }
+        }, 20);
+      } catch (error) {
+        setIsTyping(false);
+        console.error("API Error:", error);
+        const errorMessage = {
+          text: "죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setLegalMessages((prev) => [...prev, errorMessage]);
+      }
     }
-    // 나중에 법률상담 API 추가 시 여기에 추가
   };
 
   return (
@@ -194,14 +239,16 @@ const Chatbot = () => {
               <div
                 key={index}
                 className={`mb-4 ${
-                  msg.isUser ? "flex justify-end pr-0" : "flex justify-start items-center gap-4 pl-4"
+                  msg.isUser
+                    ? "flex justify-end pr-0"
+                    : "flex justify-start items-center gap-4 pl-4"
                 }`}
               >
                 {/* 챗봇 프로필 이미지 */}
                 {!msg.isUser && (
-                  <img 
-                    src={Logo} 
-                    alt="Lawmang 로고" 
+                  <img
+                    src={Logo}
+                    alt="Lawmang 로고"
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                   />
                 )}
@@ -219,9 +266,9 @@ const Chatbot = () => {
             {isTyping && (
               <div className="flex justify-start items-center gap-4 mb-4 pl-4">
                 {/* 타이핑 중일 때도 프로필 이미지 */}
-                <img 
-                  src={Logo} 
-                  alt="Lawmang 로고" 
+                <img
+                  src={Logo}
+                  alt="Lawmang 로고"
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
                 <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200">
@@ -263,8 +310,8 @@ const Chatbot = () => {
             <button
               onClick={handleSubmit}
               className={`px-6 py-3 ${
-                isTyping 
-                  ? "bg-gray-400 cursor-default" 
+                isTyping
+                  ? "bg-gray-400 cursor-default"
                   : "bg-Main hover:bg-Main_hover"
               } text-white rounded-xl transition-colors`}
               disabled={isTyping}
