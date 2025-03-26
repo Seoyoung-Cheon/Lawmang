@@ -25,7 +25,9 @@ const Youtube = () => {
       }
     };
 
-    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+    });
 
     const currentRef = youtubeRef.current;
     if (currentRef) {
@@ -141,7 +143,7 @@ const Youtube = () => {
   return (
     <div
       ref={youtubeRef}
-      className={`container !mt-[60px] !mb-[40px] transition-all duration-1000 transform 
+      className={`container transition-all duration-1000 transform !mt-[60px] !mb-[40px]
         ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
         }`}
@@ -149,8 +151,8 @@ const Youtube = () => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="left-layout">
-        <div className="mx-[-100px]">
-          <div className="flex items-center gap-2 ">
+        <div className="2xl:ml-[-100px] xl:ml-[-50px] lg:ml-0">
+          <div className="flex items-center gap-2">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
           </div>
@@ -160,7 +162,7 @@ const Youtube = () => {
 
           {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
           <ul
-            className="grid grid-cols-2 gap-2 justify-items-start w-[84%]"
+            className="grid grid-cols-2 gap-2 justify-items-start w-[84%] lg:w-[90%] xl:w-[84%]"
             onMouseEnter={() => setAutoPlay(false)}
             onMouseLeave={() => setAutoPlay(true)}
           >
@@ -202,7 +204,7 @@ const Youtube = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="flex justify-center gap-3 mt-10 mb-8 -ml-[160px]">
+          <div className="flex justify-center gap-3 mt-10 mb-8 2xl:ml-[-160px] xl:ml-[-80px] lg:ml-0">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
