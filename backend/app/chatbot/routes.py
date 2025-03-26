@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import asyncio
-from backend.app.chatbot import main
+from app.chatbot import main
 
 
 router = APIRouter()
