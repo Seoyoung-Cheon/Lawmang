@@ -5,14 +5,26 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
     if (isOpen) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
+      // 메모 모달이 열렸음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: true } })
+      );
     } else {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
+      // 메모 모달이 닫혔음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: false } })
+      );
     }
 
     return () => {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
+      // 컴포넌트가 언마운트될 때 메모 모달이 닫혔음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: false } })
+      );
     };
   }, [isOpen]);
 
@@ -20,7 +32,10 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="container mx-auto">
+      <div className="fixed inset-0 bg-black/40 pointer-events-auto z-[30]">
+        <div className="absolute inset-0 backdrop-blur-sm"></div>
+      </div>
+      <div className="container mx-auto relative z-[60]">
         <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto">
           {/* 상단 제목과 버튼 */}
           <div className="relative flex justify-end mb-20">

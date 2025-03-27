@@ -31,6 +31,19 @@ const Chatbot = () => {
   const [userInput, setUserInput] = useState("");
   const [isGeneralTyping, setIsGeneralTyping] = useState(false);
   const [isLegalTyping, setIsLegalTyping] = useState(false);
+  const [isMemoModalOpen, setIsMemoModalOpen] = useState(false);
+
+  // 메모 모달 상태 감지
+  useEffect(() => {
+    const handleMemoModalState = (e) => {
+      setIsMemoModalOpen(e.detail.isOpen);
+    };
+
+    window.addEventListener("memoModalState", handleMemoModalState);
+    return () => {
+      window.removeEventListener("memoModalState", handleMemoModalState);
+    };
+  }, []);
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
@@ -206,7 +219,9 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "block max-[1380px]:block" : "hidden max-[1380px]:hidden"
-        } min-[1380px]:block fixed right-[100px] 2xl:right-[170px] top-[55%] -translate-y-1/2 z-40`}
+        } min-[1380px]:block fixed right-[100px] 2xl:right-[170px] top-[55%] -translate-y-1/2 ${
+          isMemoModalOpen ? "z-[70]" : "z-40"
+        }`}
       >
         <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] flex flex-col relative">
           {showLoginPopup && (
@@ -398,7 +413,9 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "hidden max-[1380px]:hidden" : "hidden max-[1380px]:block"
-        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 z-40`}
+        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 ${
+          isMemoModalOpen ? "z-[70]" : "z-40"
+        }`}
       >
         <button
           onClick={() => setIsOpen(true)}
