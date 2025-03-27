@@ -14,8 +14,20 @@ const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("general");
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [generalMessages, setGeneralMessages] = useState([]);
-  const [legalMessages, setLegalMessages] = useState([]);
+  const [generalMessages, setGeneralMessages] = useState([
+    {
+      text: "안녕하세요! 당신의 법률 파트너, 로망입니다 :)",
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString(),
+    },
+  ]);
+  const [legalMessages, setLegalMessages] = useState([
+    {
+      text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString(),
+    },
+  ]);
   const [userInput, setUserInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
@@ -33,6 +45,28 @@ const Chatbot = () => {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
   }, [generalMessages, legalMessages]);
+
+  // 카테고리 변경 시 초기 메시지 유지를 위한 useEffect
+  useEffect(() => {
+    if (generalMessages.length === 0) {
+      setGeneralMessages([
+        {
+          text: "안녕하세요! 당신의 법률 파트너, 로망입니다 :)",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
+    }
+    if (legalMessages.length === 0) {
+      setLegalMessages([
+        {
+          text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
+    }
+  }, [selectedCategory, generalMessages.length, legalMessages.length]);
 
   const handleCategoryClick = (category) => {
     if (category === "legal" && !isAuthenticated) {
@@ -170,7 +204,7 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "block max-[1380px]:block" : "hidden max-[1380px]:hidden"
-        } min-[1380px]:block fixed right-[50px] 2xl:right-[120px] top-[55%] -translate-y-1/2 z-40`}
+        } min-[1380px]:block fixed right-[100px] 2xl:right-[170px] top-[55%] -translate-y-1/2 z-40`}
       >
         <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] flex flex-col relative">
           {showLoginPopup && (
@@ -202,7 +236,7 @@ const Chatbot = () => {
           </div>
 
           <div className="flex justify-between p-4 border-b">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <button
                 onClick={() => handleCategoryClick("general")}
                 className={`px-4 py-2 rounded-lg ${
@@ -227,7 +261,7 @@ const Chatbot = () => {
                 법률용어
               </button>
               {selectedCategory === "general" && (
-                <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] 2xl:leading-5 whitespace-nowrap">
+                <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] self-center">
                   ※ '법률용어' 풀이가 필요한 경우
                   <br />
                   로그인 후 이용 가능합니다.
@@ -244,7 +278,7 @@ const Chatbot = () => {
                 className={`mb-4 ${
                   msg.isUser
                     ? "flex justify-end pr-0"
-                    : "flex justify-start items-center gap-4 pl-4"
+                    : "flex items-start gap-4 pl-4"
                 }`}
               >
                 {/* 챗봇 프로필 이미지 */}
@@ -252,29 +286,28 @@ const Chatbot = () => {
                   <img
                     src={Logo}
                     alt="Lawmang 로고"
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 sticky top-0"
                   />
                 )}
                 <div
                   className={`${
                     msg.isUser
-                      ? "bg-[#a7a28f] text-white relative before:content-[''] before:absolute before:right-0 before:top-[50%] before:translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-l-[#a7a28f]"
-                      : "bg-gray-200 text-black relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200"
-                  } px-4 py-2 rounded-xl max-w-[80%] relative`}
+                      ? "bg-[#a7a28f] text-white relative before:content-[''] before:absolute before:right-0 before:top-4 before:translate-x-[99%] before:border-y-[5px] before:border-r-0 before:border-l-[8px] before:border-transparent before:border-l-[#a7a28f]"
+                      : "bg-gray-200 text-black relative before:content-[''] before:absolute before:left-0 before:top-4 before:-translate-x-[99%] before:border-y-[5px] before:border-l-0 before:border-r-[8px] before:border-transparent before:border-r-gray-200"
+                  } px-4 py-2 rounded-xl max-w-[80%] relative break-words`}
                 >
                   {msg.text}
                 </div>
               </div>
             ))}
             {isTyping && (
-              <div className="flex justify-start items-center gap-4 mb-4 pl-4">
-                {/* 타이핑 중일 때도 프로필 이미지 */}
+              <div className="flex items-start gap-4 mb-4 pl-4">
                 <img
                   src={Logo}
                   alt="Lawmang 로고"
-                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0 sticky top-0"
                 />
-                <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-[50%] before:-translate-x-[98%] before:-translate-y-1/2 before:border-8 before:border-transparent before:border-r-gray-200">
+                <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-4 before:translate-x-[-98%] before:border-8 before:border-transparent before:border-r-gray-200">
                   <div className="flex gap-1.5">
                     <div
                       className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-bounce"

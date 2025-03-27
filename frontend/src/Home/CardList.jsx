@@ -67,8 +67,8 @@ const CardList = () => {
         }`}
     >
       <div className="left-layout">
-        <div className="2xl:ml-[-100px] xl:ml-[-50px] lg:ml-0">
-          <div className="flex items-center gap-2">
+        <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
+          <div className="flex items-center gap-4 ml-[10px]">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
