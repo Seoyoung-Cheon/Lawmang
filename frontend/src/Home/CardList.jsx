@@ -67,13 +67,13 @@ const CardList = () => {
         }`}
     >
       <div className="left-layout">
-        <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
+        <div className="2xl:ml-[-130px] xl:ml-0 lg:ml-[50px]">
           <div className="flex items-center gap-4 ml-[10px]">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
 
-          <ul className="grid grid-cols-2 gap-4 mt-5 w-[90%]">
+          <ul className="grid grid-cols-2 gap-4 mt-5 w-[90%] ml-[10px]">
             {currentCards.map((card) => (
               <li key={card.id} className="w-full p-1">
                 <Link to={`/cardnews/${card.id}`} className="block h-full">

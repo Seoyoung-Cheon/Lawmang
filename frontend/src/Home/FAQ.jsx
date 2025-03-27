@@ -50,16 +50,19 @@ const FAQ = () => {
   );
 
   return (
-    <div ref={faqRef} className="container !mt-[100px] !mb-[60px] h-[500px]">
+    <div
+      ref={faqRef}
+      className="container !mt-[100px] !mb-[80px] min-h-[500px]"
+    >
       <div className="left-layout">
-        <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
-          <div className="flex items-center gap-4">
+        <div className="2xl:ml-[-130px] xl:ml-0 lg:ml-[50px]">
+          <div className="flex items-center gap-4 ml-[10px]">
             <GrCircleQuestion className="text-6xl text-black" />
             <p className="text-2xl font-medium">자주 묻는 질문</p>
           </div>
 
           <div className="mt-10">
-            <div className="w-[90%] border-t border-b border-gray-200">
+            <div className="w-[90%] border-t border-b border-gray-200 mb-10 ml-[10px]">
               {displayedFAQs.map((faq, index) => (
                 <div
                   key={index}
@@ -117,7 +120,7 @@ const FAQ = () => {
 
             {/* 페이지네이션 */}
             <div
-              className={`w-[90%] flex justify-center items-center gap-2 mt-10 mb-10 ml-[-5px]
+              className={`w-[90%] flex justify-center items-center gap-2 mt-4 mb-4 ml-[-5px]
               transition-all duration-700 transform
               ${
                 isVisible

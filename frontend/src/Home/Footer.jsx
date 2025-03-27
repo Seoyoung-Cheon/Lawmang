@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container mx-auto bg-[#e1e0df]">
         <div className="flex items-start justify-between mt-10 py-8">
           {/* 로고 섹션 */}
-          <div className="flex items-center mr-40 ml-[-50px] mt-5">
+          <div className="flex items-center mr-40 ml-[-100px] mt-5">
             <img src={Logo} alt="로망 로고" className="h-20 w-auto" />
             <div className="ml-4">
               <h2 className="text-3xl font-basic font-['Oswald']">Lawmang</h2>

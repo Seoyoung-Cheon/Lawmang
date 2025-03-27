@@ -151,7 +151,7 @@ const Youtube = () => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="left-layout">
-        <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
+        <div className="2xl:ml-[-130px] xl:ml-0 lg:ml-[50px]">
           <div className="flex items-center gap-4 ml-[10px]">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
@@ -162,7 +162,7 @@ const Youtube = () => {
 
           {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
           <ul
-            className="grid grid-cols-2 gap-4 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%]"
+            className="grid grid-cols-2 gap-4 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%] ml-[10px]"
             onMouseEnter={() => setAutoPlay(false)}
             onMouseLeave={() => setAutoPlay(true)}
           >

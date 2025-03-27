@@ -29,7 +29,8 @@ const Chatbot = () => {
     },
   ]);
   const [userInput, setUserInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isGeneralTyping, setIsGeneralTyping] = useState(false);
+  const [isLegalTyping, setIsLegalTyping] = useState(false);
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
@@ -101,9 +102,9 @@ const Chatbot = () => {
     // 현재 카테고리의 메시지 배열에 추가
     setCurrentMessages((prev) => [...prev, userMessage]);
     setUserInput("");
-    setIsTyping(true);
 
     if (selectedCategory === "general") {
+      setIsGeneralTyping(true);
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot/search",
@@ -112,7 +113,7 @@ const Chatbot = () => {
           }
         );
 
-        setIsTyping(false);
+        setIsGeneralTyping(false);
         const finalAnswer = response.data.data.final_answer;
 
         const botMessage = {
@@ -140,7 +141,7 @@ const Chatbot = () => {
           }
         }, 20);
       } catch (error) {
-        setIsTyping(false);
+        setIsGeneralTyping(false);
         console.error("API Error:", error);
         const errorMessage = {
           text: "죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -150,6 +151,7 @@ const Chatbot = () => {
         setGeneralMessages((prev) => [...prev, errorMessage]);
       }
     } else if (selectedCategory === "legal") {
+      setIsLegalTyping(true);
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot_term/legal-term",
@@ -158,7 +160,7 @@ const Chatbot = () => {
           }
         );
 
-        setIsTyping(false);
+        setIsLegalTyping(false);
         const result = response.data.result;
 
         const botMessage = {
@@ -186,7 +188,7 @@ const Chatbot = () => {
           }
         }, 20);
       } catch (error) {
-        setIsTyping(false);
+        setIsLegalTyping(false);
         console.error("API Error:", error);
         const errorMessage = {
           text: "죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -300,7 +302,9 @@ const Chatbot = () => {
                 </div>
               </div>
             ))}
-            {isTyping && (
+            {(selectedCategory === "general"
+              ? isGeneralTyping
+              : isLegalTyping) && (
               <div className="flex items-start gap-4 mb-4 pl-4">
                 <img
                   src={Logo}
@@ -334,25 +338,40 @@ const Chatbot = () => {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyPress={(e) => {
-                if (e.key === "Enter" && !isTyping) {
+                if (
+                  e.key === "Enter" &&
+                  !(selectedCategory === "general"
+                    ? isGeneralTyping
+                    : isLegalTyping)
+                ) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
               }}
               className="flex-1 p-2 border rounded-xl focus:outline-none focus:border-Main"
               placeholder="메시지를 입력하세요..."
-              disabled={isTyping}
+              disabled={
+                selectedCategory === "general" ? isGeneralTyping : isLegalTyping
+              }
             />
             <button
               onClick={handleSubmit}
               className={`px-4 py-2 ${
-                isTyping
+                (
+                  selectedCategory === "general"
+                    ? isGeneralTyping
+                    : isLegalTyping
+                )
                   ? "bg-gray-400 cursor-default"
                   : "bg-Main hover:bg-Main_hover"
               } text-white rounded-xl transition-colors flex flex-col items-center justify-center gap-0.5 group`}
-              disabled={isTyping}
+              disabled={
+                selectedCategory === "general" ? isGeneralTyping : isLegalTyping
+              }
             >
-              {isTyping ? (
+              {(
+                selectedCategory === "general" ? isGeneralTyping : isLegalTyping
+              ) ? (
                 <div className="relative">
                   <IoMdPause className="w-5 h-5 animate-pulse" />
                   <div className="absolute -inset-1 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
