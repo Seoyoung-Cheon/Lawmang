@@ -158,7 +158,7 @@ const Header = () => {
             </li>
             <li>
               <Link
-                to="/dictionary"
+                to="/Report"
                 className={`${textColorClass} transition-all duration-300 ${
                   location.pathname === "/"
                     ? "hover:animate-text-glow"
@@ -284,7 +284,7 @@ const Header = () => {
             법률 서식
           </Link>
           <Link
-            to="/dictionary"
+            to="/Report"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
             AI 리포트

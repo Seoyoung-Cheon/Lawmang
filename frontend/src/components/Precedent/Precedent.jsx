@@ -176,7 +176,7 @@ const Precedent = () => {
           {/* 헤더 섹션 추가 */}
           <div className="flex items-center gap-4 mb-8 ">
             <ImHammer2 className="text-6xl text-Main mr-2" />
-            <h1 className="text-2xl font-medium">판례</h1>
+            <h1 className="text-2xl font-medium cursor-default">판례</h1>
           </div>
 
           {/* 검색바 */}

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
 import { TfiWrite } from "react-icons/tfi";
 
-const Dictionary = () => {
+const Report = () => {
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -9,7 +8,7 @@ const Dictionary = () => {
           {/* 헤더 섹션 */}
           <div className="flex items-center gap-4 mb-8">
             <TfiWrite className="text-6xl text-Main mr-2" />
-            <h1 className="text-2xl font-medium">AI 리포트</h1>
+            <h1 className="text-2xl font-medium cursor-default">AI 리포트</h1>
           </div>
         </div>
       </div>
@@ -18,4 +17,4 @@ const Dictionary = () => {
   );
 };
 
-export default Dictionary;
+export default Report;
