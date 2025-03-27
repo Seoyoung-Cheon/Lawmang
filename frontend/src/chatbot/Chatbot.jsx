@@ -39,11 +39,17 @@ const Chatbot = () => {
       setIsMemoModalOpen(e.detail.isOpen);
     };
 
+    // 이벤트 리스너 등록 전에 기존 리스너 제거
+    window.removeEventListener("memoModalState", handleMemoModalState);
     window.addEventListener("memoModalState", handleMemoModalState);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       window.removeEventListener("memoModalState", handleMemoModalState);
+      // 상태 초기화
+      setIsMemoModalOpen(false);
     };
-  }, []);
+  }, []); // 빈 의존성 배열로 컴포넌트 마운트 시에만 실행
 
   // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
@@ -220,7 +226,7 @@ const Chatbot = () => {
         className={`${
           isOpen ? "block max-[1380px]:block" : "hidden max-[1380px]:hidden"
         } min-[1380px]:block fixed right-[100px] 2xl:right-[170px] top-[55%] -translate-y-1/2 ${
-          isMemoModalOpen ? "z-[70]" : "z-40"
+          isMemoModalOpen ? "z-[100]" : "z-40"
         }`}
       >
         <div className="w-[500px] h-[600px] 2xl:w-[600px] 2xl:h-[770px] bg-white rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.2)] flex flex-col relative">
@@ -414,7 +420,7 @@ const Chatbot = () => {
         className={`${
           isOpen ? "hidden max-[1380px]:hidden" : "hidden max-[1380px]:block"
         } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 ${
-          isMemoModalOpen ? "z-[70]" : "z-40"
+          isMemoModalOpen ? "z-[100]" : "z-40"
         }`}
       >
         <button
