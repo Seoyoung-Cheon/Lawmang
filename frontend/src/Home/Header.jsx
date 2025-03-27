@@ -123,7 +123,11 @@ const Header = () => {
             <li>
               <Link
                 to="/consultation"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 상담 사례
               </Link>
@@ -131,7 +135,11 @@ const Header = () => {
             <li>
               <Link
                 to="/precedent"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 판례
               </Link>
@@ -139,7 +147,11 @@ const Header = () => {
             <li>
               <Link
                 to="/template"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 법률 서식
               </Link>
@@ -147,7 +159,11 @@ const Header = () => {
             <li>
               <Link
                 to="/dictionary"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 AI 리포트
               </Link>
@@ -164,7 +180,11 @@ const Header = () => {
                 onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
                 <button
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
+                  className={`${textColorClass} transition-all duration-300 ${
+                    location.pathname === "/"
+                      ? "hover:animate-text-glow"
+                      : "hover:animate-text-glow-dark"
+                  } text-lg cursor-pointer flex items-center gap-2`}
                 >
                   <CiUser className="w-6 h-6" />
                   <span>{user?.nickname || "사용자"}</span>
@@ -195,7 +215,11 @@ const Header = () => {
             ) : (
               <Link
                 to="/login"
-                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer hidden lg:flex items-center gap-2`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } text-lg cursor-pointer hidden lg:flex items-center gap-2`}
               >
                 <CiLogin className="w-5 h-5" />
                 로그인
