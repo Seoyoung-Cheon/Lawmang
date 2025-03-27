@@ -149,7 +149,7 @@ const Header = () => {
           </ul>
 
           {/* 로그인/로그아웃 버튼 */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 ml-20">
             {/* 기존 로그인/프로필 메뉴 (lg 이상에서만 표시) */}
             {isAuthenticated ? (
               <div

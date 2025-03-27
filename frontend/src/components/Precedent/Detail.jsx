@@ -19,20 +19,21 @@ const Detail = () => {
   const [iframeUrl, setIframeUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isViewedSaved, setIsViewedSaved] = useState(false);  // 저장 여부 체크용
+  const [isViewedSaved, setIsViewedSaved] = useState(false); // 저장 여부 체크용
 
   // ✅ 판례 열람 기록 저장
   useEffect(() => {
     const saveViewHistory = async () => {
-      if (!user?.id || !id || isViewedSaved) {  // isViewedSaved 체크 추가
+      if (!user?.id || !id || isViewedSaved) {
+        // isViewedSaved 체크 추가
         return;
       }
 
       try {
-        console.log('Detail - 열람 기록 저장 시도:', {
+        console.log("Detail - 열람 기록 저장 시도:", {
           시간: new Date().toISOString(),
           user_id: user.id,
-          precedent_id: parseInt(id)
+          precedent_id: parseInt(id),
         });
 
         await createViewed({
@@ -41,15 +42,15 @@ const Detail = () => {
           precedent_id: parseInt(id),
         }).unwrap();
 
-        setIsViewedSaved(true);  // 저장 완료 표시
-        console.log('Detail - 열람 기록 저장 성공');
+        setIsViewedSaved(true); // 저장 완료 표시
+        console.log("Detail - 열람 기록 저장 성공");
       } catch (error) {
-        console.error('Detail - 열람 기록 저장 실패:', error);
+        console.error("Detail - 열람 기록 저장 실패:", error);
       }
     };
 
     saveViewHistory();
-  }, [id, user, createViewed, isViewedSaved]);  // isViewedSaved 의존성 추가
+  }, [id, user, createViewed, isViewedSaved]); // isViewedSaved 의존성 추가
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -92,7 +93,7 @@ const Detail = () => {
       fetchPrecedentDetail();
     }
   }, [id]);
-  
+
   // 판례 요약 가져오기
   const handleFetchSummary = async () => {
     try {
@@ -185,14 +186,14 @@ const Detail = () => {
               <span>목록으로</span>
             </button>
 
-            <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px]">
+            <div className="border border-gray-300 rounded-3xl p-4 sm:p-8 w-full max-w-[900px] h-[790px] ">
               <iframe
                 src={iframeUrl}
                 title="판례 상세"
                 width="100%"
                 height="100%"
                 style={{ border: "none" }}
-                className="overflow-auto "
+                className="overflow-auto"
               />
             </div>
           </div>
@@ -227,16 +228,18 @@ const Detail = () => {
             <span>목록으로</span>
           </button>
 
-          <div className="border border-gray-300 rounded-3xl p-8 w-[900px] h-[790px] ">
-            <div className="relative flex justify-center mb-6 pb-6 border-b border-gray-200 shadow-sm">
-              <h2 className="text-3xl font-bold">판례 상세</h2>
-              <div className="absolute right-[20px]">
+          <div className="border border-gray-300 rounded-3xl p-4 sm:p-8 w-full max-w-[900px] h-[790px]">
+            <div className="relative flex flex-col sm:flex-row sm:justify-center sm:items-center mb-6 pb-6 border-b border-gray-200 shadow-sm">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-0 text-center sm:text-left">
+                판례 상세
+              </h2>
+              <div className="sm:absolute sm:right-[20px] w-full sm:w-auto">
                 <button
                   onClick={() => {
                     setIsPopupOpen(true);
                     handleFetchSummary();
                   }}
-                  className="px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
+                  className="w-full sm:w-auto px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover transition-all"
                 >
                   요약보기
                 </button>
@@ -248,28 +251,39 @@ const Detail = () => {
               </div>
             </div>
 
-            <div className="h-[650px] p-6 rounded-2xl overflow-y-auto">
-              <div className="space-y-6">
-                <div className="flex items-start pb-4 border-b border-gray-100">
-                  <span className="w-24 font-bold">법원명:</span>
-                  <span>{precedentDetail?.법원명 || "정보 없음"}</span>
+            <div className="h-[650px] p-4 sm:p-6 rounded-2xl overflow-y-auto">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-start pb-4 border-b border-gray-100">
+                  <span className="w-full sm:w-24 font-bold mb-1 sm:mb-0">
+                    법원명:
+                  </span>
+                  <span className="sm:flex-1">
+                    {precedentDetail?.법원명 || "정보 없음"}
+                  </span>
                 </div>
-                <div className="flex items-start pb-4 border-b border-gray-100">
-                  <span className="w-24 font-bold">선고일자:</span>
-                  <span>{precedentDetail?.선고일자 || "정보 없음"}</span>
+                <div className="flex flex-col sm:flex-row sm:items-start pb-4 border-b border-gray-100">
+                  <span className="w-full sm:w-24 font-bold mb-1 sm:mb-0">
+                    선고일자:
+                  </span>
+                  <span className="sm:flex-1">
+                    {precedentDetail?.선고일자 || "정보 없음"}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="w-24 font-bold">판례내용:</span>
+                  <span className="w-full sm:w-24 font-bold mb-1 sm:mb-0">
+                    판례내용:
+                  </span>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                  <span
-                    className="text-gray-800 leading-relaxed whitespace-pre-line"
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(
-                        (precedentDetail?.판례내용 || "자료가 없습니다.")
-                          .replace(/\n/g, "<br />")
-                      ),
-                    }}
-                  />
+                    <span
+                      className="text-gray-800 leading-relaxed whitespace-pre-line text-sm sm:text-base"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          (
+                            precedentDetail?.판례내용 || "자료가 없습니다."
+                          ).replace(/\n/g, "<br />")
+                        ),
+                      }}
+                    />
                   </div>
                 </div>
               </div>

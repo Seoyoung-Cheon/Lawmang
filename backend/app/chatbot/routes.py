@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import asyncio
-from app.chatbot import create_search
+from app.chatbot import main
 
 
 router = APIRouter()
@@ -16,7 +16,7 @@ async def run_search(request: QueryRequest):
 
     try:
         # create_search.search가 이미 비동기 함수이므로 직접 await
-        result = await create_search.search(query)
+        result = await main.search(query)
         
         if isinstance(result, dict) and "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])

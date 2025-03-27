@@ -268,51 +268,6 @@ class LawGoKRTavilySearch:
     Tavily를 사용하여 law.go.kr에서만 검색하도록 제한하는 클래스
     """
 
-    def __init__(self, max_results=3):  # ✅ 검색 결과 개수 조정 가능
-        self.search_tool = TavilySearchResults(max_results=max_results)
-
-    def run(self, query):
-        """
-        Tavily를 사용하여 특정 URL(law.go.kr)에서만 검색 실행
-        """
-        # ✅ 특정 사이트(law.go.kr)에서만 검색하도록 site 필터 적용
-        site_restrict_query = f"site:law.go.kr {query}"
-
-        try:
-            # ✅ Tavily 검색 실행
-            results = self.search_tool.run(site_restrict_query)
-
-            # ✅ 응답이 리스트인지 확인
-            if not isinstance(results, list):
-                return (
-                    f"❌ Tavily 검색 오류: 결과가 리스트가 아닙니다. ({type(results)})"
-                )
-
-            # ✅ `law.go.kr`이 포함된 결과만 필터링
-            filtered_results = [
-                result
-                for result in results
-                if isinstance(result, dict)
-                and "url" in result
-                and "law.go.kr" in result["url"]
-            ]
-
-            # ✅ 검색 결과가 없을 경우 처리
-            if not filtered_results:
-                return "❌ 관련 법률 정보를 찾을 수 없습니다."
-
-            return filtered_results
-        except Exception as e:
-            return f"❌ Tavily 검색 오류: {str(e)}"
-
-
-search_tool = LawGoKRTavilySearch(max_results=1)
-#---------------------------------------------------------------
-class LawGoKRTavilySearch:
-    """
-    Tavily를 사용하여 law.go.kr에서만 검색하도록 제한하는 클래스
-    """
-
     def __init__(self, max_results=1):  # ✅ 검색 결과 개수 조정 가능
         self.search_tool = TavilySearchResults(max_results=max_results)
 
@@ -355,50 +310,9 @@ class LawGoKRTavilySearch:
 
 
 search_tool = LawGoKRTavilySearch(max_results=1)
+#---------------------------------------------------------------
 
 # ----------------------------------------------------------------
-
-class LawGoKRTavilyAPIOpener:
-    """
-    Tavily를 사용하여 law.go.kr 판례번호 기반 API를 여는 클래스
-    """
-
-    def __init__(self, max_results=1, api_key="youngsunyi"):
-        self.search_tool = TavilySearchResults(max_results=max_results)
-        self.api_key = api_key  # ✅ law.go.kr API 키
-
-    def open_case_api(self, pre_number):
-        """
-        특정 판례번호(pre_number)를 기반으로 law.go.kr API를 Tavily를 통해 열기
-        """
-        # ✅ JSON & HTML API URL 생성
-        json_api_url = f"https://www.law.go.kr/DRF/lawService.do?OC={self.api_key}&target=prec&ID={pre_number}&type=JSON"
-        html_api_url = f"https://www.law.go.kr/DRF/lawService.do?OC={self.api_key}&target=prec&ID={pre_number}&type=HTML"
-
-        # ✅ Tavily 검색어 생성
-        tavily_query = f"site:law.go.kr {json_api_url} OR {html_api_url}"
-
-        try:
-            # ✅ Tavily를 사용하여 API URL을 검색
-            results = self.search_tool.run(tavily_query)
-
-            # ✅ 검색 결과 디버깅용 출력
-            print("🔍 Tavily 검색 결과:", results)
-
-            return {
-                "판례번호": pre_number,
-                "JSON API URL": json_api_url,
-                "HTML API URL": html_api_url,
-                "Tavily 검색 결과": results,
-            }
-
-        except Exception as e:
-            return {
-                "판례번호": pre_number,
-                "오류": f"Tavily 검색 오류 발생: {str(e)}",
-                "JSON API URL": json_api_url,
-                "HTML API URL": html_api_url,
-            }
 
 # ----------------------------------------------------------------
 

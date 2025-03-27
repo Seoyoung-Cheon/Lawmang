@@ -250,7 +250,7 @@ const Precedent = () => {
             </div>
           ) : currentResults.length > 0 ? (
             <>
-              <ul className="space-y-4 w-[900px]">
+              <ul className="space-y-4 w-full max-w-[900px]">
                 {currentItems.map((item) => (
                   <li
                     key={item.pre_number}
@@ -260,13 +260,13 @@ const Precedent = () => {
                   >
                     <Link
                       to={`/precedent/detail/${item.pre_number}`}
-                      className="flex justify-between"
+                      className="flex flex-col sm:flex-row sm:justify-between gap-2"
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium truncate mb-4">
+                        <h3 className="text-lg font-medium mb-2 sm:mb-4 line-clamp-2">
                           {renderTitle(item.c_name)}
                         </h3>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-600 mb-2">
                           <HighlightText
                             text={item.c_number}
                             highlight={searchQuery}
@@ -280,7 +280,7 @@ const Precedent = () => {
                         </div>
                       </div>
                       <div
-                        className={`px-3 py-1 text-sm rounded-lg h-fit ml-4 border 
+                        className={`px-3 py-1 text-sm rounded-lg h-fit sm:ml-4 border w-[80px] text-center
                                    ${getCategoryColor(item.c_type)} 
                                    group-hover:scale-105 transition-transform`}
                       >

@@ -13,7 +13,7 @@ import {
 } from "react-icons/md";
 import loadingGif from "../../assets/loading.gif";
 import { SlSpeech } from "react-icons/sl";
-import HighlightText from '../HighlightText';
+import HighlightText from "../HighlightText";
 
 const Consultation = () => {
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -179,7 +179,7 @@ const Consultation = () => {
   const renderTitle = (title) => (
     <HighlightText text={title} highlight={searchQuery} />
   );
-  
+
   return (
     <div className="container min-h-screen">
       <div className="left-layout">
@@ -271,7 +271,7 @@ const Consultation = () => {
             </div>
           ) : currentResults && currentResults.length > 0 ? (
             <>
-              <ul className="space-y-4 w-[900px]">
+              <ul className="space-y-4 w-full max-w-[900px]">
                 {currentItems.map((consultation) => (
                   <li
                     key={consultation.id}
@@ -281,18 +281,24 @@ const Consultation = () => {
                   >
                     <Link
                       to={`/consultation/detail/${consultation.id}`}
-                      className="flex justify-between"
+                      className="flex flex-col sm:flex-row sm:justify-between gap-2"
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium truncate mb-4">
+                        <h3 className="text-lg font-medium mb-2 sm:mb-4 line-clamp-2">
                           {renderTitle(consultation.title)}
                         </h3>
-                        <p className="text-gray-600 text-sm mb-3 truncate">
-                          <HighlightText text={consultation.question} highlight={searchQuery} />
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                          <HighlightText
+                            text={consultation.question}
+                            highlight={searchQuery}
+                          />
                         </p>
-                        <div className="flex justify-between items-center text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 sm:gap-0 text-sm text-gray-500">
                           <span>
-                            <HighlightText text={consultation.category} highlight={searchQuery} />
+                            <HighlightText
+                              text={consultation.category}
+                              highlight={searchQuery}
+                            />
                           </span>
                           <span>{consultation.date}</span>
                         </div>

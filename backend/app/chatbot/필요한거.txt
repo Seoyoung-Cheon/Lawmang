@@ -97,6 +97,10 @@ python -m app.chatbot.create_search
 
 
 
+python -m app.chatbot.main
+
+
+
 -------------------------------------------pgqry
 CREATE TABLE vectorized_data (
     id SERIAL PRIMARY KEY,
