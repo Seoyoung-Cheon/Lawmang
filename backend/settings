@@ -14,4 +14,3 @@ uvicorn app.main:app --reload
 # 기본 api 확인
 localhost:8000
 
-# mylog.py 이름 체크 <- 혹시 배포 환경 문제 생길수도?

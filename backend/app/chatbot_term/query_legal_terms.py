@@ -61,16 +61,12 @@ def get_legal_term_answer(query: str) -> str:
         metadata = doc.metadata or {}
         category = metadata.get("category", "").strip()
         description = metadata.get("description", "").strip()
-
-        print(f"[DEBUG] 문서 {idx + 1}: category={category}, term={metadata.get('term')}")
-        
+                
         # ✅ 조건 검사
         if category == "법률상식" and description:
-            print("[DEBUG] 법률상식 category 발견! GPT 호출 생략")
             return description  # GPT 호출 없이 바로 응답
 
     # ❌ 조건 미충족 시 GPT 호출
-    print("[DEBUG] 법률상식 문서 없음 → GPT 응답 사용")
     return qa_chain.run(query)
 
 
