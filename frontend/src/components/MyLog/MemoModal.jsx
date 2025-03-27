@@ -146,14 +146,16 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 type="text"
                 value={title}
                 onChange={(e) => {
-                  setTitle(e.target.value);
-                  setTitleError("");
+                  const newTitle = e.target.value;
+                  if (newTitle.length <= 24) {
+                    setTitle(newTitle);
+                    setTitleError("");
+                  }
                 }}
-                maxLength={30}
                 className={`w-full p-3 border ${
                   titleError ? "border-red-500" : "border-gray-300"
                 } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg`}
-                placeholder="제목을 입력해주세요. (30자 이내)"
+                placeholder="제목을 입력해주세요. (24자 이내)"
                 autoFocus
               />
             </div>
