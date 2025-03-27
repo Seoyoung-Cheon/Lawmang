@@ -307,7 +307,7 @@ const Chatbot = () => {
                   alt="Lawmang 로고"
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0 sticky top-0"
                 />
-                <div className="bg-gray-200 px-4 py-3 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-4 before:translate-x-[-98%] before:border-8 before:border-transparent before:border-r-gray-200">
+                <div className="bg-gray-200 px-5 py-4 rounded-xl relative before:content-[''] before:absolute before:left-0 before:top-4 before:translate-x-[-98%] before:border-8 before:border-transparent before:border-r-gray-200">
                   <div className="flex gap-1.5">
                     <div
                       className="w-2.5 h-2.5 bg-gray-500 rounded-full animate-bounce"

@@ -7,6 +7,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [notificationDate, setNotificationDate] = useState("");
   const [titleError, setTitleError] = useState("");
   const [contentError, setContentError] = useState("");
+  const [dateError, setDateError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +42,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
     let hasError = false;
     setTitleError("");
     setContentError("");
+    setDateError("");
 
     if (!title.trim()) {
       setTitleError("제목을 입력해주세요.");
@@ -48,6 +50,10 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
     }
     if (!content.trim()) {
       setContentError("내용을 입력해주세요.");
+      hasError = true;
+    }
+    if (isNotificationEnabled && !notificationDate) {
+      setDateError("알림 날짜를 선택해주세요.");
       hasError = true;
     }
 
@@ -61,6 +67,14 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
       notification: isNotificationEnabled,
     });
     onClose();
+  };
+
+  const handleNotificationChange = (e) => {
+    setIsNotificationEnabled(e.target.checked);
+    if (!e.target.checked) {
+      setNotificationDate("");
+      setDateError("");
+    }
   };
 
   if (!isOpen) return null;
@@ -82,12 +96,13 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
           {/* 알림 설정 영역 */}
           <div className="flex justify-end">
             <div className="flex items-center gap-2">
+              {dateError && <p className="text-sm text-red-500">{dateError}</p>}
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="notification"
                   checked={isNotificationEnabled}
-                  onChange={(e) => setIsNotificationEnabled(e.target.checked)}
+                  onChange={handleNotificationChange}
                   className="w-5 h-5 text-Main border-gray-300 rounded focus:ring-Main"
                 />
                 <label
@@ -98,26 +113,33 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 </label>
               </div>
               {isNotificationEnabled && (
-                <input
-                  type="date"
-                  value={notificationDate}
-                  onChange={(e) => setNotificationDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-Main bg-white"
-                />
+                <div className="flex flex-col">
+                  <input
+                    type="date"
+                    value={notificationDate}
+                    onChange={(e) => {
+                      setNotificationDate(e.target.value);
+                      setDateError("");
+                    }}
+                    min={new Date().toISOString().slice(0, 10)}
+                    className={`px-3 py-1.5 border ${
+                      dateError ? "border-red-500" : "border-gray-300"
+                    } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-Main bg-white`}
+                  />
+                </div>
               )}
             </div>
           </div>
 
           {/* 메모 입력 영역 */}
-          <div className="h-[600px] pb-16">
+          <div className="h-[600px]">
             {/* 제목 입력 영역 */}
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-red-500">*</span>
                 <label className="block text-lg font-semibold">제목</label>
                 {titleError && (
-                  <p className="text-sm text-red-500">{titleError}</p>
+                  <p className="text-sm text-red-500 ml-2">{titleError}</p>
                 )}
               </div>
               <input
@@ -142,7 +164,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 <span className="text-red-500">*</span>
                 <label className="block text-lg font-semibold">내용</label>
                 {contentError && (
-                  <p className="text-sm text-red-500">{contentError}</p>
+                  <p className="text-sm text-red-500 ml-2">{contentError}</p>
                 )}
               </div>
               <textarea
@@ -157,24 +179,23 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 placeholder="내용을 입력해주세요."
               />
             </div>
-          </div>
 
-          {/* 버튼 영역 - 하단에 고정 */}
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-gray-600 bg-white hover:text-gray-800 rounded-lg border border-gray-300 hover:bg-gray-50"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="px-6 py-3 bg-Main text-white rounded-lg hover:bg-Main_hover"
-            >
-              {memoData ? "수정" : "저장"}
-            </button>
+            <div className="flex justify-center gap-5 mt-[15px]">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-gray-600 bg-white hover:text-gray-800 rounded-lg border border-gray-300 hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="px-6 py-3 bg-Main text-white rounded-lg hover:bg-Main_hover"
+              >
+                {memoData ? "수정" : "저장"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
