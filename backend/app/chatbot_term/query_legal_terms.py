@@ -55,7 +55,6 @@ qa_chain = RetrievalQA.from_chain_type(
 def get_legal_term_answer(query: str) -> str:
     # 1. 유사 문서 검색
     docs = retriever.get_relevant_documents(query)
-    print(f"[DEBUG] 검색된 문서 수: {len(docs)}")
 
     for idx, doc in enumerate(docs):
         metadata = doc.metadata or {}
