@@ -19,9 +19,9 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
   if (!isOpen || !memo) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
       <div className="container mx-auto">
-        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px]">
+        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto">
           {/* 상단 제목과 버튼 */}
           <div className="relative flex justify-end mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">
