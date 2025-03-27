@@ -379,7 +379,7 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "hidden max-[1380px]:hidden" : "hidden max-[1380px]:block"
-        } min-[1380px]:hidden fixed right-6 bottom-6 z-40`}
+        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 z-40`}
       >
         <button
           onClick={() => setIsOpen(true)}

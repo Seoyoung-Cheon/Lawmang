@@ -53,7 +53,7 @@ const FAQ = () => {
     <div ref={faqRef} className="container !mt-[100px] !mb-[60px] h-[500px]">
       <div className="left-layout">
         <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <GrCircleQuestion className="text-6xl text-black" />
             <p className="text-2xl font-medium">자주 묻는 질문</p>
           </div>
