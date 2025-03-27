@@ -85,17 +85,17 @@ const Main = () => {
         className="relative z-10 flex flex-col -space-y-[1px] w-full overflow-hidden"
       >
         <div className="bg-white border-b border-gray-100 rounded-t-[20px] w-full overflow-hidden">
-          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+          <div className="container mx-auto pl-20 pr-20">
             <Youtube />
           </div>
         </div>
         <div className="bg-gray-100 w-full">
-          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+          <div className="container mx-auto pl-20 pr-20">
             <CardList />
           </div>
         </div>
         <div className="bg-white w-full">
-          <div className="container mx-auto pl-20 pr-4 sm:pr-8">
+          <div className="container mx-auto pl-20 pr-20">
             <FAQ />
           </div>
         </div>

@@ -162,7 +162,7 @@ const Youtube = () => {
 
           {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
           <ul
-            className="grid grid-cols-2 gap-2 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%]"
+            className="grid grid-cols-2 gap-4 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%]"
             onMouseEnter={() => setAutoPlay(false)}
             onMouseLeave={() => setAutoPlay(true)}
           >
@@ -204,7 +204,7 @@ const Youtube = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="flex justify-center gap-3 mt-10 mb-8 2xl:ml-[-10px] xl:ml-[-50px] lg:ml-0">
+          <div className="flex justify-center gap-3 mt-10 mb-8 ml-[-30px] sm:ml-[-50px] md:ml-[-80px] lg:ml-[-80px] xl:ml-[-120px] 2xl:ml-[-100px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button
