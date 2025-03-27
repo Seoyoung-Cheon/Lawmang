@@ -29,13 +29,19 @@ const Header = () => {
   // ✅ 스크롤 이벤트 처리
   useEffect(() => {
     const handleScroll = () => {
-      // 스크롤 위치가 50px을 넘어가면 배경 변경
-      setIsScrolled(window.scrollY > 50);
+      // 메인 페이지에서만 스크롤 감지
+      if (location.pathname === "/") {
+        // 스크롤 위치가 800px을 넘어가면 배경 변경 (유튜브 영역까지)
+        setIsScrolled(window.scrollY > 800);
+      } else {
+        // 다른 페이지에서는 50px 스크롤 시 배경 변경
+        setIsScrolled(window.scrollY > 50);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   // 페이지 이동 시 모바일 메뉴 닫기
   useEffect(() => {
@@ -104,8 +110,8 @@ const Header = () => {
         <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
           <div className="relative z-10 mb-4 pt-2">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`${textColorClass} text-5xl font-normal font-['Oswald']`}
             >
               Lawmang
