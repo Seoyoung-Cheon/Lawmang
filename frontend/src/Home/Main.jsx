@@ -61,7 +61,7 @@ const Main = () => {
           </div>
 
           {/* 메인 문구 */}
-          <div className="fixed bottom-[125px] left-20 z-20 text-white">
+          <div className="fixed bottom-[125px] left-[50px] 2xl:left-[150px] z-20 text-white">
             <h1 className="text-6xl font-bold mb-10">
               법망 안의 새로운 시작
               <br />

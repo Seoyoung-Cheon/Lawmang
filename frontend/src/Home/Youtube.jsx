@@ -151,8 +151,8 @@ const Youtube = () => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="left-layout">
-        <div className="2xl:ml-[-100px] xl:ml-[-50px] lg:ml-0">
-          <div className="flex items-center gap-2">
+        <div className="2xl:ml-[-50px] xl:ml-0 lg:ml-[50px]">
+          <div className="flex items-center gap-4 ml-[10px]">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
           </div>
@@ -162,14 +162,14 @@ const Youtube = () => {
 
           {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
           <ul
-            className="grid grid-cols-2 gap-2 justify-items-start w-[84%] lg:w-[90%] xl:w-[84%]"
+            className="grid grid-cols-2 gap-2 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%]"
             onMouseEnter={() => setAutoPlay(false)}
             onMouseLeave={() => setAutoPlay(true)}
           >
             {currentVideos.map((video) => (
               <li
                 key={video.id.videoId || video.id}
-                className="rounded-lg p-3 w-full max-w-[500px]"
+                className="rounded-lg p-3 w-full max-w-[600px]"
               >
                 <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group">
                   <a
@@ -204,7 +204,7 @@ const Youtube = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="flex justify-center gap-3 mt-10 mb-8 2xl:ml-[-160px] xl:ml-[-80px] lg:ml-0">
+          <div className="flex justify-center gap-3 mt-10 mb-8 2xl:ml-[-10px] xl:ml-[-50px] lg:ml-0">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button

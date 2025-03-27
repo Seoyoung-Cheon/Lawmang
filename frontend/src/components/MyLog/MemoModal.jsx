@@ -7,6 +7,21 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [notificationDate, setNotificationDate] = useState("");
 
   useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (memoData) {
       setTitle(memoData.title || "");
       setContent(memoData.content || "");
@@ -34,9 +49,9 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
       <div className="container mx-auto">
-        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px]">
+        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto">
           {/* 상단 제목과 버튼 */}
           <div className="relative mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">
