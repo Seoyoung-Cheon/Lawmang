@@ -1,7 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import loadingGif from "../../assets/loading.gif";
 
 const Popup = ({ isOpen, onClose, summary }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   // 요약 내용을 섹션별로 분리하는 함수
