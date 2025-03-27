@@ -1,6 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const MemoDetail = ({ isOpen, memo, onClose }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen || !memo) return null;
 
   return (
@@ -46,7 +61,7 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
             {/* 내용 영역 */}
             <div>
               <label className="block text-lg font-semibold mb-2">내용</label>
-              <div className="w-full h-[450px] p-6 border border-gray-300 rounded-md text-lg bg-white whitespace-pre-wrap overflow-y-auto">
+              <div className="w-full h-[450px] p-6 border border-gray-300 rounded-md text-lg bg-white whitespace-pre-wrap overflow-y-auto break-words">
                 {memo.content}
               </div>
             </div>

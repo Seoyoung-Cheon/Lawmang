@@ -7,6 +7,21 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [notificationDate, setNotificationDate] = useState("");
 
   useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (memoData) {
       setTitle(memoData.title || "");
       setContent(memoData.content || "");
