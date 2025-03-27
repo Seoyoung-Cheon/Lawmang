@@ -9,15 +9,17 @@ const Popup = ({ isOpen, onClose, summary }) => {
     if (!text) return [];
 
     // 섹션 제목 패턴 (예: "【사건개요】", "【판결요지】" 등)
-    const sections = text.split(/【(.+?)】/).filter(Boolean);
     const formattedSections = [];
+    const matches = text.match(/【[^】]+】[^【]*/g) || [];
 
-    for (let i = 0; i < sections.length - 1; i += 2) {
-      formattedSections.push({
-        title: sections[i],
-        content: sections[i + 1].trim(),
-      });
-    }
+    matches.forEach((match) => {
+      const titleMatch = match.match(/【([^】]+)】/);
+      if (titleMatch) {
+        const title = titleMatch[1];
+        const content = match.replace(/【[^】]+】/, "").trim();
+        formattedSections.push({ title, content });
+      }
+    });
 
     return formattedSections;
   };
