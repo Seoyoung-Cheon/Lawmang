@@ -142,7 +142,7 @@ const ViewedList = ({ viewedLogs = [], isLoading, error }) => {
             </button>
           </div>
 
-          <h2 className="font-medium text-white flex-1 text-center">
+          <h2 className="font-medium text-white text-center flex-1 text-sm sm:text-base -ml-20">
             열람목록
           </h2>
 

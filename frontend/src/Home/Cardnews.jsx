@@ -1,9 +1,10 @@
 import React, { useLayoutEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Cardnewsdata from "../constants/cardnewsdata";
 
 const Cardnews = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // 페이지를 맨위에서부터 시작하게 설정
   useLayoutEffect(() => {
@@ -17,9 +18,29 @@ const Cardnews = () => {
   }
 
   return (
-    <div className="container h-screen ">
+    <div className="container h-screen">
       <div className="left-layout h-full">
         <div className="max-w-4xl p-6 h-[85vh] overflow-y-auto mt-[100px]">
+          {/* 홈으로 가기 버튼 */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 mb-4 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+            홈으로
+          </button>
+
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
             <div className="mb-4 flex items-center">
               <div className="flex-1 text-center">

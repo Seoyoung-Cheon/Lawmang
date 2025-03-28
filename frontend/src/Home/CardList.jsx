@@ -19,7 +19,9 @@ const CardList = () => {
       }
     };
 
-    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+    });
 
     const currentRef = cardListRef.current;
     if (currentRef) {
@@ -59,26 +61,21 @@ const CardList = () => {
   return (
     <div
       ref={cardListRef}
-      className={`container relative transition-all duration-1000 transform 
+      className={`container relative transition-all duration-1000 transform !mt-[60px] !mb-[40px]
         ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
         }`}
     >
       <div className="left-layout">
-        <div className="mx-[-200px]">
-          <div className="flex items-center gap-4 mx-[110px] pt-12">
+        <div className="2xl:ml-[-130px] xl:ml-0 lg:ml-[50px]">
+          <div className="flex items-center gap-4 ml-[10px]">
             <ImNewspaper className="text-6xl text-blue-500" />
             <p className="text-2xl font-medium">법률 카드뉴스</p>
           </div>
 
-          <ul className="flex flex-wrap mt-5 w-[90%]">
-            {currentCards.map((card, index) => (
-              <li
-                key={card.id}
-                className={`w-[40%] p-4 rounded-md ${
-                  index % 2 === 0 ? "ml-[90px]" : ""
-                }`}
-              >
+          <ul className="grid grid-cols-2 gap-4 mt-5 w-[90%] ml-[10px]">
+            {currentCards.map((card) => (
+              <li key={card.id} className="w-full p-1">
                 <Link to={`/cardnews/${card.id}`} className="block h-full">
                   {/* 카드뉴스 호버 시 효과를 위한 그룹화 */}
                   <div className="relative group">
@@ -104,7 +101,7 @@ const CardList = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="w-[90%] flex justify-center items-center gap-2 mt-8 mb-10 ml-[-30px]">
+          <div className="w-[90%] flex justify-center items-center gap-2 mt-8 mb-10 ml-[-5px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button

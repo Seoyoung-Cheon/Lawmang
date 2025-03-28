@@ -100,7 +100,7 @@ const Template = () => {
           {/* 헤더 섹션 추가 */}
           <div className="flex items-center gap-4 mb-8">
             <LuFileSearch className="text-6xl text-Main" />
-            <h1 className="text-2xl font-medium">법률 서식</h1>
+            <h1 className="text-2xl font-medium cursor-default">법률 서식</h1>
           </div>
 
           {/* 검색바 */}

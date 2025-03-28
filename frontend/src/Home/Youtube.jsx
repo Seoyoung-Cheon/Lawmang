@@ -25,7 +25,9 @@ const Youtube = () => {
       }
     };
 
-    const observer = new IntersectionObserver(observerCallback, { threshold: 0.1 });
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+    });
 
     const currentRef = youtubeRef.current;
     if (currentRef) {
@@ -141,7 +143,7 @@ const Youtube = () => {
   return (
     <div
       ref={youtubeRef}
-      className={`container !mt-[60px] !mb-[40px] transition-all duration-1000 transform 
+      className={`container transition-all duration-1000 transform !mt-[60px] !mb-[40px]
         ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
         }`}
@@ -149,8 +151,8 @@ const Youtube = () => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="left-layout">
-        <div className="mx-[-100px]">
-          <div className="flex items-center gap-2 ">
+        <div className="2xl:ml-[-130px] xl:ml-0 lg:ml-[50px]">
+          <div className="flex items-center gap-4 ml-[10px]">
             <ImYoutube2 className="text-9xl text-red-500" />
             <p className="text-2xl font-medium">법률 관련 유튜브</p>
           </div>
@@ -160,14 +162,14 @@ const Youtube = () => {
 
           {/* ✅ FAQ, CardList와 동일한 2열 레이아웃 유지 */}
           <ul
-            className="grid grid-cols-2 gap-2 justify-items-start w-[84%]"
+            className="grid grid-cols-2 gap-4 justify-items-start w-[90%] lg:w-[95%] xl:w-[90%] ml-[10px]"
             onMouseEnter={() => setAutoPlay(false)}
             onMouseLeave={() => setAutoPlay(true)}
           >
             {currentVideos.map((video) => (
               <li
                 key={video.id.videoId || video.id}
-                className="rounded-lg p-3 w-full max-w-[500px]"
+                className="rounded-lg p-3 w-full max-w-[600px]"
               >
                 <div className="w-full overflow-hidden relative shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group">
                   <a
@@ -202,7 +204,7 @@ const Youtube = () => {
           </ul>
 
           {/* 페이지네이션 UI */}
-          <div className="flex justify-center gap-3 mt-10 mb-8 -ml-[160px]">
+          <div className="flex justify-center gap-3 mt-10 mb-8 ml-[-30px] sm:ml-[-50px] md:ml-[-80px] lg:ml-[-80px] xl:ml-[-120px] 2xl:ml-[-100px]">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(
               (number) => (
                 <button

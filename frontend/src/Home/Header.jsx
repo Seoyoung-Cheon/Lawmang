@@ -25,17 +25,24 @@ const Header = () => {
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ✅ 스크롤 이벤트 처리
   useEffect(() => {
     const handleScroll = () => {
-      // 스크롤 위치가 50px을 넘어가면 배경 변경
-      setIsScrolled(window.scrollY > 50);
+      // 메인 페이지에서만 스크롤 감지
+      if (location.pathname === "/") {
+        // 스크롤 위치가 800px을 넘어가면 배경 변경 (유튜브 영역까지)
+        setIsScrolled(window.scrollY > 800);
+      } else {
+        // 다른 페이지에서는 50px 스크롤 시 배경 변경
+        setIsScrolled(window.scrollY > 50);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   // 페이지 이동 시 모바일 메뉴 닫기
   useEffect(() => {
@@ -86,6 +93,21 @@ const Header = () => {
     };
   }, [logoutUser, dispatch]);
 
+  // 모달 상태 감지
+  useEffect(() => {
+    const handleModalState = (e) => {
+      setIsModalOpen(e.detail.isOpen);
+    };
+
+    window.addEventListener("modalState", handleModalState);
+    window.addEventListener("memoModalState", handleModalState);
+
+    return () => {
+      window.removeEventListener("modalState", handleModalState);
+      window.removeEventListener("memoModalState", handleModalState);
+    };
+  }, []);
+
   return (
     <div className="w-full">
       {/* 어두운 배경 오버레이 - 전체 화면 */}
@@ -97,15 +119,15 @@ const Header = () => {
       )}
 
       <div
-        className={`fixed top-0 left-0 z-[100] w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 w-full transition-all duration-300 ${
           isScrolled ? "bg-white/80 backdrop-blur-sm shadow-md" : ""
-        }`}
+        } ${isModalOpen ? "z-[30]" : "z-[100]"}`}
       >
         <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
           <div className="relative z-10 mb-4 pt-2">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`${textColorClass} text-5xl font-normal font-['Oswald']`}
             >
               Lawmang
@@ -117,7 +139,11 @@ const Header = () => {
             <li>
               <Link
                 to="/consultation"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 상담 사례
               </Link>
@@ -125,7 +151,11 @@ const Header = () => {
             <li>
               <Link
                 to="/precedent"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 판례
               </Link>
@@ -133,15 +163,23 @@ const Header = () => {
             <li>
               <Link
                 to="/template"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 법률 서식
               </Link>
             </li>
             <li>
               <Link
-                to="/dictionary"
-                className={`${textColorClass} hover:opacity-70 cursor-pointer`}
+                to="/Report"
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } cursor-pointer`}
               >
                 AI 리포트
               </Link>
@@ -149,7 +187,7 @@ const Header = () => {
           </ul>
 
           {/* 로그인/로그아웃 버튼 */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 ml-20">
             {/* 기존 로그인/프로필 메뉴 (lg 이상에서만 표시) */}
             {isAuthenticated ? (
               <div
@@ -158,7 +196,11 @@ const Header = () => {
                 onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
                 <button
-                  className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer flex items-center gap-2`}
+                  className={`${textColorClass} transition-all duration-300 ${
+                    location.pathname === "/"
+                      ? "hover:animate-text-glow"
+                      : "hover:animate-text-glow-dark"
+                  } text-lg cursor-pointer flex items-center gap-2`}
                 >
                   <CiUser className="w-6 h-6" />
                   <span>{user?.nickname || "사용자"}</span>
@@ -189,7 +231,11 @@ const Header = () => {
             ) : (
               <Link
                 to="/login"
-                className={`${textColorClass} hover:opacity-70 text-lg cursor-pointer hidden lg:flex items-center gap-2`}
+                className={`${textColorClass} transition-all duration-300 ${
+                  location.pathname === "/"
+                    ? "hover:animate-text-glow"
+                    : "hover:animate-text-glow-dark"
+                } text-lg cursor-pointer hidden lg:flex items-center gap-2`}
               >
                 <CiLogin className="w-5 h-5" />
                 로그인
@@ -254,7 +300,7 @@ const Header = () => {
             법률 서식
           </Link>
           <Link
-            to="/dictionary"
+            to="/Report"
             className="block px-6 py-4 text-gray-600 hover:bg-gray-50 hover:text-Main transition-colors"
           >
             AI 리포트

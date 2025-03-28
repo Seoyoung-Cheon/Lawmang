@@ -5,6 +5,36 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   const [content, setContent] = useState("");
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [notificationDate, setNotificationDate] = useState("");
+  const [titleError, setTitleError] = useState("");
+  const [contentError, setContentError] = useState("");
+  const [dateError, setDateError] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      // 메모 모달이 열렸음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: true } })
+      );
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+      // 메모 모달이 닫혔음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: false } })
+      );
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+      // 컴포넌트가 언마운트될 때 메모 모달이 닫혔음을 알림
+      window.dispatchEvent(
+        new CustomEvent("memoModalState", { detail: { isOpen: false } })
+      );
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (memoData) {
@@ -21,6 +51,26 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
   }, [memoData]);
 
   const handleSave = () => {
+    let hasError = false;
+    setTitleError("");
+    setContentError("");
+    setDateError("");
+
+    if (!title.trim()) {
+      setTitleError("제목을 입력해주세요.");
+      hasError = true;
+    }
+    if (!content.trim()) {
+      setContentError("내용을 입력해주세요.");
+      hasError = true;
+    }
+    if (isNotificationEnabled && !notificationDate) {
+      setDateError("알림 날짜를 선택해주세요.");
+      hasError = true;
+    }
+
+    if (hasError) return;
+
     onSave({
       id: memoData?.id || null,
       title,
@@ -31,12 +81,23 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
     onClose();
   };
 
+  const handleNotificationChange = (e) => {
+    setIsNotificationEnabled(e.target.checked);
+    if (!e.target.checked) {
+      setNotificationDate("");
+      setDateError("");
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="container mx-auto">
-        <div className="left-layout bg-gray-50 rounded-3xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px]">
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="fixed inset-0 bg-black/40 pointer-events-auto z-[30]">
+        <div className="absolute inset-0 backdrop-blur-sm"></div>
+      </div>
+      <div className="container mx-auto relative z-[60]">
+        <div className="left-layout bg-[#f7f6f4] rounded-xl w-[900px] h-[820px] p-8 border border-Main mt-[65px] pointer-events-auto relative">
           {/* 상단 제목과 버튼 */}
           <div className="relative mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">
@@ -45,18 +106,19 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
           </div>
 
           {/* 구분선 */}
-          <div className="border-b border-gray-300 shadow-sm mb-6"></div>
+          <div className="border-b border-1 border-Main shadow-sm mb-6"></div>
 
           {/* 알림 설정 영역 */}
-          <div className="flex justify-end">
+          <div className="flex justify-end h-[20px]">
             <div className="flex items-center gap-2">
+              {dateError && <p className="text-sm text-red-500">{dateError}</p>}
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="notification"
                   checked={isNotificationEnabled}
-                  onChange={(e) => setIsNotificationEnabled(e.target.checked)}
-                  className="w-5 h-5 text-Main border-gray-300 rounded focus:ring-Main"
+                  onChange={handleNotificationChange}
+                  className="w-5 h-5 border-gray-300 rounded focus:ring-Main"
                 />
                 <label
                   htmlFor="notification"
@@ -66,13 +128,20 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 </label>
               </div>
               {isNotificationEnabled && (
-                <input
-                  type="date"
-                  value={notificationDate}
-                  onChange={(e) => setNotificationDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-Main bg-white"
-                />
+                <div className="flex flex-col">
+                  <input
+                    type="date"
+                    value={notificationDate}
+                    onChange={(e) => {
+                      setNotificationDate(e.target.value);
+                      setDateError("");
+                    }}
+                    min={new Date().toISOString().slice(0, 10)}
+                    className={`px-3 py-1.5 border ${
+                      dateError ? "border-red-500" : "border-gray-300"
+                    } rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-Main bg-white`}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -81,25 +150,49 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
           <div className="h-[600px]">
             {/* 제목 입력 영역 */}
             <div className="mb-4">
-              <label className="block text-lg font-semibold mb-2">제목</label>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-red-500">*</span>
+                <label className="block text-lg font-semibold">제목</label>
+                {titleError && (
+                  <p className="text-sm text-red-500 ml-2">{titleError}</p>
+                )}
+              </div>
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={30}
-                className="w-full p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg"
-                placeholder="제목을 입력해주세요. (30자 이내)"
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  if (newTitle.length <= 24) {
+                    setTitle(newTitle);
+                    setTitleError("");
+                  }
+                }}
+                className={`w-full p-3 border ${
+                  titleError ? "border-red-500" : "border-gray-300"
+                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
+                placeholder="제목을 입력해주세요. (24자 이내)"
                 autoFocus
               />
             </div>
 
             {/* 내용 입력 영역 */}
             <div>
-              <label className="block text-lg font-semibold mb-2">내용</label>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-red-500">*</span>
+                <label className="block text-lg font-semibold">내용</label>
+                {contentError && (
+                  <p className="text-sm text-red-500 ml-2">{contentError}</p>
+                )}
+              </div>
               <textarea
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full h-[450px] p-6 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg"
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  setContentError("");
+                }}
+                className={`w-full h-[450px] p-6 border ${
+                  contentError ? "border-red-500" : "border-gray-300"
+                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
                 placeholder="내용을 입력해주세요."
               />
             </div>

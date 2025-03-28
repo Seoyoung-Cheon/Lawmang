@@ -1,7 +1,28 @@
-import React from "react";
+import React, { useEffect } from "react";
 import loadingGif from "../../assets/loading.gif";
 
 const Popup = ({ isOpen, onClose, summary }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      window.dispatchEvent(
+        new CustomEvent("modalState", { detail: { isOpen: true } })
+      );
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+      window.dispatchEvent(
+        new CustomEvent("modalState", { detail: { isOpen: false } })
+      );
+    }
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   // 요약 내용을 섹션별로 분리하는 함수
@@ -9,17 +30,17 @@ const Popup = ({ isOpen, onClose, summary }) => {
     if (!text) return [];
 
     // 섹션 제목 패턴 (예: "【사건개요】", "【판결요지】" 등)
-    const sections = text.split(/【(.+?)】/).filter(Boolean);
     const formattedSections = [];
+    const matches = text.match(/【[^】]+】[^【]*/g) || [];
 
-    for (let i = 0; i < sections.length; i += 2) {
-      if (i + 1 < sections.length) {
-        formattedSections.push({
-          title: sections[i],
-          content: sections[i + 1].trim(),
-        });
+    matches.forEach((match) => {
+      const titleMatch = match.match(/【([^】]+)】/);
+      if (titleMatch) {
+        const title = titleMatch[1];
+        const content = match.replace(/【[^】]+】/, "").trim();
+        formattedSections.push({ title, content });
       }
-    }
+    });
 
     return formattedSections;
   };
@@ -39,7 +60,7 @@ const Popup = ({ isOpen, onClose, summary }) => {
           <h3 className="text-2xl font-bold text-gray-800">판례 요약</h3>
           <button
             onClick={onClose}
-            className="absolute right-6 p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="absolute right-6 p-1 hover:bg-gray-100 rounded-full transition-all duration-300 hover:rotate-180"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -61,23 +82,28 @@ const Popup = ({ isOpen, onClose, summary }) => {
         {/* 컨텐츠 */}
         <div className="p-8 h-[calc(80vh-120px)] overflow-y-auto">
           {summary === null ? (
-            <div className="flex flex-col items-center justify-center py-10">
+            <div className="flex flex-col items-center justify-center h-full">
               <img src={loadingGif} alt="loading" className="w-16 h-16" />
               <p className="text-gray-600 mt-4">요약을 생성하고 있습니다...</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {formatSummary(summary).map((section, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50/50 p-6 rounded-xl border border-gray-200"
+                  className="bg-white p-8 rounded-2xl border border-gray-200 shadow-md transition-shadow duration-200"
                 >
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                  <h4 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-[#afaa99] flex items-center">
+                    <span className="bg-[#afaa99] text-white px-3 py-1 rounded-full text-sm mr-3">
+                      {index + 1}
+                    </span>
                     {section.title}
                   </h4>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line pl-2">
-                    {section.content}
-                  </p>
+                  <div className="prose prose-gray max-w-none">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line pl-2 text-base">
+                      {section.content}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
