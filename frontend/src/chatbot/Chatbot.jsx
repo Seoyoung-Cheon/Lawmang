@@ -262,7 +262,7 @@ const Chatbot = () => {
             <div className="flex gap-2 items-center">
               <button
                 onClick={() => handleCategoryClick("general")}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
                   selectedCategory === "general"
                     ? "bg-Main text-white"
                     : "bg-gray-100"
@@ -273,7 +273,7 @@ const Chatbot = () => {
 
               <button
                 onClick={() => handleCategoryClick("legal")}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
                   selectedCategory === "legal"
                     ? "bg-Main text-white"
                     : "bg-gray-100 hover:bg-gray-200"
@@ -284,10 +284,8 @@ const Chatbot = () => {
                 법률용어
               </button>
               {selectedCategory === "general" && (
-                <p className="text-xs 2xl:text-sm text-gray-500 ml-4 max-w-[200px] self-center">
-                  ※ '법률용어' 풀이가 필요한 경우
-                  <br />
-                  로그인 후 이용 가능합니다.
+                <p className="text-xs 2xl:text-sm text-gray-500 ml-2 mt-2 break-keep self-center">
+                  ※ '법률용어' 풀이가 필요한 경우 로그인 후 이용 가능합니다.
                 </p>
               )}
             </div>
