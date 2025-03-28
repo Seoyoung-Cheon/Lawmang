@@ -36,7 +36,7 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
         <div className="absolute inset-0 backdrop-blur-sm"></div>
       </div>
       <div className="container mx-auto relative z-[60]">
-        <div className="left-layout bg-gray-50 rounded-xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto">
+        <div className="left-layout bg-[#f7f6f4]  rounded-xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto">
           {/* 상단 제목과 버튼 */}
           <div className="relative flex justify-end mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">
@@ -45,10 +45,10 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
           </div>
 
           {/* 구분선 */}
-          <div className="border-b border-gray-300 shadow-sm mb-6"></div>
+          <div className="border-b border-1 border-Main shadow-sm mb-6"></div>
 
           {/* 알림 설정 표시 영역 */}
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end h-[20px]">
             {memo.notification && memo.event_date && (
               <div className="flex items-center gap-2">
                 <div className="flex items-center">

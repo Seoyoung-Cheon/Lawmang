@@ -97,7 +97,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
         <div className="absolute inset-0 backdrop-blur-sm"></div>
       </div>
       <div className="container mx-auto relative z-[60]">
-        <div className="left-layout bg-gray-50 rounded-xl w-[900px] h-[820px] p-8 border border-gray-300 mt-[65px] pointer-events-auto relative">
+        <div className="left-layout bg-[#f7f6f4] rounded-xl w-[900px] h-[820px] p-8 border border-Main mt-[65px] pointer-events-auto relative">
           {/* 상단 제목과 버튼 */}
           <div className="relative mb-20">
             <h2 className="absolute left-1/2 top-10 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">
@@ -106,10 +106,10 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
           </div>
 
           {/* 구분선 */}
-          <div className="border-b border-gray-300 shadow-sm mb-6"></div>
+          <div className="border-b border-1 border-Main shadow-sm mb-6"></div>
 
           {/* 알림 설정 영역 */}
-          <div className="flex justify-end">
+          <div className="flex justify-end h-[20px]">
             <div className="flex items-center gap-2">
               {dateError && <p className="text-sm text-red-500">{dateError}</p>}
               <div className="flex items-center">
@@ -118,7 +118,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                   id="notification"
                   checked={isNotificationEnabled}
                   onChange={handleNotificationChange}
-                  className="w-5 h-5 text-Main border-gray-300 rounded focus:ring-Main"
+                  className="w-5 h-5 border-gray-300 rounded focus:ring-Main"
                 />
                 <label
                   htmlFor="notification"
@@ -169,7 +169,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 }}
                 className={`w-full p-3 border ${
                   titleError ? "border-red-500" : "border-gray-300"
-                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg`}
+                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
                 placeholder="제목을 입력해주세요. (24자 이내)"
                 autoFocus
               />
@@ -192,7 +192,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                 }}
                 className={`w-full h-[450px] p-6 border ${
                   contentError ? "border-red-500" : "border-gray-300"
-                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg`}
+                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
                 placeholder="내용을 입력해주세요."
               />
             </div>
