@@ -93,8 +93,8 @@ const Popup = ({ isOpen, onClose, summary }) => {
                   key={index}
                   className="bg-white p-8 rounded-2xl border border-gray-200 shadow-md transition-shadow duration-200"
                 >
-                  <h4 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-[#cecbc0] flex items-center">
-                    <span className="bg-[#cecbc0] text-white px-3 py-1 rounded-full text-sm mr-3">
+                  <h4 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-[#afaa99] flex items-center">
+                    <span className="bg-[#afaa99] text-white px-3 py-1 rounded-full text-sm mr-3">
                       {index + 1}
                     </span>
                     {section.title}
