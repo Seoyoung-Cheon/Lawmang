@@ -24,13 +24,8 @@ class Settings(BaseSettings):
         return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
     # 법률상담 챗봇
-    HF_TOKEN: str = os.getenv("HF_TOKEN")
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
     TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY")
-
-
-    if not HF_TOKEN:
-        raise ValueError("❌ 환경 변수 HF_TOKEN이 설정되지 않았습니다!")  
     
 
 # ✅ 설정 객체 생성
@@ -50,7 +45,6 @@ DB_PASSWORD = settings.DB_PASSWORD
 DB_PORT = settings.DB_PORT
 
 # 법률상담 챗봇
-HF_TOKEN = settings.HF_TOKEN
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 TAVILY_API_KEY = settings.TAVILY_API_KEY
 
