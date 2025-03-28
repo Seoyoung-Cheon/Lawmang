@@ -113,7 +113,7 @@ const ConsDetail = () => {
 
   if (!consultation) {
     return (
-      <div className="container">
+      <div className="container min-h-screen">
         <div className="left-layout">
           <div className="px-0 pt-32 pb-10">
             <div className="flex justify-center items-center h-[790px] border border-gray-300 rounded-3xl">
@@ -128,7 +128,7 @@ const ConsDetail = () => {
   }
 
   return (
-    <div className="container">
+    <div className="container min-h-screen">
       <div className="left-layout">
         <div className="px-0 pt-[120px] pb-10">
           {/* 뒤로가기 버튼 수정 */}
