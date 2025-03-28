@@ -1,100 +1,62 @@
-from typing import Dict
+# ✅ controller.py
+from typing import Dict, Optional
 from langchain_community.vectorstores import FAISS
 from app.chatbot.initial_agents.initial_chatbot import LegalChatbot
-from app.chatbot.memory.global_cache import (
-    make_session_id,
-    get_cached_result,
-    update_cached_result,
-    clear_cached_result
-)
+from app.chatbot.initial_agents.ask_human_for_info import AskHumanAgent
 
 
 async def run_initial_controller(
-    user_query: str, faiss_db: FAISS, user_id: str
+    user_query: str,
+    faiss_db: FAISS,
+    current_yes_count: int = 0,
+    template_data: Optional[Dict[str, any]] = None,
 ) -> Dict:
     chatbot = LegalChatbot(faiss_db=faiss_db)
-    result = await chatbot.generate(user_query, user_id=user_id)
+    ask_human_agent = AskHumanAgent()
 
-    response_text = result.get("initial_response", "")
-    escalate = result.get("escalate_to_advanced", False)
-    last_yes_query = result.get("last_yes_query")
-    query_type = result.get("query_type")
-    is_no = result.get("is_no", False)
-    followup_question = result.get("followup_question")
+    initial_result = await chatbot.generate(
+        user_query=user_query,
+        current_yes_count=current_yes_count,
+    )
 
-    # ✅ session_id 기준
-    session_id = make_session_id(user_id)
-    cached = get_cached_result(session_id)
+    initial_response = initial_result.get("initial_response", "")
+    is_no = initial_result.get("is_no", False)
+    query_type = initial_result.get("query_type", "legal")
 
-    # ✅ ###no 직접 감지 → 고급 처리 차단
+    updated_yes_count = initial_result.get("yes_count", current_yes_count)
+    escalate_directly = initial_result.get("escalate_to_advanced", False)
+
     if is_no:
-        print("❌ [###NO 응답 감지 → 고급 흐름 중단]")
-        return {
-            "user_query": user_query,
-            "initial_response": response_text,
-            "escalate_to_advanced": False,
-            "last_yes_query": None,
-            "status": "no_triggered",
-            "followup_question": followup_question,
-        }
+        return {"status": "no_triggered", "initial_response": initial_response}
 
-    # ✅ 논외 질문(nonlegal)은 바로 응답 종료
     if query_type == "nonlegal":
-        print("🚫 [비법률 질문으로 판단됨 → 고급 처리 중단]")
-        return {
-            "user_query": user_query,
-            "initial_response": response_text,
-            "escalate_to_advanced": False,
-            "last_yes_query": None,
-            "status": "nonlegal_skipped",
-            "followup_question": followup_question,
-        }
+        return {"status": "nonlegal_skipped", "initial_response": initial_response}
 
-    # ✅ escalate 상태를 캐시에 저장
-    if chatbot.escalated_once:
-        update_cached_result(session_id, "escalated_once", True)
+    ask_result = await ask_human_agent.ask_human(
+        user_query=user_query,
+        llm1_answer=initial_response,
+        current_yes_count=updated_yes_count,
+        template_data=template_data,
+    )
 
-    # ✅ 전략/판례 준비 확인
-    if escalate:
-        strategy_ok = cached.get("strategy") is not None
-        precedent_ok = cached.get("precedent") is not None
+    final_yes_count = ask_result.get("yes_count", updated_yes_count)
+    escalate_to_advanced = escalate_directly or final_yes_count >= 3
 
-        if not strategy_ok or not precedent_ok:
-            print("⏳ [전략 또는 판례 미완료 → 잠시 대기]")
-            return {
-                "user_query": user_query,
-                "initial_response": response_text,
-                "escalate_to_advanced": True,
-                "last_yes_query": last_yes_query,
-                "status": "wait_for_building",
-                "followup_question": followup_question,
-            }
+    status = "ok"
+    if escalate_to_advanced:
+        status = "advanced_triggered"
+    elif ask_result.get("load_template_signal"):
+        status = "template_load_triggered"
 
-        print("\n📦 [고급 LLM 호출 조건 만족 → 캐시된 전략/판례 사용]")
-        print("📄 전략 요약:", cached["strategy"].get("final_strategy_summary", "없음"))
-        print("📚 판례 요약:", cached["precedent"].get("summary", "없음"))
-        print("🔗 링크:", cached["precedent"].get("casenote_url", "없음"))
-
-        clear_cached_result(session_id)
-
-        return {
-            "user_query": user_query,
-            "initial_response": response_text,
-            "escalate_to_advanced": True,
-            "last_yes_query": last_yes_query,
-            "cached_strategy": cached["strategy"],
-            "cached_precedent": cached["precedent"],
-            "cached_template": cached["template"],
-            "status": "cached_advanced_returned",
-            "followup_question": followup_question,
-        }
-
-    # ✅ 기본 흐름
     return {
-        "user_query": user_query,
-        "initial_response": response_text,
-        "escalate_to_advanced": escalate,
-        "last_yes_query": last_yes_query,
-        "status": "ok",
-        "followup_question": followup_question,
+        "initial_response": initial_response,
+        "escalate_to_advanced": escalate_to_advanced,
+        "yes_count": final_yes_count,
+        "load_template_signal": ask_result.get("load_template_signal"),
+        "status": status,
+        "followup_question": ask_result.get("followup_question"),
+        "is_mcq": ask_result.get("is_mcq"),
+        "precedent_summary": ask_result.get("precedent_summary"),
+        "strategy_summary": ask_result.get("strategy_summary"),
+        "debug_prompt": ask_result.get("debug_prompt"),  # ✅ 추가
     }

@@ -3,31 +3,24 @@ import sys
 import asyncio
 from asyncio import Lock
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
 
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-# ✅ 컨트롤러 및 유틸
-from app.chatbot.memory.global_cache import get_cached_result
+
 from app.chatbot.initial_agents.controller import run_initial_controller
 from app.chatbot.tool_agents.controller import run_full_consultation
 from app.chatbot.tool_agents.utils.utils import faiss_kiwi
 
-# ✅ 락: 고급 응답 생성 중 중복 실행 방지
+# ✅ 락: 중복 실행 방지
 llm2_lock = Lock()
 
-# ✅ PYTHONPATH 설정
 sys.path.append(os.path.abspath("."))
-
-# ✅ 환경변수 로드
 load_dotenv()
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DB_FAISS_PATH = "./app/chatbot/faiss"
-executor = ThreadPoolExecutor(max_workers=10)
 
 
 def load_faiss():
-    """FAISS 벡터 DB 로드"""
     try:
         embedding_model = OpenAIEmbeddings(
             model="text-embedding-ada-002",
@@ -39,85 +32,74 @@ def load_faiss():
             allow_dangerous_deserialization=True,
         )
     except Exception as e:
-        print(f"❌ [FAISS 로드 실패]: {e}")
+        print(f"❌ FAISS 로드 실패: {e}")
         return None
-
 async def run_dual_pipeline(user_query: str):
-    print(f"\n🔍 [INFO] 사용자 질문 수신: {user_query}")
+    print(f"\n🔍 사용자 질문 수신: {user_query}")
 
     faiss_db = load_faiss()
     if not faiss_db:
         return {"error": "FAISS 로드 실패"}
 
-    # ✅ LLM1 먼저 실행
-    initial_result = await run_initial_controller(
-        user_query=user_query, faiss_db=faiss_db
+    search_keywords = faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db)
+
+    initial_task = asyncio.create_task(run_initial_controller(user_query, faiss_db))
+    build_task = asyncio.create_task(
+        run_full_consultation(user_query, search_keywords, build_only=True)
     )
 
-    # ✅ ###NO 또는 비법률 질문인 경우: 고급 처리 중단
-    if initial_result.get("status") in ["nonlegal_skipped", "no_triggered"]:
-        print("🚫 [고급 응답 생략됨] 이유:", initial_result.get("status"))
-        return {
-            "initial": initial_result,
-            "advanced": None,
-        }
+    initial_result = await initial_task
+    status = initial_result.get("status", "ok")
 
-    # ✅ 캐시에서 YES 3회 확인 → 고급 전략 실행
-    last_query = initial_result.get("last_yes_query") or user_query
-    session_id = last_query[:20]
-    print("\n📦 [캐시 로드] session_id =", session_id)
+    if status in ["nonlegal_skipped", "no_triggered"]:
+        build_task.cancel()
+        return {"initial": initial_result, "advanced": None}
 
-    cached = get_cached_result(session_id)
+    yes_count = initial_result.get("yes_count", 0)
+    escalate = initial_result.get("escalate_to_advanced", False)
 
-    # 전체 캐시 상태 출력
-    for k, v in cached.items():
-        print(f"🔑 {k}: {v}")
+    advanced_result = None
 
-    # 개별 중요 키도 강조
-    print("🧪 [캐시 yes_count] =", cached.get("yes_count"))
-    print("🧪 [캐시 escalated_once] =", cached.get("escalated_once"))
-    print("🧪 [캐시 template 존재 여부] =", "O" if cached.get("template") else "X")
-    print("🧪 [캐시 strategy 존재 여부] =", "O" if cached.get("strategy") else "X")
-    print("🧪 [캐시 precedent 존재 여부] =", "O" if cached.get("precedent") else "X")
+    if yes_count >= 3 or escalate:
+        prepared_data = await build_task  # 🔹 전략 + 판례 빌드 결과 수신
+        async with llm2_lock:
+            print("🚀 [YES 조건 만족 → GPT 고급 응답 생성 시작]")
 
+            # ✅ 미리 빌드된 내용으로 최종 응답 생성
+            final_answer = run_full_consultation(
+                template=prepared_data["template"],
+                strategy=prepared_data["strategy"],
+                precedent=prepared_data["precedent"],
+                user_query=user_query,
+                model="gpt-4",
+            )
 
-    if cached.get("escalated_once", False):
-        if llm2_lock.locked():
-            print("⚠️ [중복 실행 방지] 고급 응답 생성 중입니다.")
-            return {
-                "initial": initial_result,
-                "advanced": None,
+            advanced_result = {
+                "user_query": user_query,
+                "template": prepared_data["template"],
+                "strategy": prepared_data["strategy"],
+                "precedent": prepared_data["precedent"],
+                "final_answer": final_answer,
+                "status": "ok",
             }
 
-        print("🚀 [YES 카운트 3회 도달 → 고급 응답 생성 시작]")
-        search_keywords = faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db)
-
-        async with llm2_lock:
-            advanced_result = await run_full_consultation(
-                user_query=user_query,
-                search_keywords=search_keywords,
-            )
     else:
-        print("⏸️ [YES 누적 중 → 고급 응답 생략]")
-        advanced_result = None
+        print("⏸️ [고급 응답 조건 미충족 → GPT 호출 생략]")
+        build_task.cancel()
 
-    return {
-        "initial": initial_result,
-        "advanced": advanced_result,
-    }
+    return {"initial": initial_result, "advanced": advanced_result}
 
 
 async def chatbot_loop():
-    print("✅ [시작] 법률 AI 챗봇 (초기 응답 + 고급 응답 병렬 처리)")
+    print("✅ [시작] 법률 AI 챗봇")
 
     while True:
         user_query = input("\n❓ 질문을 입력하세요 (종료: exit): ")
-
         if user_query.lower() == "exit":
             break
 
         if llm2_lock.locked():
-            print("⚠️ 고급 AI 응답 생성 중입니다. 잠시만 기다려주세요.")
+            print("⚠️ [고급 응답 생성 중, 잠시만 기다리세요.]")
             continue
 
         result = await run_dual_pipeline(user_query)
@@ -126,45 +108,56 @@ async def chatbot_loop():
             print("❌ 실행 실패:", result["error"])
             continue
 
-        # ✅ 초기 응답 출력
         initial = result["initial"]
-        print("\n🟦 [초기 응답]:")
+
+        print("\n🟦 [초기 LLM 응답]:")
         print(initial.get("initial_response", "응답 없음"))
 
-        # ✅ 후속 질문 (ask_human)
-        if initial.get("followup_question"):
-            print("\n🟨 [후속 질문 제안]:")
-            print(initial["followup_question"])
+        followup = initial.get("followup_question")
+        is_mcq = initial.get("is_mcq", False)
 
-        # ✅ 고급 응답 출력
+        if followup:
+            if is_mcq and isinstance(followup, dict):
+                print("\n🟨 [객관식 후속 질문 제안]:")
+                print("📌 질문:", followup.get("question", "없음"))
+                for key, value in followup.get("options", {}).items():
+                    print(f"   {key}. {value}")
+                print("✅ 정답:", followup.get("correct_answer", "없음"))
+            else:
+                print("\n🟨 [후속 질문 제안]:", followup)
+
         advanced = result.get("advanced")
-        if advanced and advanced.get("final_answer"):
-            print("\n🚀 [고급 응답 시작]")
-            print(
-                "📄 템플릿 요약:", advanced.get("template", {}).get("summary", "없음")
-            )
-            print(
-                "🧠 전략 요약:",
-                advanced.get("strategy", {}).get("final_strategy_summary", "없음"),
-            )
-            print("📚 판례 요약:", advanced.get("precedent", {}).get("summary", "없음"))
-            print("🔗 링크:", advanced.get("precedent", {}).get("casenote_url", "없음"))
-            print("🤖 최종 GPT 응답:\n", advanced.get("final_answer", "응답 없음"))
+        if advanced:
+            if advanced.get("final_answer"):
+                print("\n🚀 [고급 LLM 응답]:")
+                print(
+                    "📄 템플릿 요약:",
+                    advanced.get("template", {}).get("summary", "없음"),
+                )
+                print(
+                    "🧠 전략 요약:",
+                    advanced.get("strategy", {}).get("final_strategy_summary", "없음"),
+                )
+                print(
+                    "📚 판례 요약:",
+                    advanced.get("precedent", {}).get("summary", "없음"),
+                )
+                print(
+                    "🔗 링크:",
+                    advanced.get("precedent", {}).get("casenote_url", "없음"),
+                )
+                print("\n🤖 최종 GPT 응답:\n", advanced.get("final_answer", "없음"))
+            else:
+                print("🔧 [전략/판례 빌드 완료 (최종 GPT 응답 생략됨)]")
         else:
-            print(
-                "\n✅ 초기 응답으로 충분하다고 판단됨. 고급 LLM 응답은 생략되었습니다."
-            )
+            print("\n✅ 초기 응답으로 충분합니다.")
 
 
 def main():
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(chatbot_loop())
-    except KeyboardInterrupt:
-        print("\n🛑 사용자 종료")
-    finally:
-        loop.close()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(chatbot_loop())
+    loop.close()
 
 
 if __name__ == "__main__":
