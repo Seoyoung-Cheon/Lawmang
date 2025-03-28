@@ -147,10 +147,9 @@ async def async_search_consultation(keywords):
 
 # ------------------ 정밀 서치 판례 쿼리---------------------------------------------
 async def async_search_precedent(categories, titles, user_input_keywords):
-    """비동기 SQL 판례 검색 (카테고리 + 제목 + 사용자 입력 키워드 기반)"""
+    """비동기 SQL 판례 검색 (카테고리 + 제목 + 사용자 입력 키워드 기반, 최신 10%만 필터링)"""
     loop = asyncio.get_running_loop()
 
-    # ✅ 1. title 및 category를 단어 단위로 변환
     def extract_words(text):
         return re.findall(r"\b\w+\b", text)
 
@@ -166,46 +165,50 @@ async def async_search_precedent(categories, titles, user_input_keywords):
     formatted_titles = ", ".join(f"'{t}'" for t in title_words)
     formatted_user_keywords = ", ".join(f"'{kw}'" for kw in user_input_keywords)
 
-    # ✅ 2. SQL 쿼리 수정: 단어 단위 검색 적용
-    query = f"""
-        SET pg_trgm.similarity_threshold = 0.2;  -- ✅ 적절한 유사도 기준 조정
+    total_terms = len(user_input_keywords) + len(title_words) + len(category_words)
 
-    WITH filtered_precedents AS (
-        SELECT id, c_number, c_type, j_date, court, c_name, d_link,
-            -- ✅ 유사도 평균값 계산 (각 키워드 유사도 합 / 전체 개수)
-            (
-                {"+".join([f"COALESCE(similarity(c_name, '{kw}'), 0)" for kw in user_input_keywords])}
-                + {"+".join([f"COALESCE(similarity(c_name, '{t}'), 0)" for t in title_words])}
-                + {"+".join([f"COALESCE(similarity(c_name, '{c}'), 0)" for c in category_words])}
-            ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS avg_score
-        FROM precedent
-        WHERE (
-            -- ✅ 단어 기반 유사도 검색
-            c_name % ANY(ARRAY[{formatted_user_keywords}])
-            OR c_name % ANY(ARRAY[{formatted_titles}])
-            OR c_name % ANY(ARRAY[{formatted_categories}])
-            
-            -- ✅ 문장 검색 강화 (ILIKE 포함)
-            OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{kw}%'" for kw in user_input_keywords])}])
-            OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{t}%'" for t in title_words])}])
+    query = f"""
+        SET pg_trgm.similarity_threshold = 0.2;
+
+        WITH top_10_percent AS (
+            SELECT *
+            FROM precedent
+            ORDER BY j_date DESC
+            LIMIT 5000  -- ✅ 최신순으로 10%만 필터링
+        ),
+
+        filtered_precedents AS (
+            SELECT id, c_number, c_type, j_date, court, c_name, d_link,
+                (
+                    {"+".join([f"COALESCE(similarity(c_name, '{kw}'), 0)" for kw in user_input_keywords])}
+                    + {"+".join([f"COALESCE(similarity(c_name, '{t}'), 0)" for t in title_words])}
+                    + {"+".join([f"COALESCE(similarity(c_name, '{c}'), 0)" for c in category_words])}
+                ) / ({total_terms}) AS avg_score
+            FROM top_10_percent
+            WHERE (
+                c_name % ANY(ARRAY[{formatted_user_keywords}])
+                OR c_name % ANY(ARRAY[{formatted_titles}])
+                OR c_name % ANY(ARRAY[{formatted_categories}])
+                OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{kw}%'" for kw in user_input_keywords])}])
+                OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{t}%'" for t in title_words])}])
+            )
+            ORDER BY avg_score DESC
+            LIMIT 10
         )
-        ORDER BY avg_score DESC
-        LIMIT 10
-    )
-    SELECT fp.id, fp.c_number, fp.c_type, fp.j_date, fp.court, fp.c_name, fp.d_link,
-        (
-            {"+".join([f"COALESCE(similarity(fp.c_name, '{kw}'), 0)" for kw in user_input_keywords])}
-            + {"+".join([f"COALESCE(similarity(fp.c_name, '{t}'), 0)" for t in title_words])}
-            + {"+".join([f"COALESCE(similarity(fp.c_name, '{c}'), 0)" for c in category_words])}
-        ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS final_avg_score
-    FROM filtered_precedents fp
-    ORDER BY final_avg_score DESC
-    LIMIT 5;
+
+        SELECT fp.id, fp.c_number, fp.c_type, fp.j_date, fp.court, fp.c_name, fp.d_link,
+            (
+                {"+".join([f"COALESCE(similarity(fp.c_name, '{kw}'), 0)" for kw in user_input_keywords])}
+                + {"+".join([f"COALESCE(similarity(fp.c_name, '{t}'), 0)" for t in title_words])}
+                + {"+".join([f"COALESCE(similarity(fp.c_name, '{c}'), 0)" for c in category_words])}
+            ) / ({total_terms}) AS final_avg_score
+        FROM filtered_precedents fp
+        ORDER BY final_avg_score DESC
+        LIMIT 5;
     """
 
-    print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
+    print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")
 
-    # ✅ 판례 데이터 검색 실행
     precedent_results = await loop.run_in_executor(
         executor, execute_sql, query, None, False
     )
@@ -216,25 +219,36 @@ async def async_search_precedent(categories, titles, user_input_keywords):
 # ---------------------------------------------------------------------------------
 
 async def search_tavily_for_precedents(precedent: dict):
-    """
-    📌 선택된 판례에 대해 Tavily를 이용한 요약을 시도하되,
-    precSeq와 정확히 일치하는 결과만 사용함.
-    """
     tavily_result = "❌ Tavily 요약 정보를 찾을 수 없습니다."
     casenote_url = ""
 
     if not precedent:
         return tavily_result, casenote_url
 
-    # ✅ precSeq 추출
     d_link = precedent.get("d_link", "")
-    if "ID=" not in d_link:
-        return tavily_result, casenote_url
+    prec_seq = None
 
-    prec_seq = d_link.split("ID=")[-1].split("&")[0]
+    # 🔍 precSeq 추출 시도
+    if "ID=" in d_link:
+        try:
+            prec_seq = d_link.split("ID=")[-1].split("&")[0]
+            precedent["precSeq"] = prec_seq  # ✅ precSeq 삽입
+        except Exception as e:
+            print(f"❌ [precSeq 추출 오류]: {e}")
+
+    if not prec_seq:
+        print("⚠️ [Precedent Agent] precSeq 없음")
+        return {
+            "summary": "❌ 판례 precSeq가 없습니다.",
+            "casenote_url": "",
+            "precedent": precedent,
+            "hyperlinks": [],
+            "status": "precseq_missing",
+        }
+
     casenote_url = f"https://law.go.kr/LSW/precInfoP.do?precSeq={prec_seq}"
 
-    # ✅ search_tool 인스턴스 생성 (내부에서 정의)
+    # 🔍 Tavily 호출
     search_tool = LawGoKRTavilySearch(max_results=5)
     query_path = f"/LSW/precInfoP.do?precSeq={prec_seq}"
 
@@ -316,49 +330,68 @@ search_tool = LawGoKRTavilySearch(max_results=1)
 
 # ----------------------------------------------------------------
 
-
-# async def async_search_precedent(keywords):
-#     """비동기 SQL 판례 검색 (최적화된 다중 키워드 검색 적용)"""
+# async def async_search_precedent(categories, titles, user_input_keywords):
+#     """비동기 SQL 판례 검색 (카테고리 + 제목 + 사용자 입력 키워드 기반)"""
 #     loop = asyncio.get_running_loop()
 
-#     # ✅ 키워드 리스트를 올바른 SQL 배열 형식으로 변환
-#     formatted_keywords = ", ".join(f"'{kw}'" for kw in keywords)
+#     # ✅ 1. title 및 category를 단어 단위로 변환
+#     def extract_words(text):
+#         return re.findall(r"\b\w+\b", text)
 
+#     title_words = set()
+#     category_words = set()
+
+#     for title in titles:
+#         title_words.update(extract_words(title))
+#     for category in categories:
+#         category_words.update(extract_words(category))
+
+#     formatted_categories = ", ".join(f"'{c}'" for c in category_words)
+#     formatted_titles = ", ".join(f"'{t}'" for t in title_words)
+#     formatted_user_keywords = ", ".join(f"'{kw}'" for kw in user_input_keywords)
+
+#     # ✅ 2. SQL 쿼리 수정: 단어 단위 검색 적용
 #     query = f"""
-#     SET pg_trgm.similarity_threshold = 0.04;
+#         SET pg_trgm.similarity_threshold = 0.2;  -- ✅ 적절한 유사도 기준 조정
 
-# WITH filtered_by_category AS (
-#     SELECT id, category, sub_category, title, question, answer, c_number, c_type, j_date, court, c_name, d_link,
-#            GREATEST(
-#                {", ".join([f"COALESCE(similarity(sub_category, '{kw}'), 0)" for kw in keywords])}
-#            ) AS max_score
-#     FROM legal_consultation
-#     WHERE sub_category % ANY(ARRAY[{formatted_keywords}])
-#     ORDER BY max_score DESC
-#     LIMIT 50
-# )
-# SELECT fc.id, fc.category, fc.sub_category, fc.title, fc.question, fc.answer, fc.c_number, fc.c_type, fc.j_date, fc.court, fc.c_name, fc.d_link,
-#        GREATEST(
-#            {", ".join([f"COALESCE(similarity(fc.question, '{kw}'), 0)" for kw in keywords])}
-#        ) AS question_score,
-#        GREATEST(
-#            {", ".join([f"COALESCE(similarity(fc.answer, '{kw}'), 0)" for kw in keywords])}
-#        ) AS answer_score,
-#        (
-#            GREATEST(
-#                {", ".join([f"COALESCE(similarity(fc.question, '{kw}'), 0)" for kw in keywords])}
-#            ) + 
-#            GREATEST(
-#                {", ".join([f"COALESCE(similarity(fc.answer, '{kw}'), 0)" for kw in keywords])}
-#            )
-#        ) / 2 AS avg_score
-# FROM filtered_by_category fc
-# WHERE (fc.question % ANY(ARRAY[{formatted_keywords}]) 
-#    OR fc.answer % ANY(ARRAY[{formatted_keywords}]))
-# ORDER BY avg_score DESC
-# LIMIT 20;
+#     WITH filtered_precedents AS (
+#         SELECT id, c_number, c_type, j_date, court, c_name, d_link,
+#             -- ✅ 유사도 평균값 계산 (각 키워드 유사도 합 / 전체 개수)
+#             (
+#                 {"+".join([f"COALESCE(similarity(c_name, '{kw}'), 0)" for kw in user_input_keywords])}
+#                 + {"+".join([f"COALESCE(similarity(c_name, '{t}'), 0)" for t in title_words])}
+#                 + {"+".join([f"COALESCE(similarity(c_name, '{c}'), 0)" for c in category_words])}
+#             ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS avg_score
+#         FROM precedent
+#         WHERE (
+#             -- ✅ 단어 기반 유사도 검색
+#             c_name % ANY(ARRAY[{formatted_user_keywords}])
+#             OR c_name % ANY(ARRAY[{formatted_titles}])
+#             OR c_name % ANY(ARRAY[{formatted_categories}])
+            
+#             -- ✅ 문장 검색 강화 (ILIKE 포함)
+#             OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{kw}%'" for kw in user_input_keywords])}])
+#             OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{t}%'" for t in title_words])}])
+#         )
+#         ORDER BY avg_score DESC
+#         LIMIT 10
+#     )
+#     SELECT fp.id, fp.c_number, fp.c_type, fp.j_date, fp.court, fp.c_name, fp.d_link,
+#         (
+#             {"+".join([f"COALESCE(similarity(fp.c_name, '{kw}'), 0)" for kw in user_input_keywords])}
+#             + {"+".join([f"COALESCE(similarity(fp.c_name, '{t}'), 0)" for t in title_words])}
+#             + {"+".join([f"COALESCE(similarity(fp.c_name, '{c}'), 0)" for c in category_words])}
+#         ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS final_avg_score
+#     FROM filtered_precedents fp
+#     ORDER BY final_avg_score DESC
+#     LIMIT 5;
 #     """
 
 #     print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
 
-#     return await loop.run_in_executor(executor, execute_sql, query, None, False)
+#     # ✅ 판례 데이터 검색 실행
+#     precedent_results = await loop.run_in_executor(
+#         executor, execute_sql, query, None, False
+#     )
+
+#     return precedent_results
