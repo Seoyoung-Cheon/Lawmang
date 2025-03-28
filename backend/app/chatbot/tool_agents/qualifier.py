@@ -3,7 +3,7 @@ import json
 from typing import List, Dict
 from langchain_openai import ChatOpenAI
 from app.chatbot.tool_agents.tools import async_search_consultation
-
+from app.chatbot.tool_agents.utils.utils import validate_model_type
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 
@@ -31,14 +31,14 @@ def build_relevance_prompt(user_query: str, consultation_results: List[Dict]) ->
 """.strip()
 
 
-def check_relevance_to_consultations(
+async def check_relevance_to_consultations(
     user_query: str,
     consultation_results: List[Dict],
     model: str = "gpt-3.5-turbo",
 ) -> bool:
+    validate_model_type(model)
     if not consultation_results:
         return False
-    print("✅ model 인자 확인:", model, type(model))  # ← 이거 찍어보면 튜플인지 알 수 있음
 
     prompt = build_relevance_prompt(user_query, consultation_results)
 
@@ -46,7 +46,7 @@ def check_relevance_to_consultations(
         model=model,
         api_key=OPENAI_API_KEY,
         temperature=0.0,
-        streaming=False
+        streaming=False,
     )
 
     messages = [
@@ -57,7 +57,7 @@ def check_relevance_to_consultations(
         {"role": "user", "content": prompt},
     ]
 
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
     result_text = response.content.strip().lower()
     print("✅ [관련성 판단 결과]:", result_text)
     return result_text == "relevant"
@@ -98,7 +98,7 @@ def build_choose_one_prompt(user_query: str, consultation_results: List[Dict]) -
 """.strip()
 
 
-def choose_best_consultation(
+async def choose_best_consultation(
     user_query: str,
     consultation_results: List[Dict],
     model: str = "gpt-3.5-turbo",
@@ -112,7 +112,7 @@ def choose_best_consultation(
         model=model,
         api_key=OPENAI_API_KEY,
         temperature=0.1,
-        streaming=False
+        streaming=False,
     )
 
     messages = [
@@ -123,7 +123,7 @@ def choose_best_consultation(
         {"role": "user", "content": prompt},
     ]
 
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
     result_text = response.content
     print("✅ [Best 상담 선택 결과]:", result_text)
 
@@ -141,23 +141,29 @@ def choose_best_consultation(
                 "error": "❗ 선택된 인덱스가 유효하지 않습니다.",
                 "status": "invalid_index",
             }
+
     except Exception as e:
         print("❌ 응답 파싱 실패:", e)
         return {"error": "❗ GPT 응답을 이해할 수 없습니다.", "status": "parse_error"}
 
 
+# ✅ 전체 흐름# ✅ 전체 흐름 - 수정본
 async def run_consultation_qualifier(
     user_query: str,
-    consultation_results: List[Dict],
+    consultation_results: List[Dict],  # 외부에서 검색된 결과를 받음
     model: str = "gpt-3.5-turbo",
 ) -> Dict:
-    if not consultation_results:
-        return {
-            "error": "🔍 관련된 상담 결과가 없습니다.",
-            "status": "no_result",
-        }
+    """
+    📌 FAISS 기반 유사 상담 검색 → LLM 기반 관련성 판단 → 최적 상담 선택 흐름
+    """
 
-    is_relevant = check_relevance_to_consultations(
+    # ❌ 중복 검색 제거
+    # consultation_results, _, _ = await async_search_consultation([user_query])
+
+    if not consultation_results:
+        return {"error": "🔍 관련된 상담 결과가 없습니다.", "status": "no_result"}
+
+    is_relevant = await check_relevance_to_consultations(
         user_query, consultation_results, model=model
     )
     if not is_relevant:
@@ -166,4 +172,18 @@ async def run_consultation_qualifier(
             "status": "no_match",
         }
 
-    return choose_best_consultation(user_query, consultation_results, model=model)
+    return await choose_best_consultation(user_query, consultation_results, model=model)
+
+    # fallback 보완: title/answer/question 키가 없으면 fallback 값 포함하여 반환
+    # if not isinstance(result, dict) or not all(
+    #     k in result for k in ["title", "question", "answer"]
+    # ):
+    #     print("⚠️ [Qualifier Fallback Triggered] 유효한 상담 데이터를 찾지 못함.")
+    #     return {
+    #         "title": "법률 일반",
+    #         "question": user_query,
+    #         "answer": "해당 질문에 대한 정확한 상담 데이터를 찾지 못했으나, 일반적인 법률 지식에 기반해 응답을 생성합니다.",
+    #         "status": "fallback_triggered",
+    #     }
+
+    # return result

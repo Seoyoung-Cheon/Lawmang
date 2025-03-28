@@ -1,5 +1,6 @@
 import re
 from kiwipiepy import Kiwi
+from typing import List, Set
 kiwi = Kiwi()
 
 def insert_hyperlinks_into_text(text: str, hyperlinks: list) -> str:
@@ -28,6 +29,24 @@ def extract_json_from_text(text):
     if match:
         return match.group(0)
     return None
+# --------------------------------------------------------------------------------
+# 법률 여부 판단 기준: FAISS 키워드 기반
+def is_legal_query(keywords: List[str], legal_terms: Set[str], threshold=0.3) -> bool:
+    legal_count = sum(1 for kw in keywords if kw in legal_terms)
+    ratio = legal_count / len(keywords) if keywords else 0
+    return ratio >= threshold
+def classify_legal_query(user_input: str, legal_terms: Set[str]) -> str:
+    tokens = kiwi.tokenize(user_input)
+    extracted = [token.form for token in tokens if token.tag in ("NNG", "NNP")]
+
+    if not extracted:
+        return "nonlegal"
+
+    legal_count = sum(1 for word in extracted if word in legal_terms)
+    ratio = legal_count / len(extracted)
+
+    return "legal" if ratio >= 0.3 else "nonlegal"
+
 
 # --------------------------------------------------------------------------------
 class faiss_kiwi:
@@ -89,3 +108,10 @@ class faiss_kiwi:
 
         print(f"✅ [FAISS 최종 검색 키워드] {adjusted_keywords}")
         return adjusted_keywords
+
+
+def validate_model_type(model):
+    if not isinstance(model, str):
+        raise TypeError(
+            f"❌ model 인자는 문자열(str)이어야 합니다. 현재: {type(model)}, 값: {model}"
+        )

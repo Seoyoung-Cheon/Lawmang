@@ -16,15 +16,16 @@ class LegalPrecedentRetrievalAgent:
         pass  # 추후 메모리/상태 관리 등 확장 가능
 
     async def run(self, categories, titles, user_input_keywords) -> dict:
-        """
-        📌 상담에서 추출한 카테고리/제목/키워드를 기반으로 최적 판례 요약 정보 반환
-        """
-        # 1️⃣ SQL 판례 검색
+        print(f"🔍 [Precedent Agent] 입력 카테고리: {categories}")
+        print(f"🔍 [Precedent Agent] 입력 제목: {titles}")
+        print(f"🔍 [Precedent Agent] 검색 키워드: {user_input_keywords}")
+
         precedent_list = await async_search_precedent(
             categories, titles, user_input_keywords
         )
 
         if not precedent_list:
+            print("⚠️ [Precedent Agent] SQL 검색 결과 없음.")
             return {
                 "summary": "❌ 관련된 판례를 찾을 수 없습니다.",
                 "casenote_url": "",
@@ -33,12 +34,17 @@ class LegalPrecedentRetrievalAgent:
                 "status": "not_found",
             }
 
-        # 2️⃣ 가장 적절한 판례 1건 선택
-        best_precedent = precedent_list[0]
+        best_precedent = dict(precedent_list[0])  # ✅ RowMapping → dict
+        print(f"✅ [Precedent Agent] 선택된 판례:", best_precedent)
+        d_link = best_precedent.get("d_link", "")
+        prec_seq = ""
 
-        # ✅ precSeq 유효성 체크
-        prec_seq = best_precedent.get("precSeq")
+        if "ID=" in d_link:
+            prec_seq = d_link.split("ID=")[-1].split("&")[0]
+            best_precedent["precSeq"] = prec_seq  # ✅ 안정적 활용
+
         if not prec_seq:
+            print("⚠️ [Precedent Agent] precSeq 없음")
             return {
                 "summary": "❌ 판례 precSeq가 없습니다.",
                 "casenote_url": "",
@@ -47,23 +53,15 @@ class LegalPrecedentRetrievalAgent:
                 "status": "precseq_missing",
             }
 
-        # 3️⃣ Tavily 요약 실행 (비동기 실행)
-        tavily_summary, casenote_url = await search_tavily_for_precedents(
-            best_precedent  # dict 전체 넘겨주고, 함수 내부에서 d_link → precSeq 추출
-        )
+        # 3️⃣ 요약 검색
+        tavily_summary, casenote_url = await search_tavily_for_precedents(best_precedent)
 
-        # 4️⃣ 요약 후처리
+        print(f"🧠 [Precedent Agent] 요약 결과: {tavily_summary}")
+        print(f"🔗 [Precedent Agent] casenote URL: {casenote_url}")
+
         cleaned_summary = self._postprocess_summary(tavily_summary)
 
-        # 5️⃣ 하이퍼링크 구조 생성
-        hyperlink = (
-            {
-                "label": "관련 판례 보기",
-                "url": casenote_url,
-            }
-            if casenote_url
-            else {}
-        )
+        hyperlink = {"label": "관련 판례 보기", "url": casenote_url} if casenote_url else {}
 
         return {
             "summary": cleaned_summary,
