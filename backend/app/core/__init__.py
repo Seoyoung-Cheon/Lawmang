@@ -13,7 +13,6 @@ from .config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     
     # API 키
-    HF_TOKEN,
     OPENAI_API_KEY,
     TAVILY_API_KEY,
 )
@@ -41,7 +40,6 @@ __all__ = [
     'ACCESS_TOKEN_EXPIRE_MINUTES',
     
     # API 키
-    'HF_TOKEN',
     'OPENAI_API_KEY',
     'TAVILY_API_KEY',
     

@@ -11,13 +11,14 @@ orjson
 httpx
 pgvector
 apscheduler
+markdown2
+weasyprint
+
 
 # ✅ CrewAI 관련 패키지
-crewai
 tavily-python
 
 # ✅ LangChain 및 벡터 DB 관련
-langchain-huggingface
 langchain-core
 langchain
 langchain-community
