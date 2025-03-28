@@ -81,7 +81,6 @@ async def run_dual_pipeline(user_query: str):
     print("🧪 [캐시 precedent 존재 여부] =", "O" if cached.get("precedent") else "X")
 
 
-<<<<<<< HEAD
     if cached.get("escalated_once", False):
         if llm2_lock.locked():
             print("⚠️ [중복 실행 방지] 고급 응답 생성 중입니다.")
@@ -110,20 +109,6 @@ async def run_dual_pipeline(user_query: str):
 
 async def chatbot_loop():
     print("✅ [시작] 법률 AI 챗봇 (초기 응답 + 고급 응답 병렬 처리)")
-=======
-async def search(query: str):
-    """🔍 검색 실행 (FastAPI에서 호출)"""
-    try:
-        result = await run_search_pipeline(query)
-        return result if "error" not in result else {"error": result["error"]}
-    except Exception as e:
-        return {"error": f"검색 중 오류 발생: {str(e)}"}
-
-
-def main():
-    """CLI 기반 법률 AI"""
-    print("✅ [시작] 법률 AI 검색기")
->>>>>>> 7ccd73896e28bc0fccc7f9ab1fe81e838a44836b
 
     while True:
         user_query = input("\n❓ 질문을 입력하세요 (종료: exit): ")
@@ -135,7 +120,6 @@ def main():
             print("⚠️ 고급 AI 응답 생성 중입니다. 잠시만 기다려주세요.")
             continue
 
-<<<<<<< HEAD
         result = await run_dual_pipeline(user_query)
 
         if "error" in result:
@@ -181,16 +165,6 @@ def main():
         print("\n🛑 사용자 종료")
     finally:
         loop.close()
-=======
-        print("\n📌 [최종 결과 요약]")  
-        print("🟦 사용자 질문:", result.get("user_query"))
-        print("📄 템플릿 요약:", result.get("template", {}).get("summary", "없음"))
-        print("🧠 전략 요약:", result.get("strategy", {}).get("final_strategy_summary", "없음"))
-        print("📚 판례 요약:", result.get("precedent", {}).get("summary", "없음"))
-        print("🔗 링크:", result.get("precedent", {}).get("casenote_url", "없음"))
-        print("🤖 최종 GPT 응답:\n", result.get("final_answer", "응답 생성 실패"))
-        print("🧪 평가 결과:", result.get("final_evaluation", {}).get("reason", "없음"))
->>>>>>> 7ccd73896e28bc0fccc7f9ab1fe81e838a44836b
 
 
 if __name__ == "__main__":
