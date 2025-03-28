@@ -6,9 +6,15 @@ const Popup = ({ isOpen, onClose, summary }) => {
     if (isOpen) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
+      window.dispatchEvent(
+        new CustomEvent("modalState", { detail: { isOpen: true } })
+      );
     } else {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
+      window.dispatchEvent(
+        new CustomEvent("modalState", { detail: { isOpen: false } })
+      );
     }
 
     return () => {

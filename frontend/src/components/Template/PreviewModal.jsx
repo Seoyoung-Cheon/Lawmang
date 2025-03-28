@@ -4,10 +4,16 @@ const PreviewModal = ({ file, previewUrl, onClose }) => {
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    window.dispatchEvent(
+      new CustomEvent("modalState", { detail: { isOpen: true } })
+    );
 
     return () => {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
+      window.dispatchEvent(
+        new CustomEvent("modalState", { detail: { isOpen: false } })
+      );
     };
   }, []);
 

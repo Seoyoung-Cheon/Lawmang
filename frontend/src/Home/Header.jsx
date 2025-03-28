@@ -25,6 +25,7 @@ const Header = () => {
   const user = useSelector(selectUser);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ✅ 스크롤 이벤트 처리
   useEffect(() => {
@@ -92,6 +93,21 @@ const Header = () => {
     };
   }, [logoutUser, dispatch]);
 
+  // 모달 상태 감지
+  useEffect(() => {
+    const handleModalState = (e) => {
+      setIsModalOpen(e.detail.isOpen);
+    };
+
+    window.addEventListener("modalState", handleModalState);
+    window.addEventListener("memoModalState", handleModalState);
+
+    return () => {
+      window.removeEventListener("modalState", handleModalState);
+      window.removeEventListener("memoModalState", handleModalState);
+    };
+  }, []);
+
   return (
     <div className="w-full">
       {/* 어두운 배경 오버레이 - 전체 화면 */}
@@ -103,9 +119,9 @@ const Header = () => {
       )}
 
       <div
-        className={`fixed top-0 left-0 z-[100] w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 w-full transition-all duration-300 ${
           isScrolled ? "bg-white/80 backdrop-blur-sm shadow-md" : ""
-        }`}
+        } ${isModalOpen ? "z-[30]" : "z-[100]"}`}
       >
         <div className="px-20 w-full h-[100px] flex items-center justify-between">
           {/* Lawmang 로고 */}
