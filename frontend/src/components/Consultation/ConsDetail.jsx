@@ -26,10 +26,10 @@ const ConsDetail = () => {
       }
 
       try {
-        console.log('ConsDetail - 열람 기록 저장 시도:', {
+        console.log("ConsDetail - 열람 기록 저장 시도:", {
           시간: new Date().toISOString(),
           user_id: user.id,
-          consultation_id: id
+          consultation_id: id,
         });
 
         await createViewed({
@@ -39,9 +39,9 @@ const ConsDetail = () => {
         }).unwrap();
 
         setIsViewedSaved(true);
-        console.log('ConsDetail - 열람 기록 저장 성공');
+        console.log("ConsDetail - 열람 기록 저장 성공");
       } catch (error) {
-        console.error('ConsDetail - 열람 기록 저장 실패:', error);
+        console.error("ConsDetail - 열람 기록 저장 실패:", error);
       }
     };
 
@@ -130,7 +130,7 @@ const ConsDetail = () => {
   return (
     <div className="container">
       <div className="left-layout">
-        <div className="px-0 pt-[135px] pb-10">
+        <div className="px-0 pt-[120px] pb-10">
           {/* 뒤로가기 버튼 수정 */}
           <button
             onClick={handleGoBack}
