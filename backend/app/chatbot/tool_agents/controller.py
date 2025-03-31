@@ -7,6 +7,8 @@ from app.chatbot.tool_agents.planner import (
 from app.chatbot.tool_agents.precedent import LegalPrecedentRetrievalAgent
 from app.chatbot.tool_agents.executor.normalanswer import run_final_answer_generation
 from app.chatbot.tool_agents.tools import async_search_consultation
+
+
 async def run_full_consultation(
     user_query: str,
     search_keywords: List[str],
@@ -19,10 +21,21 @@ async def run_full_consultation(
     # 1️⃣ Qualifier 실행
     consultation_results, _, _ = await async_search_consultation(search_keywords)
     best_case = await run_consultation_qualifier(user_query, consultation_results)
-
-    title = best_case["title"]
-    question = best_case["question"]
-    answer = best_case["answer"]
+    if not consultation_results:
+        print("❌ [run_full_consultation] 검색된 상담 결과 없음")
+        return {"template": None, "strategy": None, "precedent": None}
+    if not all(k in best_case for k in ["title", "question", "answer"]):
+        print("⚠️ [run_full_consultation] 일부 필드 누락 → fallback으로 진행")
+        title = best_case.get("title", "법률상담")
+        question = best_case.get("question", user_query)
+        answer = best_case.get("answer", "일반적인 법률 정보에 기반하여 응답을 생성합니다.")
+    else:
+        title = best_case["title"]
+        question = best_case["question"]
+        answer = best_case["answer"]
+        title = best_case["title"]
+        question = best_case["question"]
+        answer = best_case["answer"]
 
     # 2️⃣ Planner - 템플릿 생성
     template = await generate_response_template(title, question, answer, user_query)

@@ -118,7 +118,7 @@ async def async_search_consultation(keywords):
     LIMIT 20;
     """
 
-    print(f"✅ [async_search_consultation] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
+    # print(f"✅ [async_search_consultation] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
 
     # ✅ 상담 데이터 검색 실행
     consultation_results = await loop.run_in_executor(
@@ -207,7 +207,7 @@ async def async_search_precedent(categories, titles, user_input_keywords):
         LIMIT 5;
     """
 
-    print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")
+    # print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")
 
     precedent_results = await loop.run_in_executor(
         executor, execute_sql, query, None, False
