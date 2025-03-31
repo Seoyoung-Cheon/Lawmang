@@ -33,7 +33,19 @@ const TaxResearchForm = () => {
     if (!element) return;
 
     try {
+      // PDF 다운로드 버튼 임시로 숨기기
+      const downloadButton = element.querySelector('.pdf-download-btn');
+      if (downloadButton) {
+        downloadButton.style.display = 'none';
+      }
+
       const canvas = await html2canvas(element);
+      
+      // PDF 다운로드 버튼 다시 보이기
+      if (downloadButton) {
+        downloadButton.style.display = 'block';
+      }
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF();
       
@@ -49,122 +61,137 @@ const TaxResearchForm = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            신고 유형
-          </label>
-          <input
-            type="text"
-            value={formData.report_type}
-            onChange={(e) =>
-              setFormData({ ...formData, report_type: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
-            placeholder="예: 종합소득세, 부가가치세 등"
-            required
-          />
-        </div>
+    <div className="flex flex-col gap-8">
+      {/* 상단: 입력 폼 */}
+      <div className="w-full max-w-3xl mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              신고 유형
+            </label>
+            <input
+              type="text"
+              value={formData.report_type}
+              onChange={(e) =>
+                setFormData({ ...formData, report_type: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              placeholder="예: 종합소득세, 부가가치세 등"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            신고 대상 기간
-          </label>
-          <input
-            type="text"
-            value={formData.report_period}
-            onChange={(e) =>
-              setFormData({ ...formData, report_period: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
-            placeholder="예: 2023년 귀속, 2024년 1기 등"
-            required
-          />
-        </div>
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              신고 대상 기간
+            </label>
+            <input
+              type="text"
+              value={formData.report_period}
+              onChange={(e) =>
+                setFormData({ ...formData, report_period: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              placeholder="예: 2023년 귀속, 2024년 1기 등"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            소득/사업 유형
-          </label>
-          <input
-            type="text"
-            value={formData.income_type}
-            onChange={(e) =>
-              setFormData({ ...formData, income_type: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
-            placeholder="예: 프리랜서, 개인사업자 등"
-            required
-          />
-        </div>
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              소득/사업 유형
+            </label>
+            <input
+              type="text"
+              value={formData.income_type}
+              onChange={(e) =>
+                setFormData({ ...formData, income_type: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              placeholder="예: 프리랜서, 개인사업자 등"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            걱정되는 점
-          </label>
-          <textarea
-            value={formData.concern}
-            onChange={(e) =>
-              setFormData({ ...formData, concern: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
-            placeholder="세무 신고시 우려되는 사항을 설명해주세요"
-            required
-          />
-        </div>
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              걱정되는 점
+            </label>
+            <textarea
+              value={formData.concern}
+              onChange={(e) =>
+                setFormData({ ...formData, concern: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              placeholder="세무 신고시 우려되는 사항을 설명해주세요"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            원하는 신고 목표
-          </label>
-          <input
-            type="text"
-            value={formData.desired_result}
-            onChange={(e) =>
-              setFormData({ ...formData, desired_result: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
-            placeholder="예: 적절한 공제 적용, 세금 최적화 등"
-            required
-          />
-        </div>
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              원하는 신고 목표
+            </label>
+            <input
+              type="text"
+              value={formData.desired_result}
+              onChange={(e) =>
+                setFormData({ ...formData, desired_result: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              placeholder="예: 적절한 공제 적용, 세금 최적화 등"
+              required
+            />
+          </div>
 
-        <div>
-          <label className="block text-lg font-medium text-gray-700 mb-2">
-            추가 참고 사항
-          </label>
-          <textarea
-            value={formData.additional_info}
-            onChange={(e) =>
-              setFormData({ ...formData, additional_info: e.target.value })
-            }
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
-            placeholder="기타 참고할 만한 사항을 자유롭게 작성해주세요"
-          />
-        </div>
+          <div>
+            <label className="block text-lg font-medium text-gray-700 mb-2">
+              추가 참고 사항
+            </label>
+            <textarea
+              value={formData.additional_info}
+              onChange={(e) =>
+                setFormData({ ...formData, additional_info: e.target.value })
+              }
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              placeholder="기타 참고할 만한 사항을 자유롭게 작성해주세요"
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full p-4 text-white rounded-lg transition-colors ${
-            isLoading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-Main hover:bg-Main_hover"
-          }`}
-        >
-          {isLoading ? "분석 중..." : "세무 검토 요청"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full p-4 text-white rounded-lg transition-colors ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-Main hover:bg-Main_hover"
+            }`}
+          >
+            {isLoading ? "분석 중..." : "세무 검토 요청"}
+          </button>
+        </form>
+      </div>
 
+      {/* 구분선 */}
       {result && (
-        <div className="space-y-4">
+        <div className="w-full border-t-2 border-gray-200 my-8">
+          <div className="w-16 h-16 bg-white rounded-full border-2 border-gray-200 flex items-center justify-center mx-auto -mt-8">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* 하단: 보고서 미리보기 */}
+      {result && (
+        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
           <div ref={reportRef} className="bg-white p-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">세무 검토 보고서</h2>
               <button
                 onClick={downloadPDF}
-                className="px-4 py-2 bg-Main text-white rounded-lg"
+                className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
               >
                 PDF 다운로드
               </button>

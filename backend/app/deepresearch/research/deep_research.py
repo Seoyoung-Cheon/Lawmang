@@ -1,64 +1,48 @@
-from typing import List, Optional
+from typing import List, Optional, Literal
 from app.deepresearch.core.firecrawl_client import firecrawl_search, filter_by_whitelist
 from app.deepresearch.research.search_result_processor import process_serp_result
 from app.deepresearch.research.keyword_generator import generate_serp_queries
 from app.deepresearch.research.research_models import ResearchResult
 from openai import OpenAI
+from app.deepresearch.core.firecrawl_client import FirecrawlClient
 
 async def deep_research(
     query: str,
-    breadth: int,
-    depth: int,
-    client: OpenAI,
-    model: str,
-    learnings: Optional[List[str]] = None,
-    visited_urls: Optional[List[str]] = None,
+    breadth: int = 2,
+    depth: int = 2,
+    client: OpenAI = None,
+    model: str = "gpt-3.5-turbo",
+    search_type: Literal["legal", "tax"] = "legal"
 ) -> ResearchResult:
-    learnings = learnings or []
-    visited_urls = visited_urls or []
-
-    serp_queries = await generate_serp_queries(
-        query=query,
-        client=client,
-        model=model,
-        num_queries=breadth,
-        learnings=learnings
-    )
-
-    for serp_query in serp_queries:
-        raw_results = await firecrawl_search(serp_query.query)
-        results = filter_by_whitelist(raw_results)
-        new_urls = [r.url for r in results]
-
-        serp_result = await process_serp_result(
-            query=serp_query.query,
-            search_result=results,
-            client=client,
-            model=model,
-            num_learnings=breadth
-        )
-
-        all_learnings = learnings + serp_result["learnings"]
-        all_urls = visited_urls + new_urls
-
-        if depth > 1:
-            next_query = f"이전 목표: {serp_query.research_goal}\n후속 방향: {' '.join(serp_result['followUpQuestions'])}"
-            sub_result = await deep_research(
-                query=next_query,
-                breadth=max(1, breadth // 2),
-                depth=depth - 1,
-                client=client,
-                model=model,
-                learnings=all_learnings,
-                visited_urls=all_urls
+    """
+    주어진 쿼리에 대해 심층 리서치를 수행합니다.
+    """
+    try:
+        # FirecrawlClient 초기화 및 사용
+        async with await FirecrawlClient.create(
+            api_key="your_api_key",
+            search_type=search_type  # legal/tax 구분
+        ) as crawler:
+            # 검색 수행
+            search_results = await crawler.search(query)
+            
+            # 결과 처리
+            processed_results = await crawler.process_results(
+                search_results.get("results", [])
             )
-            learnings = sub_result.learnings
-            visited_urls = sub_result.visited_urls
-        else:
-            learnings = all_learnings
-            visited_urls = all_urls
 
-    return ResearchResult(
-        learnings=list(set(learnings)),
-        visited_urls=list(set(visited_urls))
-    )
+            # 필요한 경우 각 결과의 상세 내용 가져오기
+            for result in processed_results:
+                if "url" in result:
+                    content = await crawler.get_content(result["url"])
+                    result["content"] = content
+
+            # ResearchResult 형식으로 변환 및 반환
+            return ResearchResult(
+                learnings=[result.get("content", "") for result in processed_results],
+                visited_urls=[result.get("url", "") for result in processed_results]
+            )
+
+    except Exception as e:
+        print(f"심층 리서치 중 오류 발생: {e}")
+        return ResearchResult(learnings=[], visited_urls=[])

@@ -40,9 +40,10 @@ const Report = () => {
             </button>
           </div>
 
-          {/* 폼 섹션 - Template과 동일한 최대 너비 적용 */}
+          {/* 폼 섹션 */}
           <div className="w-full max-w-[900px]">
-            <div className="bg-white rounded-xl p-8 shadow-md">
+            <div className="bg-white rounded-xl p-8 mt-1" 
+                 style={{ boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.05), 0 4px 6px -1px rgba(0, 0, 0, 0.05), -2px 0 6px -1px rgba(0, 0, 0, 0.05), 2px 0 6px -1px rgba(0, 0, 0, 0.05)' }}>
               {activeTab === "legal" ? <LegalResearchForm /> : <TaxResearchForm />}
             </div>
           </div>
