@@ -167,9 +167,9 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                     setTitleError("");
                   }
                 }}
-                className={`w-full p-3 border ${
+                className={`w-full p-3 border-b-2 ${
                   titleError ? "border-red-500" : "border-gray-300"
-                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
+                } focus:border-Main focus:outline-none text-lg bg-transparent`}
                 placeholder="제목을 입력해주세요. (24자 이내)"
                 autoFocus
               />
@@ -190,9 +190,9 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                   setContent(e.target.value);
                   setContentError("");
                 }}
-                className={`w-full h-[450px] p-6 border ${
+                className={`w-full h-[450px] p-6 border-2 rounded-lg ${
                   contentError ? "border-red-500" : "border-gray-300"
-                } rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-Main text-lg bg-white-50`}
+                } focus:border-Main focus:outline-none text-lg bg-transparent`}
                 placeholder="내용을 입력해주세요."
               />
             </div>
