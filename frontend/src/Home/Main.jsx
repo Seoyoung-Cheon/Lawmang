@@ -72,9 +72,14 @@ const Main = () => {
           {/* 스크롤 유도 애니메이션 */}
           <div
             onClick={handleScrollDown}
-            className="fixed bottom-10 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center animate-bounce cursor-pointer"
+            className="fixed bottom-8 left-[48%] -translate-x-1/2 z-20 text-white flex flex-col items-center cursor-pointer group"
           >
-            <HiOutlineChevronDoubleDown size={40} className="scale-x-130" />
+            <div className="w-6 h-10 border-2 border-white rounded-full flex flex-col items-center p-2 mb-2">
+              <div className="w-1 h-2 bg-white rounded-full animate-scroll-wheel"></div>
+            </div>
+            <span className="text-sm font-medium tracking-wider group-hover:text-Main transition-colors duration-300">
+              SCROLL
+            </span>
           </div>
         </div>
       </div>
