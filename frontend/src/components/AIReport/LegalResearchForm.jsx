@@ -81,7 +81,7 @@ const LegalResearchForm = () => {
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             사건 유형
           </label>
           <input
@@ -97,7 +97,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             사건 발생 시점
           </label>
           <input
@@ -112,7 +112,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             관련자
           </label>
           <input
@@ -128,7 +128,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             사실관계
           </label>
           <textarea
@@ -143,7 +143,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             확보한 증거
           </label>
           <input
@@ -159,7 +159,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             기존 대응 여부
           </label>
           <input
@@ -175,7 +175,7 @@ const LegalResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             원하는 해결 방향
           </label>
           <input

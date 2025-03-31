@@ -4,7 +4,7 @@ import LegalResearchForm from "./LegalResearchForm";
 import TaxResearchForm from "./TaxResearchForm";
 
 const Report = () => {
-  const [activeTab, setActiveTab] = useState("legal"); // 'legal' 또는 'tax'
+  const [activeTab, setActiveTab] = useState("legal");
 
   return (
     <div className="container min-h-screen">
@@ -40,9 +40,11 @@ const Report = () => {
             </button>
           </div>
 
-          {/* 폼 섹션 */}
-          <div className="bg-white rounded-xl p-8 shadow-md">
-            {activeTab === "legal" ? <LegalResearchForm /> : <TaxResearchForm />}
+          {/* 폼 섹션 - Template과 동일한 최대 너비 적용 */}
+          <div className="w-full max-w-[900px]">
+            <div className="bg-white rounded-xl p-8 shadow-md">
+              {activeTab === "legal" ? <LegalResearchForm /> : <TaxResearchForm />}
+            </div>
           </div>
         </div>
       </div>

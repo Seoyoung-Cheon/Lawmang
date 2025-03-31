@@ -52,7 +52,7 @@ const TaxResearchForm = () => {
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             신고 유형
           </label>
           <input
@@ -68,7 +68,7 @@ const TaxResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             신고 대상 기간
           </label>
           <input
@@ -84,7 +84,7 @@ const TaxResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             소득/사업 유형
           </label>
           <input
@@ -100,7 +100,7 @@ const TaxResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             걱정되는 점
           </label>
           <textarea
@@ -115,7 +115,7 @@ const TaxResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             원하는 신고 목표
           </label>
           <input
@@ -131,7 +131,7 @@ const TaxResearchForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-lg font-medium text-gray-700 mb-2">
             추가 참고 사항
           </label>
           <textarea
