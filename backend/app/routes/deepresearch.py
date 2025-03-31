@@ -23,7 +23,7 @@ class TaxCase(BaseModel):
     income_type: str = Field(..., description="소득 또는 사업 유형")
     concern: str = Field(..., description="걱정되는 점")
     desired_result: str = Field(..., description="원하는 신고 목표")
-    additional_info: str = Field(..., description="추가 상황 또는 참고 사항")
+    additional_info: str | None = Field(default=None, description="추가 상황 또는 참고 사항")
 
 class ResearchResponse(BaseModel):
     combined_query: str
@@ -87,13 +87,16 @@ async def structured_research_tax(
     client: OpenAI = Depends(get_openai_client)
 ):
     try:
+        # additional_info가 None인 경우 빈 문자열로 처리
+        additional_info = case.additional_info or ""
+        
         prompt = (
             f"[신고유형] {case.report_type}\n"
             f"[신고대상기간] {case.report_period}\n"
             f"[소득유형] {case.income_type}\n"
             f"[걱정되는점] {case.concern}\n"
             f"[바라는점] {case.desired_result}\n"
-            f"[기타상황] {case.additional_info}"
+            f"[기타상황] {additional_info}"
         )
 
         research_results = await deep_research(
