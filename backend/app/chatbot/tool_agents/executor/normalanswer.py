@@ -6,7 +6,6 @@ from langchain.schema import HumanMessage, SystemMessage
 from app.chatbot.tool_agents.tools import LawGoKRTavilySearch
 from app.chatbot.tool_agents.utils.utils import (
     insert_hyperlinks_into_text,
-    extract_json_from_text
 )
 from langchain.memory import ConversationBufferMemory
 from langchain_teddynote import logging

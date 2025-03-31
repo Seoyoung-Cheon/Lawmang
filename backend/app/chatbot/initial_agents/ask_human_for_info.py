@@ -1,12 +1,12 @@
 import os
 import re
+import time
 import asyncio
 from typing import Optional, Dict, Any
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from app.chatbot.tool_agents.tools import LawGoKRTavilySearch
 
-# 환경변수 로드
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -19,18 +19,14 @@ def load_llm():
         max_tokens=1024,
     )
 
-
 class AskHumanAgent:
     def __init__(self):
-        self.llm_simple = load_llm()
-        self.llm_mcq = load_llm()
+        self.llm = load_llm()
         self.tavily_search = LawGoKRTavilySearch()
 
-    def build_followup_prompt_ko(
-        self, user_query: str, llm1_answer: str, yes_count: int
-    ) -> str:
+    def build_followup_prompt_ko(self, user_query, llm1_answer, yes_count):
         return f"""
-당신은 법률 보조 AI입니다. 사용자의 질문이 모호하거나 정보가 부족하여 후속 질문을 생성합니다.
+당신은 법률 보조 AI입니다...
 
 ❓ 사용자 질문:
 {user_query}
@@ -49,14 +45,16 @@ class AskHumanAgent:
 
     def build_mcq_prompt_with_precedent(
         self,
-        user_query: str,
-        llm1_answer: str,
-        precedent_summary: str,
-        strategy_summary: str = "",
-        yes_count: int = 0,
-    ) -> str:
+        user_query,
+        llm1_answer,
+        precedent_summary,
+        strategy_summary="",
+        yes_count=0,
+    ):
         return f"""
-당신은 법률 상담 보조 AI입니다. 판례 정보를 바탕으로 객관식 질문을 생성하여 사용자의 추가 정보를 유도합니다.
+당신은 법률 상담 보조 AI입니다.
+
+아래 내용을 참고하여 사용자가 이해하기 쉬운 **관련 사례 4가지**를 제시하세요.
 
 ❓ 사용자 질문:
 {user_query}
@@ -67,162 +65,83 @@ class AskHumanAgent:
 📚 검색된 판례 요약:
 {precedent_summary}
 
-🧠 전략 요약 (선택적):
+🧠 전략 요약:
 {strategy_summary or "해당 없음"}
 
-📌 현재까지 확인된 ###yes 카운트: {yes_count}
+📌 현재 ###yes 카운트: {yes_count}
 
 🎯 작업:
-아래 형식으로 객관식 질문 1개를 생성하세요.
-
-질문: [객관식 질문 텍스트]
-A. [선택지 A]
-B. [선택지 B]
-C. [선택지 C]
-D. [선택지 D]
-정답: [A/B/C/D]
-
-조건:
-- 선택지는 4개로 명확히 작성.
-- 판례 내용 반드시 포함.
-- 사용자의 질문과 밀접한 관련 내용 포함.
+- 각 사례를 A, B, C, D 형식으로 정리하세요.
+- 선택지처럼 보이되, 실제로는 관련 사례 안내입니다.
+- 각 항목은 구체적이고 실질적인 상황이어야 합니다.
 """
-    async def generate_followup_question(
-        self,
-        user_query: str,
-        llm1_answer: str,
-        current_yes_count: int = 0,
-    ) -> dict:
-        yes_count_detected = len(re.findall(r"###yes", llm1_answer, flags=re.IGNORECASE))
-        total_yes_count = current_yes_count + yes_count_detected
 
-        # 프롬프트 생성
-        prompt = self.build_followup_prompt_ko(user_query, llm1_answer, total_yes_count)
-
-        try:
-            response = await self.llm_simple.ainvoke(prompt)
-            followup_question = response.content.strip()
-
-            load_template_signal = total_yes_count in [2, 3]
-
-            if total_yes_count >= 3:
-                total_yes_count = 0  # reset counter
-
-            # ✅ debug_prompt 추가 반환
-            return {
-                "followup_question": followup_question,
-                "yes_count": total_yes_count,
-                "is_mcq": False,
-                "load_template_signal": load_template_signal,
-                "debug_prompt": prompt,  # 디버그용 프롬프트 반환
-            }
-        except Exception as e:
-            return {
-                "followup_question": "후속 질문 생성 중 오류 발생",
-                "error": str(e),
-                "yes_count": current_yes_count,
-                "is_mcq": False,
-                "load_template_signal": False,
-                "debug_prompt": prompt,  # 예외 상황에서도 반환
-            }
+    async def generate_followup_question(self, user_query, llm1_answer, yes_count=0):
+        prompt = self.build_followup_prompt_ko(user_query, llm1_answer, yes_count)
+        response = await self.llm.ainvoke(prompt)
+        return response.content.strip()
 
     async def generate_mcq_question(
-        self,
-        user_query: str,
-        llm1_answer: str,
-        current_yes_count: int = 0,
-        template_data: Optional[Dict[str, Any]] = None,
-    ) -> dict:
+        self, user_query, llm1_answer, yes_count=0, template_data=None
+    ):
         tavily_results = await asyncio.to_thread(self.tavily_search.run, user_query)
         precedent_summary = (
             tavily_results[0].get("content", "판례 요약 없음")
             if isinstance(tavily_results, list) and tavily_results
             else "관련 판례를 찾을 수 없습니다."
         )
-
         strategy_summary = (
             template_data.get("strategy", {}).get("final_strategy_summary", "")
             if template_data
             else ""
         )
-
-        prompt = self.build_mcq_prompt_with_precedent(
-            user_query=user_query,
-            llm1_answer=llm1_answer,
-            precedent_summary=precedent_summary,
-            strategy_summary=strategy_summary,
-            yes_count=current_yes_count,
+        precedent_summary = (
+            template_data.get("precedent", {}).get("summary", precedent_summary)
+            if template_data
+            else precedent_summary
         )
+        prompt = self.build_mcq_prompt_with_precedent(
+            user_query, llm1_answer, precedent_summary, strategy_summary, yes_count
+        )
+        response = await self.llm.ainvoke(prompt)
+        return response.content.strip()
 
-        try:
-            response = await self.llm_mcq.ainvoke(prompt)
-            mcq_content = response.content.strip()
-
-            question_match = re.search(r"질문:\s*(.+?)\nA\.", mcq_content, re.DOTALL)
-            options_match = re.findall(r"([ABCD])\.\s*(.+)", mcq_content)
-            answer_match = re.search(r"정답:\s*([ABCD])", mcq_content)
-
-            if question_match and options_match and answer_match:
-                question_text = question_match.group(1).strip()
-                options_dict = {label: option.strip() for label, option in options_match}
-                correct_answer = answer_match.group(1)
-
-                formatted_mcq = {
-                    "question": question_text,
-                    "options": options_dict,
-                    "correct_answer": correct_answer,
-                }
-
-                load_template_signal = current_yes_count in [2, 3]
-
-                return {
-                    "followup_question": formatted_mcq,
-                    "yes_count": 0 if current_yes_count >= 3 else current_yes_count,
-                    "is_mcq": True,
-                    "load_template_signal": load_template_signal,
-                    "precedent_summary": precedent_summary,
-                    "strategy_summary": strategy_summary,
-                    "debug_prompt": prompt,  # ✅ MCQ 프롬프트 반환 추가
-                }
-            else:
-                return {
-                    "followup_question": "객관식 질문 생성 포맷 오류 발생",
-                    "error": "응답 포맷 오류",
-                    "yes_count": current_yes_count,
-                    "is_mcq": True,
-                    "load_template_signal": False,
-                    "debug_prompt": prompt,  # ✅ 오류 발생 시에도 MCQ 프롬프트 반환
-                }
-
-        except Exception as e:
-            return {
-                "followup_question": "객관식 질문 생성 중 오류 발생",
-                "error": str(e),
-                "yes_count": current_yes_count,
-                "is_mcq": True,
-                "load_template_signal": False,
-                "debug_prompt": prompt,  # ✅ 예외 발생 시에도 MCQ 프롬프트 반환
-            }
-
-    # 통합 메서드 (yes count에 따라 자동 선택)
     async def ask_human(
-        self,
-        user_query: str,
-        llm1_answer: str,
-        current_yes_count: int = 0,
-        template_data: Optional[Dict[str, Any]] = None,
-    ) -> dict:
-        yes_count_detected = len(re.findall(r"###yes", llm1_answer, flags=re.IGNORECASE))
+        self, user_query, llm1_answer, current_yes_count=0, template_data=None
+    ):
+        yes_count_detected = 1 if "###yes" in llm1_answer.lower() else 0
         total_yes_count = current_yes_count + yes_count_detected
 
-        if total_yes_count >= 2:  # ✅ YES 누적이 2 이상일 경우만 판례 기반 MCQ 호출
-            return await self.generate_mcq_question(
-                user_query, llm1_answer, total_yes_count, template_data
-            )
-        else:
-            return await self.generate_followup_question(
-                user_query, llm1_answer, total_yes_count
-            )
+        print("\n🤖 AI: 더 명확한 정보를 위해 후속 질문을 준비 중입니다...\n")
+        await asyncio.sleep(2)
+
+        followup_q = await self.generate_followup_question(
+            user_query, llm1_answer, total_yes_count
+        )
+        print("🟢 일반 후속 질문:")
+        print(followup_q)
+        await asyncio.sleep(2)
+
+        print("\n📡 [판례 정보를 찾는 중입니다...]\n")
+        await asyncio.sleep(2)
+        print("🧠 [전략 요약을 생성 중입니다...]\n")
+        await asyncio.sleep(2)
+        print("📘 [사례를 정리하여 객관식 질문을 구성 중입니다...]\n")
+        await asyncio.sleep(2)
+
+        mcq_q = await self.generate_mcq_question(
+            user_query, llm1_answer, total_yes_count, template_data
+        )
+        print("🟦 사례 기반 객관식 질문:")
+        print(mcq_q)
+
+        return {
+            "yes_count": total_yes_count,
+            "followup_question": followup_q,
+            "mcq_question": mcq_q,
+            "is_mcq": True,
+            "load_template_signal": total_yes_count in [2, 3],
+        }
 
 
 def check_user_wants_advanced_answer(user_query: str) -> bool:
