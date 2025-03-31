@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel
 
-def llm_call(prompt: str, model: str, client) -> str:
+def llm_call(prompt: str, model: str, client, max_tokens: int = 1000, temperature: float = 0.2) -> str:
     """
     주어진 프롬프트로 LLM을 비동기적으로 호출합니다.
     이는 메시지를 하나의 프롬프트로 연결하는 일반적인 헬퍼 함수입니다.
@@ -10,6 +10,8 @@ def llm_call(prompt: str, model: str, client) -> str:
     chat_completion = client.chat.completions.create(
         model=model,
         messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature
     )
     print(model, "완료")
     return chat_completion.choices[0].message.content
