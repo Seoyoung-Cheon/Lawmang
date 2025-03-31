@@ -4,6 +4,7 @@ from openai import OpenAI
 from app.deepresearch.research.deep_research import deep_research
 from app.deepresearch.reporting.report_builder import write_final_report
 import os
+from datetime import datetime
 
 router = APIRouter()
 
@@ -28,6 +29,8 @@ class ResearchResponse(BaseModel):
     combined_query: str
     research_results: dict
     final_report: str
+    timestamp: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    report_type: str
 
 async def get_openai_client():
     # main.py에서 생성한 클라이언트를 사용하도록 의존성 주입
@@ -69,7 +72,8 @@ async def structured_research_legal(
         return ResearchResponse(
             combined_query=prompt,
             research_results=research_results.model_dump(),
-            final_report=final_report
+            final_report=final_report,
+            report_type="legal"
         )
 
     except Exception as e:
@@ -112,7 +116,8 @@ async def structured_research_tax(
         return ResearchResponse(
             combined_query=prompt,
             research_results=research_results.model_dump(),
-            final_report=final_report
+            final_report=final_report,
+            report_type="tax"
         )
 
     except Exception as e:
