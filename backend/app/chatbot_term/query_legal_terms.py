@@ -3,7 +3,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.docstore.document import Document
 
 # 벡터 저장 위치
 DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
@@ -11,7 +10,7 @@ DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
 # 벡터 DB 로드
 embedding = OpenAIEmbeddings()
 db = FAISS.load_local(DB_FAISS_PATH, embedding, allow_dangerous_deserialization=True)
-retriever = db.as_retriever(search_kwargs={"k": 5})
+retriever = db.as_retriever(search_kwargs={"k": 10})  # 검색 범위 적당히 유지
 
 # 프롬프트 템플릿
 template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시스턴트입니다.
@@ -43,20 +42,15 @@ qa_chain = LLMChain(llm=llm, prompt=QA_PROMPT)
 # ✅ 최종 함수
 def get_legal_term_answer(query: str) -> str:
     try:
+        # 문서 검색
         docs = retriever.get_relevant_documents(query)
 
         exact_match = None
         partial_matches = []
-        law_common_description = None
 
         for doc in docs:
             metadata = doc.metadata or {}
             term = metadata.get("term", "").strip()
-            description = metadata.get("description", "").strip()
-            category = metadata.get("category", "").strip()
-
-            if not description:
-                continue
 
             if query.strip() == term:
                 exact_match = doc
@@ -65,22 +59,20 @@ def get_legal_term_answer(query: str) -> str:
             if query.strip() in term:
                 partial_matches.append(doc)
 
-            if category == "법률상식" and not law_common_description:
-                law_common_description = doc
-
+        # 우선순위
+        selected = None
         if exact_match:
             selected = exact_match
         elif partial_matches:
             partial_matches.sort(key=lambda d: len(d.metadata.get("term", "")))
             selected = partial_matches[0]
-        elif law_common_description:
-            selected = law_common_description
-        else:
-            selected = None
 
+        # GPT fallback
         if not selected:
-            return "죄송합니다. 입력하신 용어에 대한 정보를 찾을 수 없습니다."
+            gpt_result = qa_chain.run({"question": query, "context": ""})
+            return f"※ 아래 설명은 GPT가 자체적으로 생성한 추론 결과입니다.\n\n{gpt_result}"
 
+        # 선택된 문서의 내용으로 LLM 응답 생성
         context = selected.page_content.strip()
         return qa_chain.run({"question": query, "context": context})
 
