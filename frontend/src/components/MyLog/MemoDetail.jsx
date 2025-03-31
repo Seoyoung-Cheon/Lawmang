@@ -68,7 +68,7 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
             {/* 제목 영역 */}
             <div className="mb-4">
               <label className="block text-lg font-semibold mb-2">제목</label>
-              <div className="w-full p-3 border border-gray-300 rounded-md text-lg bg-white">
+              <div className="w-full p-3 border-b-2 border-gray-300 text-lg bg-transparent">
                 {memo.title}
               </div>
             </div>
@@ -76,7 +76,7 @@ const MemoDetail = ({ isOpen, memo, onClose }) => {
             {/* 내용 영역 */}
             <div>
               <label className="block text-lg font-semibold mb-2">내용</label>
-              <div className="w-full h-[450px] p-6 border border-gray-300 rounded-md text-lg bg-white whitespace-pre-wrap overflow-y-auto break-words">
+              <div className="w-full h-[450px] p-6 border-2 border-gray-300 rounded-lg text-lg bg-transparent whitespace-pre-wrap overflow-y-auto break-words">
                 {memo.content}
               </div>
             </div>
