@@ -52,8 +52,7 @@ const Header = () => {
   // 화면 크기 변경 감지하여 햄버거 메뉴 닫기
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        // lg 브레이크포인트는 1024px
+      if (window.innerWidth >= 1054) {
         setIsMenuOpen(false);
       }
     };
@@ -134,8 +133,8 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* 기존 메뉴 (lg 이상에서만 표시) */}
-          <ul className="hidden lg:flex items-center justify-center space-x-20 text-xl">
+          {/* 기존 메뉴 (1054px 이상에서만 표시) */}
+          <ul className="hidden items-center justify-center space-x-20 text-xl [@media(min-width:1054px)]:flex">
             <li>
               <Link
                 to="/consultation"
@@ -188,10 +187,10 @@ const Header = () => {
 
           {/* 로그인/로그아웃 버튼 */}
           <div className="flex items-center gap-6 ml-20">
-            {/* 기존 로그인/프로필 메뉴 (lg 이상에서만 표시) */}
+            {/* 기존 로그인/프로필 메뉴 (1054px 이상에서만 표시) */}
             {isAuthenticated ? (
               <div
-                className="relative hidden lg:inline-block"
+                className="relative hidden [@media(min-width:1054px)]:inline-block"
                 onMouseEnter={() => setIsProfileMenuOpen(true)}
                 onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
@@ -235,16 +234,16 @@ const Header = () => {
                   location.pathname === "/"
                     ? "hover:animate-text-glow"
                     : "hover:animate-text-glow-dark"
-                } text-lg cursor-pointer hidden lg:flex items-center gap-2`}
+                } text-lg cursor-pointer hidden [@media(min-width:1054px)]:flex items-center gap-2`}
               >
                 <CiLogin className="w-5 h-5" />
                 로그인
               </Link>
             )}
 
-            {/* 햄버거 메뉴 버튼 (lg 미만에서만 표시) */}
+            {/* 햄버거 메뉴 버튼 (1054px 미만에서만 표시) */}
             <button
-              className="lg:hidden text-gray-600 hover:text-Main transition-colors relative z-[40]"
+              className="text-gray-600 hover:text-Main transition-colors relative z-[40] [@media(min-width:1054px)]:hidden"
               onClick={() => setIsMenuOpen(true)}
             >
               <RxHamburgerMenu className={`w-7 h-7 ${textColorClass}`} />

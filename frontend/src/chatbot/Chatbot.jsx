@@ -417,7 +417,7 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "hidden max-[1380px]:hidden" : "hidden max-[1380px]:block"
-        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 ${
+        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-10 ${
           isMemoModalOpen ? "z-[100]" : "z-40"
         }`}
       >
