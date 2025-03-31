@@ -5,12 +5,14 @@ import memoReducer from "./slices/memoSlice";
 import { memoApi } from "./slices/memoApi";
 import historyReducer from "./slices/historySlice";
 import { historyApi } from "./slices/historyApi";
+import { deepResearchApi } from './slices/deepResearchApi';
 
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
     [memoApi.reducerPath]: memoApi.reducer,
     [historyApi.reducerPath]: historyApi.reducer,
+    [deepResearchApi.reducerPath]: deepResearchApi.reducer,
     auth: authReducer,
     memo: memoReducer,
     history: historyReducer,
@@ -24,7 +26,8 @@ export const store = configureStore({
     }).concat(
       authApi.middleware,
       memoApi.middleware,
-      historyApi.middleware
+      historyApi.middleware,
+      deepResearchApi.middleware
     ),
 });
 

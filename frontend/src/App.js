@@ -25,7 +25,9 @@ import ViewedList from "./components/MyLog/ViewedList";
 import MemoBoard from "./components/MyLog/MemoBoard";
 import MyLogsPage from "./components/MyLog/MyLogsPage";
 import ChatbotTest from "./chatbot/Chatbot_test/Chatbot_test";
-import Report from "./components/AI Report/Report";
+import Report from "./components/AIReport/Report";
+import LegalResearchForm from './components/AIReport/LegalResearchForm';
+import TaxResearchForm from './components/AIReport/TaxResearchForm';
 
 // ✅ QueryClient 인스턴스 생성
 const queryClient = new QueryClient();
@@ -107,6 +109,8 @@ function AppContent() {
           <Route path="/mylog/memo" element={<MemoBoard />} />
           <Route path="/mylog/logs" element={<MyLogsPage />} />
           <Route path="/report" element={<Report />} />
+          <Route path="/legal-research" element={<LegalResearchForm />} />
+          <Route path="/tax-research" element={<TaxResearchForm />} />
         </Routes>
       </div>
       {!hideFooter && <Footer />}

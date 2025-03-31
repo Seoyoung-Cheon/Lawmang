@@ -12,15 +12,15 @@
   font-family: "Noto Sans KR", sans-serif;
 }
 
-html,
-body {
-  overflow-x: hidden; /* html에도 가로 스크롤 제거 추가 */
-  width: 100%; /* 너비를 명시적으로 지정 */
+html {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  overflow-y: scroll;
+  width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 ol,
