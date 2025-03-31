@@ -1,3 +1,9 @@
+import warnings
+# LangChain 관련 경고만 필터링
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="langchain")
+warnings.filterwarnings("ignore", message=".*LangChain.*")
+warnings.filterwarnings("ignore", category=UserWarning)
+
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
