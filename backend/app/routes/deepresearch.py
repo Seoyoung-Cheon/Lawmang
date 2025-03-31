@@ -49,12 +49,12 @@ async def structured_research_legal(
             f"[바람] {case.desired_result}"
         )
 
-        research_results = deep_research(
+        research_results = await deep_research(
             query=prompt,
             breadth=2,
             depth=2,
             client=client,
-            model="gpt-4o-mini"
+            model="gpt-3.5-turbo"
         )
 
         final_report = write_final_report(
@@ -62,7 +62,7 @@ async def structured_research_legal(
             learnings=research_results.learnings,
             visited_urls=research_results.visited_urls,
             client=client,
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             report_type="legal"
         )
 
@@ -92,12 +92,12 @@ async def structured_research_tax(
             f"[기타상황] {case.additional_info}"
         )
 
-        research_results = deep_research(
+        research_results = await deep_research(
             query=prompt,
             breadth=2,
             depth=2,
             client=client,
-            model="gpt-4o-mini"
+            model="gpt-3.5-turbo"
         )
 
         final_report = write_final_report(
@@ -105,7 +105,7 @@ async def structured_research_tax(
             learnings=research_results.learnings,
             visited_urls=research_results.visited_urls,
             client=client,
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             report_type="tax"
         )
 
