@@ -204,10 +204,18 @@ const LegalResearchForm = () => {
       </form>
 
       {result && (
-        <>
-          {/* PDF 변환 영역 - 인라인 스타일 사용 */}
+        <div className="space-y-4">
           <div ref={reportRef} style={pdfStyles.container}>
-            <h2 style={pdfStyles.title}>법률 검토 보고서</h2>
+            {/* 제목과 PDF 버튼을 같은 줄에 배치 */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 style={pdfStyles.title}>법률 검토 보고서</h2>
+              <button
+                onClick={downloadPDF}
+                className="px-4 py-2 bg-Main text-white rounded-lg"
+              >
+                PDF 다운로드
+              </button>
+            </div>
             <div style={pdfStyles.info}>
               <p>작성일시: {result.timestamp}</p>
               <p>사건유형: {formData.case_type}</p>
@@ -216,15 +224,7 @@ const LegalResearchForm = () => {
               {result.final_report}
             </div>
           </div>
-
-          {/* 다운로드 버튼은 Tailwind 클래스 유지 */}
-          <button
-            onClick={downloadPDF}
-            className="mt-4 px-4 py-2 bg-Main text-white rounded-lg hover:bg-Main_hover"
-          >
-            PDF 다운로드
-          </button>
-        </>
+        </div>
       )}
     </>
   );

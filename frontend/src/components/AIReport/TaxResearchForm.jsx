@@ -141,7 +141,6 @@ const TaxResearchForm = () => {
             }
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
             placeholder="기타 참고할 만한 사항을 자유롭게 작성해주세요"
-            required
           />
         </div>
 
@@ -161,7 +160,15 @@ const TaxResearchForm = () => {
       {result && (
         <div className="space-y-4">
           <div ref={reportRef} className="bg-white p-8">
-            <h2 className="text-2xl font-bold">세무 검토 보고서</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">세무 검토 보고서</h2>
+              <button
+                onClick={downloadPDF}
+                className="px-4 py-2 bg-Main text-white rounded-lg"
+              >
+                PDF 다운로드
+              </button>
+            </div>
             <div className="mt-4 text-gray-600">
               <p>작성일시: {result.timestamp}</p>
               <p>신고유형: {formData.report_type}</p>
@@ -171,13 +178,6 @@ const TaxResearchForm = () => {
               {result.final_report}
             </div>
           </div>
-
-          <button
-            onClick={downloadPDF}
-            className="px-4 py-2 bg-Main text-white rounded-lg"
-          >
-            PDF 다운로드
-          </button>
         </div>
       )}
     </div>
