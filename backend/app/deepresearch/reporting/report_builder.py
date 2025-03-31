@@ -7,13 +7,16 @@ from app.deepresearch.prompts.report_prompts import generate_legal_prompt, gener
 
 def save_report(report: str, report_type: str = "legal") -> str:
     """보고서를 output 폴더에 저장합니다."""
+    # app/deepresearch/output 디렉토리 경로 설정
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+    
     # output 디렉토리가 없으면 생성
-    if not os.path.exists("output"):
-        os.makedirs("output")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     
     # 파일명 생성 (timestamp_type.md)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"output/{timestamp}_{report_type}_report.md"
+    filename = os.path.join(output_dir, f"{timestamp}_{report_type}_report.md")
     
     # 보고서 저장
     with open(filename, "w", encoding="utf-8") as f:
