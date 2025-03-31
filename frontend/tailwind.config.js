@@ -30,6 +30,14 @@ module.exports = {
           "0%, 100%": { transform: "translate(0, 0)" },
           "50%": { transform: "translate(4px, -4px)" },
         },
+        "bounce-twice": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "10%": { transform: "translateY(-10px)" },
+          "20%": { transform: "translateY(0)" },
+          "30%": { transform: "translateY(-10px)" },
+          "40%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(0)" },
+        },
         "text-shimmer": {
           "0%": {
             textShadow: "0 0 0 rgba(255, 255, 255, 0)",
@@ -79,6 +87,7 @@ module.exports = {
         "slide-up": "slide-up 2s cubic-bezier(0.22, 1, 0.36, 1)",
         "spin-once": "rotate-360 0.3s ease-in-out",
         "bounce-diagonal": "bounce-diagonal 0.5s ease-in-out infinite",
+        "bounce-twice": "bounce-twice 5s ease-in-out infinite",
         "text-shimmer": "text-shimmer 1.5s ease-in-out infinite",
         "text-shimmer-dark": "text-shimmer-dark 1.5s ease-in-out infinite",
         "text-glow": "text-glow 1s ease-in-out forwards",

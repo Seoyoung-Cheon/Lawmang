@@ -417,13 +417,13 @@ const Chatbot = () => {
       <div
         className={`${
           isOpen ? "hidden max-[1380px]:hidden" : "hidden max-[1380px]:block"
-        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-6 ${
+        } min-[1380px]:hidden fixed right-4 lg:right-10 bottom-10 ${
           isMemoModalOpen ? "z-[100]" : "z-40"
         }`}
       >
         <button
           onClick={() => setIsOpen(true)}
-          className="w-16 h-16 bg-Main text-white rounded-full shadow-lg flex items-center justify-center hover:bg-Main_hover transition-colors relative group"
+          className="w-16 h-16 bg-Main text-white rounded-full shadow-lg flex items-center justify-center hover:bg-Main_hover transition-colors relative group animate-bounce-twice"
         >
           {/* 챗봇 아이콘 */}
           <svg
@@ -437,7 +437,7 @@ const Chatbot = () => {
           </svg>
 
           {/* 툴팁 */}
-          <div className="absolute bottom-16 right-0 bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-5 right-16 bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             챗봇 열기
           </div>
         </button>
