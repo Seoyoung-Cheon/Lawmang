@@ -93,28 +93,9 @@ conda activate C:\conda_envs\test_env
 
 uvicorn app.chatbot.app:app --reload  
 
-python -m app.chatbot.create_search
-
-
-
 python -m app.chatbot.main
 
+cd Lawmang/backend  # 이걸 프로젝트 루트로 가정할 때
+streamlit run app/chatbot/streamlit_app.py
 
 
--------------------------------------------pgqry
-CREATE TABLE vectorized_data (
-    id SERIAL PRIMARY KEY,
-    p_id INTEGER NOT NULL REFERENCES precedent(id) ON DELETE SET NULL,
-    embedding VECTOR(768) NOT NULL,
-    CONSTRAINT unique_vectorized_precedent UNIQUE (p_id)  -- ✅ 중복 방지
-);
-
-CREATE TABLE vectorized_consultation (
-    id SERIAL PRIMARY KEY,
-    l_id INTEGER NOT NULL REFERENCES legal_consultation(id) ON DELETE SET NULL,
-    embedding VECTOR(768) NOT NULL,
-    CONSTRAINT unique_vectorized_consultation UNIQUE (l_id)  -- ✅ 중복 방지
-);
--- ✅ 성능 최적화를 위한 INDEX 추가
-CREATE INDEX idx_vectorized_data_p_id ON vectorized_data (p_id);
-CREATE INDEX idx_vectorized_consultation_l_id ON vectorized_consultation (l_id);
