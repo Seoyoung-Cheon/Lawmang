@@ -190,7 +190,7 @@ const MemoModal = ({ isOpen, onClose, onSave, memoData }) => {
                   setContent(e.target.value);
                   setContentError("");
                 }}
-                className={`w-full h-[450px] p-6 border-2 rounded-lg ${
+                className={`w-full h-[450px] p-6 border-2 rounded-lg resize-none ${
                   contentError ? "border-red-500" : "border-gray-300"
                 } focus:border-Main focus:outline-none text-lg bg-transparent`}
                 placeholder="내용을 입력해주세요."
