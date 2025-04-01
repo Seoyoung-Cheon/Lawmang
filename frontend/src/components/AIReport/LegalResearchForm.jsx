@@ -31,6 +31,20 @@ const LegalResearchForm = () => {
 
   return (
     <div className="flex flex-col gap-8">
+      <style>
+        {`
+          input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .loading-icon {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
       <div className="w-full max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -59,7 +73,8 @@ const LegalResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, incident_date: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              max={new Date().toISOString().split("T")[0]}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main "
               required
             />
           </div>
@@ -89,7 +104,7 @@ const LegalResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, fact_details: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32 resize-none"
               placeholder="사건의 경위를 상세히 설명해주세요"
               required
             />
@@ -155,53 +170,101 @@ const LegalResearchForm = () => {
             >
               {isLoading ? "분석 중..." : "법률 검토 요청"}
             </button>
-            {isLoading && (
-              <p className="text-sm text-gray-500 text-center mt-6">
-                약 1~2분 정도의 시간이 소요될 수 있습니다.
-              </p>
-            )}
+            <div className="flex items-center justify-center gap-2 mt-8">
+              {isLoading ? (
+                <>
+                  <p className="text-sm text-gray-500">
+                    약 1~2분 정도의 시간이 소요될 수 있습니다.
+                  </p>
+                  <svg
+                    className="w-5 h-5 text-Main loading-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </>
+              ) : result ? (
+                <>
+                  <svg
+                    className="w-5 h-5 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-sm font-semibold text-gray-700">
+                    작성이 완료되었습니다! 아래의 내용을 확인해주세요.
+                  </p>
+                </>
+              ) : null}
+            </div>
           </div>
         </form>
       </div>
 
       {result && (
-      <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
-        <div ref={reportRef} style={pdfStyles.container}>
-          {/* 제목 + 버튼 */}
-          <div className="flex justify-between items-center">
-            <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
-              📄 법률 검토 보고서
-            </h2>
-            <button
-              onClick={() => generateLegalPDF(formData, result)}
-              className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
+        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8 shadow-lg">
+          <div ref={reportRef} style={pdfStyles.container}>
+            {/* 제목 + 버튼 */}
+            <div className="flex justify-between items-center">
+              <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
+                📄 법률 검토 보고서
+              </h2>
+              <button
+                onClick={() => generateLegalPDF(formData, result)}
+                className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
+              >
+                PDF 다운로드
+              </button>
+            </div>
+
+            {/* 정보란 */}
+            <div
+              style={{
+                fontSize: "14px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+              }}
             >
-              PDF 다운로드
-            </button>
-          </div>
+              <p>작성일시: {result.timestamp}</p>
+              <p>사건유형: {formData.case_type}</p>
+              <p>사건 발생 시점: {formData.incident_date}</p>
+              <p>관련자: {formData.related_party}</p>
+            </div>
 
-          {/* 정보란 */}
-          <div style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "16px" }}>
-            <p>작성일시: {result.timestamp}</p>
-            <p>사건유형: {formData.case_type}</p>
-            <p>사건 발생 시점: {formData.incident_date}</p>
-            <p>관련자: {formData.related_party}</p>
-          </div>
+            <hr className="my-4 border-gray-300" />
 
-          <hr className="my-4 border-gray-300" />
-
-          {/* 본문 */}
-          <div style={{ fontSize: "15px", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
-            {result.final_report
-              .replace(/^#+\s/gm, "")
-              .split("\n")
-              .map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
+            {/* 본문 */}
+            <div
+              style={{
+                fontSize: "15px",
+                lineHeight: "1.8",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {result.final_report
+                .replace(/^#+\s/gm, "")
+                .split("\n")
+                .map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 };

@@ -1,8 +1,5 @@
 from typing import Optional
 from pydantic import BaseModel
-from openai import OpenAI
-import os
-import json
 import re
 
 def llm_call(prompt: str, model: str, client, max_tokens: int = 1000, temperature: float = 0.2) -> str:
