@@ -26,7 +26,14 @@ def write_final_report(
         user_prompt = f"{sys_prompt}\n\n{user_prompt}"
 
     try:
-        report = llm_call(user_prompt, model, client)
+        report = llm_call(
+            user_prompt,
+            model,
+            client,
+            max_tokens=3500,
+            temperature=0.2
+        )
+
         urls_section = ""
         if visited_urls:
             urls_section = "\n\n참고 출처:\n" + "\n".join(
@@ -39,5 +46,7 @@ def write_final_report(
         return report.strip() + urls_section + notice
 
     except Exception as e:
-        print(f"❌ 보고서 생성 중 오류 발생: {e}")
-        return "Error generating report"
+        error_msg = f"❌ 보고서 생성 중 오류 발생: {e}"
+        print(error_msg)
+        return error_msg
+    
