@@ -39,7 +39,11 @@ const TaxResearchForm = () => {
         downloadButton.style.display = 'none';
       }
 
-      const canvas = await html2canvas(element);
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
       
       // PDF 다운로드 버튼 다시 보이기
       if (downloadButton) {
@@ -47,12 +51,28 @@ const TaxResearchForm = () => {
       }
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF();
+      const pdf = new jsPDF('p', 'mm', 'a4');
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      // 여러 페이지 처리
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // 첫 페이지
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      // 남은 페이지 추가
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`세무검토보고서_${new Date().toISOString().slice(0,10)}.pdf`);
     } catch (error) {
       console.error('PDF 생성 오류:', error);
@@ -158,17 +178,24 @@ const TaxResearchForm = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full p-4 text-white rounded-lg transition-colors ${
-              isLoading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-Main hover:bg-Main_hover"
-            }`}
-          >
-            {isLoading ? "분석 중..." : "세무 검토 요청"}
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full p-4 text-white rounded-lg transition-colors ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-Main hover:bg-Main_hover"
+              }`}
+            >
+              {isLoading ? "분석 중..." : "세무 검토 요청"}
+            </button>
+            {isLoading && (
+              <p className="text-sm text-gray-500 text-center mt-2">
+                약 1분 정도의 시간이 소요될 수 있습니다.
+              </p>
+            )}
+          </div>
         </form>
       </div>
 

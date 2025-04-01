@@ -23,7 +23,7 @@ const Chatbot = () => {
   ]);
   const [legalMessages, setLegalMessages] = useState([
     {
-      text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+      text: "법률 용어의 풀이가 궁금하면 단어로 입력해주세요 :)",
       isUser: false,
       timestamp: new Date().toLocaleTimeString(),
     },
@@ -80,7 +80,7 @@ const Chatbot = () => {
     if (legalMessages.length === 0) {
       setLegalMessages([
         {
-          text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+          text: "법률 용어의 풀이가 궁금하면 단어로 입력해주세요 :)",
           isUser: false,
           timestamp: new Date().toLocaleTimeString(),
         },
