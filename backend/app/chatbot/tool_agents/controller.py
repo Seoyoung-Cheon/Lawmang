@@ -1,4 +1,5 @@
-from typing import List
+import asyncio
+from typing import List, Optional
 from app.chatbot.tool_agents.qualifier import run_consultation_qualifier
 from app.chatbot.tool_agents.planner import (
     generate_response_template,
@@ -8,18 +9,63 @@ from app.chatbot.tool_agents.precedent import LegalPrecedentRetrievalAgent
 from app.chatbot.tool_agents.executor.normalanswer import run_final_answer_generation
 from app.chatbot.tool_agents.tools import async_search_consultation
 
+# ConversationBufferMemory를 활용한 캐시 함수들 import
+from app.chatbot.memory.global_cache import (
+    retrieve_template_from_memory,
+    store_template_in_memory,
+)
+
 
 async def run_full_consultation(
     user_query: str,
     search_keywords: List[str],
     model: str = "gpt-4",
     build_only: bool = False,
+    stop_event: Optional[asyncio.Event] = None,  # ✅ 추가
 ) -> dict:
     print("✅ [user_query 확인]:", user_query)
     print("✅ [search_keywords 확인]:", search_keywords)
 
+    # 캐시 조회: ConversationBufferMemory에서 저장된 TEMPLATE_DATA 메시지 사용
+    cached_data = retrieve_template_from_memory()
+    if cached_data:
+        print("✅ [캐시된 중간 데이터 사용]")
+        template = cached_data.get("template")
+        strategy = cached_data.get("strategy")
+        precedent = cached_data.get("precedent")
+        # 빌드 전용 모드면 캐시된 데이터 그대로 반환
+        if build_only:
+            return {
+                "user_query": user_query,
+                "template": template,
+                "strategy": strategy,
+                "precedent": precedent,
+                "status": "build_only (cached)",
+            }
+        # 최종 응답 생성 (캐시된 템플릿 활용)
+        final_answer = run_final_answer_generation(
+            template=template,
+            strategy=strategy,
+            precedent=precedent,
+            user_query=user_query,
+            model=model,
+        )
+        return {
+            "user_query": user_query,
+            "template": template,
+            "strategy": strategy,
+            "precedent": precedent,
+            "final_answer": final_answer,
+            "status": "ok (cached)",
+        }
+
+    # 캐시된 데이터가 없으면 새로 생성
     # 1️⃣ Qualifier 실행
     consultation_results, _, _ = await async_search_consultation(search_keywords)
+    if stop_event and stop_event.is_set():
+        print("🛑 [STOP EVENT 감지됨 → 초기 중단]")
+        return {"template": None, "strategy": None, "precedent": None}
+
     best_case = await run_consultation_qualifier(user_query, consultation_results)
     if not consultation_results:
         print("❌ [run_full_consultation] 검색된 상담 결과 없음")
@@ -28,24 +74,31 @@ async def run_full_consultation(
         print("⚠️ [run_full_consultation] 일부 필드 누락 → fallback으로 진행")
         title = best_case.get("title", "법률상담")
         question = best_case.get("question", user_query)
-        answer = best_case.get("answer", "일반적인 법률 정보에 기반하여 응답을 생성합니다.")
+        answer = best_case.get(
+            "answer", "일반적인 법률 정보에 기반하여 응답을 생성합니다."
+        )
     else:
         title = best_case["title"]
         question = best_case["question"]
         answer = best_case["answer"]
-        title = best_case["title"]
-        question = best_case["question"]
-        answer = best_case["answer"]
+
+    if stop_event and stop_event.is_set():
+        print("🛑 [STOP EVENT 감지됨 → 템플릿 생성 전 중단]")
+        return {"template": None, "strategy": None, "precedent": None}
 
     # 2️⃣ Planner - 템플릿 생성
     template = await generate_response_template(title, question, answer, user_query)
 
-    # 3️⃣ Planner - 전략 생성 + Tavily 평가 + 보완
+    # 3️⃣ 전략 생성
     strategy = await run_response_strategy_with_limit(
         template["explanation"], user_query, template.get("hyperlinks", [])
     )
 
-    # 4️⃣ Precedent 에이전트 실행
+    if stop_event and stop_event.is_set():
+        print("🛑 [STOP EVENT 감지됨 → 전략 생성 후 중단]")
+        return {"template": None, "strategy": None, "precedent": None}
+
+    # 4️⃣ 판례 검색 등 빌드 완료 후
     precedent_agent = LegalPrecedentRetrievalAgent()
     precedent = await precedent_agent.run(
         categories=[title],
@@ -53,18 +106,17 @@ async def run_full_consultation(
         user_input_keywords=search_keywords,
     )
 
-    # ✅ 중간 빌드 데이터를 캐시 저장 (세션 단위)
-    from app.chatbot.memory.global_cache import cache_intermediate_result
-
-    session_id = user_query[:20]
+    # 중간 빌드 데이터 구성 (여기에 built 플래그 추가)
     intermediate_data = {
         "template": template,
         "strategy": strategy,
         "precedent": precedent,
+        "built": True,  # 빌드 완료 플래그
     }
-    cache_intermediate_result(session_id, intermediate_data)
+    store_template_in_memory(intermediate_data)
 
-    # ✅ 빌드만 수행하는 경우 GPT 호출 없이 여기서 종료
+
+    # 빌드 전용 모드 (GPT 미호출)
     if build_only:
         return {
             "user_query": user_query,
@@ -74,7 +126,7 @@ async def run_full_consultation(
             "status": "build_only",
         }
 
-    # 5️⃣ Final 응답 생성 (GPT 고급 응답 호출)
+    # 5️⃣ 고급 GPT 응답 생성
     final_answer = run_final_answer_generation(
         template=template,
         strategy=strategy,
