@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useSubmitTaxResearchMutation } from "../../redux/slices/deepResearchApi";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { pdfStyles, downloadPDFConfig } from './pdfStyle';
 
 const TaxResearchForm = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,6 @@ const TaxResearchForm = () => {
     if (!element) return;
 
     try {
-      // PDF 다운로드 버튼 임시로 숨기기
       const downloadButton = element.querySelector('.pdf-download-btn');
       if (downloadButton) {
         downloadButton.style.display = 'none';
@@ -42,10 +42,9 @@ const TaxResearchForm = () => {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
       });
       
-      // PDF 다운로드 버튼 다시 보이기
       if (downloadButton) {
         downloadButton.style.display = 'block';
       }
@@ -56,21 +55,20 @@ const TaxResearchForm = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      // 여러 페이지 처리
       let heightLeft = pdfHeight;
       let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10; // 여백
 
       // 첫 페이지
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
+      heightLeft -= pdf.internal.pageSize.getHeight();
 
-      // 남은 페이지 추가
+      // 추가 페이지
       while (heightLeft >= 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
+        heightLeft -= pdf.internal.pageSize.getHeight();
       }
       
       pdf.save(`세무검토보고서_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -191,8 +189,8 @@ const TaxResearchForm = () => {
               {isLoading ? "분석 중..." : "세무 검토 요청"}
             </button>
             {isLoading && (
-              <p className="text-sm text-gray-500 text-center mt-2">
-                약 1분 정도의 시간이 소요될 수 있습니다.
+              <p className="text-sm text-gray-500 text-center mt-6">
+                약 1~2분 정도의 시간이 소요될 수 있습니다.
               </p>
             )}
           </div>
@@ -213,9 +211,9 @@ const TaxResearchForm = () => {
       {/* 하단: 보고서 미리보기 */}
       {result && (
         <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
-          <div ref={reportRef} className="bg-white p-8">
+          <div ref={reportRef} style={pdfStyles.container}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">세무 검토 보고서</h2>
+              <h2 style={pdfStyles.title}>세무 검토 보고서</h2>
               <button
                 onClick={downloadPDF}
                 className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
@@ -223,12 +221,12 @@ const TaxResearchForm = () => {
                 PDF 다운로드
               </button>
             </div>
-            <div className="mt-4 text-gray-600">
+            <div style={pdfStyles.info}>
               <p>작성일시: {result.timestamp}</p>
               <p>신고유형: {formData.report_type}</p>
               <p>신고기간: {formData.report_period}</p>
             </div>
-            <div className="mt-6 whitespace-pre-line">
+            <div style={pdfStyles.content}>
               {result.final_report}
             </div>
           </div>

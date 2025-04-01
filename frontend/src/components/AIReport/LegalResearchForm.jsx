@@ -2,29 +2,7 @@ import { useState, useRef } from "react";
 import { useSubmitLegalResearchMutation } from "../../redux/slices/deepResearchApi";
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-
-// PDF 변환 영역의 스타일을 별도로 정의
-const pdfStyles = {
-  container: {
-    margin: '2rem 0',
-    padding: '2rem',
-    backgroundColor: 'white',
-    maxWidth: '800px',
-  },
-  title: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    marginBottom: '1rem',
-  },
-  info: {
-    color: '#666',
-    marginBottom: '1rem',
-  },
-  content: {
-    whiteSpace: 'pre-line',
-    lineHeight: '1.5',
-  }
-};
+import { pdfStyles, downloadPDFConfig } from './pdfStyle';
 
 const LegalResearchForm = () => {
   const [formData, setFormData] = useState({
@@ -57,7 +35,6 @@ const LegalResearchForm = () => {
     if (!element) return;
 
     try {
-      // PDF 다운로드 버튼 임시로 숨기기
       const downloadButton = element.querySelector('.pdf-download-btn');
       if (downloadButton) {
         downloadButton.style.display = 'none';
@@ -66,10 +43,9 @@ const LegalResearchForm = () => {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
       });
       
-      // PDF 다운로드 버튼 다시 보이기
       if (downloadButton) {
         downloadButton.style.display = 'block';
       }
@@ -80,21 +56,20 @@ const LegalResearchForm = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      // 여러 페이지 처리
       let heightLeft = pdfHeight;
       let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10; // 여백
 
       // 첫 페이지
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
+      heightLeft -= pdf.internal.pageSize.getHeight();
 
-      // 남은 페이지 추가
+      // 추가 페이지
       while (heightLeft >= 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
+        heightLeft -= pdf.internal.pageSize.getHeight();
       }
       
       pdf.save(`법률검토보고서_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -232,8 +207,8 @@ const LegalResearchForm = () => {
               {isLoading ? "분석 중..." : "법률 검토 요청"}
             </button>
             {isLoading && (
-              <p className="text-sm text-gray-500 text-center mt-2">
-                약 1분 정도의 시간이 소요될 수 있습니다.
+              <p className="text-sm text-gray-500 text-center mt-6">
+                약 1~2분 정도의 시간이 소요될 수 있습니다.
               </p>
             )}
           </div>
