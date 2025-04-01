@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import { useSubmitLegalResearchMutation } from "../../redux/slices/deepResearchApi";
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-import { pdfStyles, downloadPDFConfig } from './pdfStyle';
+import { pdfStyles } from "./pdfStyle";
+import { generateLegalPDF } from "./pdfGenerator";
 
 const LegalResearchForm = () => {
   const [formData, setFormData] = useState({
@@ -30,58 +29,8 @@ const LegalResearchForm = () => {
     }
   };
 
-  const downloadPDF = async () => {
-    const element = reportRef.current;
-    if (!element) return;
-
-    try {
-      const downloadButton = element.querySelector('.pdf-download-btn');
-      if (downloadButton) {
-        downloadButton.style.display = 'none';
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      
-      if (downloadButton) {
-        downloadButton.style.display = 'block';
-      }
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const margin = 10; // 여백
-
-      // 첫 페이지
-      pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
-      heightLeft -= pdf.internal.pageSize.getHeight();
-
-      // 추가 페이지
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
-        heightLeft -= pdf.internal.pageSize.getHeight();
-      }
-      
-      pdf.save(`법률검토보고서_${new Date().toISOString().slice(0,10)}.pdf`);
-    } catch (error) {
-      console.error('PDF 생성 오류:', error);
-      alert('PDF 생성 중 오류가 발생했습니다.');
-    }
-  };
-
   return (
     <div className="flex flex-col gap-8">
-      {/* 상단: 입력 폼 */}
       <div className="w-full max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -215,42 +164,46 @@ const LegalResearchForm = () => {
         </form>
       </div>
 
-      {/* 구분선 */}
       {result && (
-        <div className="w-full border-t-2 border-gray-200 my-8">
-          <div className="w-16 h-16 bg-white rounded-full border-2 border-gray-200 flex items-center justify-center mx-auto -mt-8">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+      <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
+        <div ref={reportRef} style={pdfStyles.container}>
+          {/* 제목 + 버튼 */}
+          <div className="flex justify-between items-center">
+            <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
+              📄 법률 검토 보고서
+            </h2>
+            <button
+              onClick={() => generateLegalPDF(formData, result)}
+              className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
+            >
+              PDF 다운로드
+            </button>
           </div>
-        </div>
-      )}
 
-      {/* 하단: 보고서 미리보기 */}
-      {result && (
-        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
-          <div ref={reportRef} style={pdfStyles.container}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 style={pdfStyles.title}>법률 검토 보고서</h2>
-              <button
-                onClick={downloadPDF}
-                className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
-              >
-                PDF 다운로드
-              </button>
-            </div>
-            <div style={pdfStyles.info}>
-              <p>작성일시: {result.timestamp}</p>
-              <p>사건유형: {formData.case_type}</p>
-            </div>
-            <div style={pdfStyles.content}>
-              {result.final_report}
-            </div>
+          {/* 정보란 */}
+          <div style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "16px" }}>
+            <p>작성일시: {result.timestamp}</p>
+            <p>사건유형: {formData.case_type}</p>
+            <p>사건 발생 시점: {formData.incident_date}</p>
+            <p>관련자: {formData.related_party}</p>
+          </div>
+
+          <hr className="my-4 border-gray-300" />
+
+          {/* 본문 */}
+          <div style={{ fontSize: "15px", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
+            {result.final_report
+              .replace(/^#+\s/gm, "")
+              .split("\n")
+              .map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
           </div>
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 };
 
-export default LegalResearchForm; 
+export default LegalResearchForm;
