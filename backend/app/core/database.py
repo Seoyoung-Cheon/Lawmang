@@ -66,9 +66,7 @@ def init_db():
     # 테이블이 존재하지 않는 경우에만 생성
     if not inspector.has_table('users') and not inspector.has_table('email_verifications'):
         Base.metadata.create_all(bind=engine)
-        print("테이블이 성공적으로 생성되었습니다.")
-    else:
-        print("테이블이 이미 존재합니다. 생성을 건너뜁니다.")
+        print("테이블이 성공적으로 생성되었습니다.")   
 
 # 직접 실행을 위한 코드 추가
 if __name__ == "__main__":

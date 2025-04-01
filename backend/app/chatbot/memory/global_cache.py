@@ -1,49 +1,49 @@
-# ✅ global_cache.py 업데이트 (session_id 해시 기반 관리 포함)
-from typing import Any, Dict
-import hashlib
-import time
+from typing import Any, Dict, Optional
+from langchain.memory import ConversationBufferMemory
+import json
+import datetime
+from langchain.schema import SystemMessage
 
-_cache: Dict[str, Dict[str, Any]] = {}
-_ttl: Dict[str, float] = {}  # TTL 저장 (선택 사항)
-
-
-def make_session_id(text: str) -> str:
-    return hashlib.sha1(text.encode("utf-8")).hexdigest()[:20]
+# LangChain의 메모리 인스턴스 (대화 히스토리 저장용)
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 
-def cache_intermediate_result(session_id: str, data: dict, ttl: int = 3600):
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
+        return super().default(obj)
+
+
+def store_template_in_memory(template: dict) -> None:
     """
-    ✅ 최초 캐시 저장 (덮어쓰기) + TTL 적용
+    생성된 템플릿을 JSON 문자열로 변환한 후,
+    특별한 마커("TEMPLATE_DATA:")와 함께 시스템 메시지로 저장합니다.
+    CustomJSONEncoder를 사용하여 날짜 객체 등을 문자열로 변환합니다.
     """
-    _cache[session_id] = data
-    _ttl[session_id] = time.time() + ttl
+    template_json = json.dumps(template, cls=CustomJSONEncoder, ensure_ascii=False)
+    message_content = f"TEMPLATE_DATA:{template_json}"
+    memory.chat_memory.add_message(SystemMessage(content=message_content))
 
 
-def get_cached_result(session_id: str) -> dict:
+def retrieve_template_from_memory() -> dict:
     """
-    ✅ 캐시 조회 (없으면 빈 dict)
+    memory에서 저장된 시스템 메시지 중 TEMPLATE_DATA: 로 시작하는 메시지를 찾아
+    JSON을 파싱한 후 템플릿 dict를 반환합니다.
+    만약 저장된 템플릿이 없다면 빈 dict를 반환합니다.
     """
-    now = time.time()
-    if session_id in _cache and (_ttl.get(session_id, now + 1) > now):
-        return _cache[session_id]
-    else:
-        _cache.pop(session_id, None)
-        _ttl.pop(session_id, None)
-        return {}
-
-
-def update_cached_result(session_id: str, key: str, value: Any):
-    """
-    ✅ 기존 캐시에 항목 추가 또는 수정
-    """
-    if session_id not in _cache:
-        _cache[session_id] = {}
-    _cache[session_id][key] = value
-
-
-def clear_cached_result(session_id: str):
-    """
-    ✅ 세션 캐시 삭제
-    """
-    _cache.pop(session_id, None)
-    _ttl.pop(session_id, None)
+    for message in memory.chat_memory.messages:
+        if message.content.startswith("TEMPLATE_DATA:"):
+            template_json = message.content[len("TEMPLATE_DATA:") :]
+            return json.loads(template_json)
+    return {}
+# def get_filtered_chat_history() -> str:
+#     history = memory.load_memory_variables({}).get("chat_history", "")
+#     # 만약 history가 리스트라면, 문자열로 변환합니다.
+#     if isinstance(history, list):
+#         history = "\n".join(str(item) for item in history)
+#     filtered_lines = []
+#     for line in history.split("\n"):
+#         if not line.strip().startswith("TEMPLATE_DATA:"):
+#             filtered_lines.append(line)
+#     return "\n".join(filtered_lines)

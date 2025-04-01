@@ -1,15 +1,16 @@
 # ✅ controller.py
+import asyncio
 from typing import Dict, Optional
 from langchain_community.vectorstores import FAISS
 from app.chatbot.initial_agents.initial_chatbot import LegalChatbot
 from app.chatbot.initial_agents.ask_human_for_info import AskHumanAgent
-
 
 async def run_initial_controller(
     user_query: str,
     faiss_db: FAISS,
     current_yes_count: int = 0,
     template_data: Optional[Dict[str, any]] = None,
+    stop_event: Optional[asyncio.Event] = None,  # ✅ 추가됨
 ) -> Dict:
     chatbot = LegalChatbot(faiss_db=faiss_db)
     ask_human_agent = AskHumanAgent()
@@ -26,11 +27,16 @@ async def run_initial_controller(
     updated_yes_count = initial_result.get("yes_count", current_yes_count)
     escalate_directly = initial_result.get("escalate_to_advanced", False)
 
-    if is_no:
+    # ✅ 중단 신호 보내기
+    if is_no and stop_event:
+        stop_event.set()
         return {"status": "no_triggered", "initial_response": initial_response}
 
     if query_type == "nonlegal":
         return {"status": "nonlegal_skipped", "initial_response": initial_response}
+
+    if template_data is None:
+        template_data = {}
 
     ask_result = await ask_human_agent.ask_human(
         user_query=user_query,
@@ -54,9 +60,9 @@ async def run_initial_controller(
         "yes_count": final_yes_count,
         "load_template_signal": ask_result.get("load_template_signal"),
         "status": status,
-        "followup_question": ask_result.get("followup_question"),
+        "mcq_question": ask_result.get("mcq_question"),
         "is_mcq": ask_result.get("is_mcq"),
         "precedent_summary": ask_result.get("precedent_summary"),
         "strategy_summary": ask_result.get("strategy_summary"),
-        "debug_prompt": ask_result.get("debug_prompt"),  # ✅ 추가
+        "debug_prompt": ask_result.get("debug_prompt"),
     }
