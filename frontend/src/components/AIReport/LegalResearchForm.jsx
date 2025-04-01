@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
 import { useSubmitLegalResearchMutation } from "../../redux/slices/deepResearchApi";
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-import { pdfStyles, downloadPDFConfig } from './pdfStyle';
+import { pdfStyles } from "./pdfStyle";
+import { generateLegalPDF } from "./pdfGenerator";
 
 const LegalResearchForm = () => {
   const [formData, setFormData] = useState({
@@ -30,58 +29,22 @@ const LegalResearchForm = () => {
     }
   };
 
-  const downloadPDF = async () => {
-    const element = reportRef.current;
-    if (!element) return;
-
-    try {
-      const downloadButton = element.querySelector('.pdf-download-btn');
-      if (downloadButton) {
-        downloadButton.style.display = 'none';
-      }
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      
-      if (downloadButton) {
-        downloadButton.style.display = 'block';
-      }
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const margin = 10; // 여백
-
-      // 첫 페이지
-      pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
-      heightLeft -= pdf.internal.pageSize.getHeight();
-
-      // 추가 페이지
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position + margin, pdfWidth - (margin * 2), pdfHeight - (margin * 2));
-        heightLeft -= pdf.internal.pageSize.getHeight();
-      }
-      
-      pdf.save(`법률검토보고서_${new Date().toISOString().slice(0,10)}.pdf`);
-    } catch (error) {
-      console.error('PDF 생성 오류:', error);
-      alert('PDF 생성 중 오류가 발생했습니다.');
-    }
-  };
-
   return (
     <div className="flex flex-col gap-8">
-      {/* 상단: 입력 폼 */}
+      <style>
+        {`
+          input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .loading-icon {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
       <div className="w-full max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -110,7 +73,8 @@ const LegalResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, incident_date: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main"
+              max={new Date().toISOString().split("T")[0]}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main "
               required
             />
           </div>
@@ -140,7 +104,7 @@ const LegalResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, fact_details: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32 resize-none"
               placeholder="사건의 경위를 상세히 설명해주세요"
               required
             />
@@ -206,45 +170,97 @@ const LegalResearchForm = () => {
             >
               {isLoading ? "분석 중..." : "법률 검토 요청"}
             </button>
-            {isLoading && (
-              <p className="text-sm text-gray-500 text-center mt-6">
-                약 1~2분 정도의 시간이 소요될 수 있습니다.
-              </p>
-            )}
+            <div className="flex items-center justify-center gap-2 mt-8">
+              {isLoading ? (
+                <>
+                  <p className="text-sm text-gray-500">
+                    약 1~2분 정도의 시간이 소요될 수 있습니다.
+                  </p>
+                  <svg
+                    className="w-5 h-5 text-Main loading-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </>
+              ) : result ? (
+                <>
+                  <svg
+                    className="w-5 h-5 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-sm font-semibold text-gray-700">
+                    작성이 완료되었습니다! 아래의 내용을 확인해주세요.
+                  </p>
+                </>
+              ) : null}
+            </div>
           </div>
         </form>
       </div>
 
-      {/* 구분선 */}
       {result && (
-        <div className="w-full border-t-2 border-gray-200 my-8">
-          <div className="w-16 h-16 bg-white rounded-full border-2 border-gray-200 flex items-center justify-center mx-auto -mt-8">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      )}
-
-      {/* 하단: 보고서 미리보기 */}
-      {result && (
-        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
+        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8 shadow-lg">
           <div ref={reportRef} style={pdfStyles.container}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 style={pdfStyles.title}>법률 검토 보고서</h2>
+            {/* 제목 + 버튼 */}
+            <div className="flex justify-between items-center">
+              <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
+                📄 법률 검토 보고서
+              </h2>
               <button
-                onClick={downloadPDF}
+                onClick={() => generateLegalPDF(formData, result)}
                 className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
               >
                 PDF 다운로드
               </button>
             </div>
-            <div style={pdfStyles.info}>
+
+            {/* 정보란 */}
+            <div
+              style={{
+                fontSize: "14px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+              }}
+            >
               <p>작성일시: {result.timestamp}</p>
               <p>사건유형: {formData.case_type}</p>
+              <p>사건 발생 시점: {formData.incident_date}</p>
+              <p>관련자: {formData.related_party}</p>
             </div>
-            <div style={pdfStyles.content}>
-              {result.final_report}
+
+            <hr className="my-4 border-gray-300" />
+
+            {/* 본문 */}
+            <div
+              style={{
+                fontSize: "15px",
+                lineHeight: "1.8",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {result.final_report
+                .replace(/^#+\s/gm, "")
+                .split("\n")
+                .map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
             </div>
           </div>
         </div>
@@ -253,4 +269,4 @@ const LegalResearchForm = () => {
   );
 };
 
-export default LegalResearchForm; 
+export default LegalResearchForm;

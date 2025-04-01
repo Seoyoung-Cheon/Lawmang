@@ -16,8 +16,7 @@ const Report = () => {
             <div>
               <h1 className="text-2xl font-medium cursor-default">AI 리포트</h1>
               <p className="text-sm text-gray-500 mt-1">
-                사용자의 답변을 바탕으로 AI가 맞춤형 법률서식을 빠르게
-                완성해드립니다.
+                사용자의 답변을 바탕으로 AI가 법률 검토 보고서를 작성해드립니다.
               </p>
             </div>
           </div>

@@ -70,10 +70,10 @@ def get_legal_term_answer(query: str) -> str:
         # GPT fallback
         if not selected:
             gpt_result = qa_chain.invoke({"question": query, "context": ""})
-            return f"※ 아래 설명은 GPT가 자체적으로 생성한 추론 결과입니다.\n\n{gpt_result}"
+            return f"※ 아래 설명은 GPT가 자체적으로 생성한 추론 결과입니다.\n\n{gpt_result.content}"
 
         context = selected.page_content.strip()
-        return qa_chain.invoke({"question": query, "context": context})
+        return qa_chain.invoke({"question": query, "context": context}).content
 
     except Exception as e:
         print(f"[ERROR] get_legal_term_answer 실패: {e}")
