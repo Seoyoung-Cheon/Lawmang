@@ -170,7 +170,7 @@ const LegalResearchForm = () => {
             >
               {isLoading ? "분석 중..." : "법률 검토 요청"}
             </button>
-            <div className="flex items-center justify-center gap-2 mt-6">
+            <div className="flex items-center justify-center gap-2 mt-8">
               {isLoading ? (
                 <>
                   <p className="text-sm text-gray-500">
@@ -206,7 +206,7 @@ const LegalResearchForm = () => {
                     />
                   </svg>
                   <p className="text-sm font-semibold text-gray-700">
-                    분석이 완료되었습니다! 아래의 내용을 확인해주세요.
+                    작성이 완료되었습니다! 아래의 내용을 확인해주세요.
                   </p>
                 </>
               ) : null}
