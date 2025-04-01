@@ -22,11 +22,11 @@ const baseQueryWithRetry = retry(
   fetchBaseQuery({ 
     baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
     credentials: 'include',
-    timeout: 10000, // 10초 타임아웃
+    timeout: 60000, // 60초로 증가
   }),
   { 
     maxRetries: 2,
-    backoff: (attemptNumber) => Math.min(1000 * (2 ** attemptNumber), 10000),
+    backoff: (attemptNumber) => Math.min(1000 * (2 ** attemptNumber), 30000),
   }
 );
 
@@ -49,7 +49,7 @@ export const deepResearchApi = createApi({
       // 요청 취소 설정
       extraOptions: {
         maxRetries: 1,
-        timeout: 30000, // 30초
+        timeout: 120000, // 120초로 증가
       },
       // 캐시 설정
       invalidatesTags: ['Research'],
