@@ -1,47 +1,74 @@
-from typing import List, Optional, Literal
-from app.deepresearch.core.firecrawl_client import firecrawl_search, filter_by_whitelist
-from app.deepresearch.research.search_result_processor import process_serp_result
-from app.deepresearch.research.keyword_generator import generate_serp_queries
-from app.deepresearch.research.research_models import ResearchResult
-from openai import OpenAI
+from typing import Literal
 from app.deepresearch.core.firecrawl_client import FirecrawlClient
+from app.deepresearch.research.research_models import ResearchResult, SearchResult
+from app.deepresearch.research.keyword_generator import generate_serp_queries
+from app.deepresearch.research.search_result_processor import process_serp_result
 
-async def deep_research(
+
+def deep_research(
     query: str,
     breadth: int = 2,
     depth: int = 2,
-    client: OpenAI = None,
-    model: str = "gpt-3.5-turbo",
+    client = None,
+    model: str = "gpt-4o-mini",
     search_type: Literal["legal", "tax"] = "legal"
 ) -> ResearchResult:
     """
-    주어진 쿼리에 대해 심층 리서치를 수행합니다.
+    주어진 쿼리에 대해 다단계 리서치를 수행합니다. (동기 버전)
+    breadth: 생성할 쿼리 수, depth: 각 쿼리에 대해 반복 횟수
     """
     try:
-        # FirecrawlClient 초기화 및 사용
-        async with await FirecrawlClient.create(
-            api_key="your_api_key",
-            search_type=search_type  # legal/tax 구분
-        ) as crawler:
-            # 검색 수행
-            search_results = await crawler.search(query)
-            
-            # 결과 처리
-            processed_results = await crawler.process_results(
-                search_results.get("results", [])
-            )
+        crawler = FirecrawlClient(search_type=search_type)
 
-            # 필요한 경우 각 결과의 상세 내용 가져오기
-            for result in processed_results:
-                if "url" in result:
-                    content = await crawler.get_content(result["url"])
-                    result["content"] = content
+        all_learnings = []
+        all_urls = []
 
-            # ResearchResult 형식으로 변환 및 반환
-            return ResearchResult(
-                learnings=[result.get("content", "") for result in processed_results],
-                visited_urls=[result.get("url", "") for result in processed_results]
+        # Step 1. 관련 검색 쿼리 생성
+        serp_queries = generate_serp_queries(
+            query=query,
+            client=client,
+            model=model,
+            num_queries=breadth
+        )
+
+        for serp in serp_queries:
+            # Step 2. 검색 수행
+            search_results = crawler.search(serp.query)
+
+            # Step 3. 결과 정제
+            processed = crawler.process_results(search_results)
+
+            # Step 4. 컨텐츠 추출
+            search_result_objects = []
+            for item in processed:
+                url = item["url"]
+                content = item.get("markdown", "")  # ✅ markdown은 이미 포함되어 있음
+                search_result_objects.append(SearchResult(
+                    url=url,
+                    title=item.get("title", ""),
+                    description=item.get("snippet", ""),
+                    markdown=content
+                ))
+                all_urls.append(url)
+
+            # Step 5. 학습 추출
+            serp_output = process_serp_result(
+                query=serp.query,
+                search_result=search_result_objects,
+                client=client,
+                model=model
             )
+            all_learnings.extend(serp_output.get("learnings", []))
+
+        print("[DEBUG] 최종 결과 learnings:")
+        print(all_learnings)
+        print("[DEBUG] 최종 결과 visited_urls:")
+        print(all_urls)
+
+        return ResearchResult(
+            learnings=list(set(all_learnings)),
+            visited_urls=list(set(all_urls))
+        )
 
     except Exception as e:
         print(f"심층 리서치 중 오류 발생: {e}")
