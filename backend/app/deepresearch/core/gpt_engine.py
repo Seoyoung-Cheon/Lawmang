@@ -1,8 +1,5 @@
 from typing import Optional
 from pydantic import BaseModel
-from openai import OpenAI
-import os
-import json
 import re
 
 def llm_call(prompt: str, model: str, client, max_tokens: int = 1000, temperature: float = 0.2) -> str:
@@ -17,7 +14,7 @@ def llm_call(prompt: str, model: str, client, max_tokens: int = 1000, temperatur
         max_tokens=max_tokens,
         temperature=temperature
     )
-    print(model, "완료")
+    # print(model, "완료")
     return chat_completion.choices[0].message.content
 
 def clean_json_block(text: str) -> str:
