@@ -72,15 +72,10 @@ module.exports = {
               "0 0 20px rgba(255, 255, 255, 1), 0 0 40px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.6)",
           },
         },
-        "text-glow-dark": {
-          "0%": {
-            textShadow:
-              "0 0 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(0, 0, 0, 0.2)",
-          },
-          "100%": {
-            textShadow:
-              "0 0 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(0, 0, 0, 0.2)",
-          },
+        "scroll-wheel": {
+          "0%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(8px)" },
+          "100%": { transform: "translateY(0)" },
         },
       },
       animation: {
@@ -92,6 +87,7 @@ module.exports = {
         "text-shimmer-dark": "text-shimmer-dark 1.5s ease-in-out infinite",
         "text-glow": "text-glow 1s ease-in-out forwards",
         "text-glow-dark": "text-glow-dark 1s ease-in-out forwards",
+        "scroll-wheel": "scroll-wheel 3s ease-in-out infinite",
       },
     },
   },

@@ -23,7 +23,7 @@ const Chatbot = () => {
   ]);
   const [legalMessages, setLegalMessages] = useState([
     {
-      text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+      text: "법률 용어의 풀이가 궁금하면 단어로 입력해주세요 :)",
       isUser: false,
       timestamp: new Date().toLocaleTimeString(),
     },
@@ -80,7 +80,7 @@ const Chatbot = () => {
     if (legalMessages.length === 0) {
       setLegalMessages([
         {
-          text: "법률 용어의 풀이가 궁금하다면 검색해보세요 :)",
+          text: "법률 용어의 풀이가 궁금하면 단어로 입력해주세요 :)",
           isUser: false,
           timestamp: new Date().toLocaleTimeString(),
         },
@@ -410,7 +410,7 @@ const Chatbot = () => {
                     msg.isUser
                       ? "bg-[#a7a28f] text-white relative before:content-[''] before:absolute before:right-0 before:top-4 before:translate-x-[99%] before:border-y-[5px] before:border-r-0 before:border-l-[8px] before:border-transparent before:border-l-[#a7a28f]"
                       : "bg-gray-200 text-black relative before:content-[''] before:absolute before:left-0 before:top-4 before:-translate-x-[99%] before:border-y-[5px] before:border-l-0 before:border-r-[8px] before:border-transparent before:border-r-gray-200"
-                  } px-4 py-2 rounded-xl max-w-[80%] relative break-words`}>
+                  } px-4 py-2 rounded-xl max-w-[80%] relative break-words whitespace-pre-line`}>
                   {msg.text}
                 </div>
               </div>

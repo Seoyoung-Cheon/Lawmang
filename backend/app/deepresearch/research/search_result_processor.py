@@ -14,20 +14,26 @@ def process_serp_result(
     """
     검색 결과를 바탕으로 학습 내용과 후속 질문을 추출합니다.
     """
-    contents = [item.get("markdown", "").strip()[:10000] for item in search_result if item.get("markdown")]
+    contents = [item.markdown.strip()[:10000] for item in search_result if item.markdown]
     contents_str = "".join(f"<내용>\n{content}\n</내용>" for content in contents)
 
     prompt = f"""
-<쿼리>{query}</쿼리>에 대한 검색 결과입니다.
-아래 내용을 바탕으로, 사용자의 소송/분쟁 또는 세무 신고 상황과 관련된 핵심 정보를 최대 {num_learnings}개 추출하세요.
-포함해야 할 정보 유형:
-- 주요 쟁점
-- 실수하거나 대응하지 않았을 때 생길 수 있는 불이익
-- 참고할 만한 실제 사례
-- 대응 전략 및 주의사항
+    <쿼리>{query}</쿼리>에 대한 검색 결과입니다.
+    아래 내용을 바탕으로, 사용자의 소송/분쟁 또는 세무 신고 상황과 관련된 핵심 정보를 최대 {num_learnings}개 추출하세요.
 
-<검색 결과>{contents_str}</검색 결과>
-"""
+    반환 형식은 반드시 아래 JSON 형식을 따르세요:
+    {{
+        "learnings": ["...", "...", "..."],
+        "followUpQuestions": ["...", "..."]
+    }}
+
+    - 각 항목은 짧고 명확한 문장으로 작성되어야 하며
+    - 마크다운이나 설명 없이 JSON만 반환하세요.
+    - learnings에는 핵심 쟁점, 사례, 전략이 포함되어야 하고
+    - followUpQuestions에는 사용자가 더 알고 싶어할 만한 후속 질문을 포함하세요.
+
+    <검색 결과>{contents_str}</검색 결과>
+    """
 
     system_msg = system_prompt()
 

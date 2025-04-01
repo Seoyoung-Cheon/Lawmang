@@ -1,9 +1,7 @@
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.docstore.document import Document
+from langchain_core.runnables import RunnableSequence
 
 # 벡터 저장 위치
 DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
@@ -11,13 +9,13 @@ DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
 # 벡터 DB 로드
 embedding = OpenAIEmbeddings()
 db = FAISS.load_local(DB_FAISS_PATH, embedding, allow_dangerous_deserialization=True)
-retriever = db.as_retriever(search_kwargs={"k": 5})
+retriever = db.as_retriever(search_kwargs={"k": 10})
 
 # 프롬프트 템플릿
 template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시스턴트입니다.
 
 사용자가 특정 법률 용어나 개념을 입력하면,  
-먼저 **고등학생도 이해할 수 있는 쉬운 말**로 간단하고 명확하게 설명해주세요.  
+먼저 **청소년도 이해할 수 있는 쉬운 말**로 간단하고 명확하게 설명해주세요.  
 **말투는 반드시 격식 있는 문어체(~입니다, ~합니다)를 사용하고,  
 구어체(~해요, ~있어요)는 절대 사용하지 마세요.**
 
@@ -38,25 +36,22 @@ RAG 검색 결과:
 
 QA_PROMPT = PromptTemplate(input_variables=["question", "context"], template=template)
 llm = ChatOpenAI(model_name="gpt-3.5-turbo")
-qa_chain = LLMChain(llm=llm, prompt=QA_PROMPT)
+
+# ✅ LLMChain 대체
+qa_chain = QA_PROMPT | llm
 
 # ✅ 최종 함수
 def get_legal_term_answer(query: str) -> str:
     try:
+        # 문서 검색
         docs = retriever.get_relevant_documents(query)
 
         exact_match = None
         partial_matches = []
-        law_common_description = None
 
         for doc in docs:
             metadata = doc.metadata or {}
             term = metadata.get("term", "").strip()
-            description = metadata.get("description", "").strip()
-            category = metadata.get("category", "").strip()
-
-            if not description:
-                continue
 
             if query.strip() == term:
                 exact_match = doc
@@ -65,24 +60,20 @@ def get_legal_term_answer(query: str) -> str:
             if query.strip() in term:
                 partial_matches.append(doc)
 
-            if category == "법률상식" and not law_common_description:
-                law_common_description = doc
-
+        selected = None
         if exact_match:
             selected = exact_match
         elif partial_matches:
             partial_matches.sort(key=lambda d: len(d.metadata.get("term", "")))
             selected = partial_matches[0]
-        elif law_common_description:
-            selected = law_common_description
-        else:
-            selected = None
 
+        # GPT fallback
         if not selected:
-            return "죄송합니다. 입력하신 용어에 대한 정보를 찾을 수 없습니다."
+            gpt_result = qa_chain.invoke({"question": query, "context": ""})
+            return f"※ 아래 설명은 GPT가 자체적으로 생성한 추론 결과입니다.\n\n{gpt_result}"
 
         context = selected.page_content.strip()
-        return qa_chain.run({"question": query, "context": context})
+        return qa_chain.invoke({"question": query, "context": context})
 
     except Exception as e:
         print(f"[ERROR] get_legal_term_answer 실패: {e}")
