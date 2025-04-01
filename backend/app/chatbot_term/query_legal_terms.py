@@ -1,14 +1,7 @@
-import warnings
-# LangChain 관련 경고만 필터링
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="langchain")
-warnings.filterwarnings("ignore", message=".*LangChain.*")
-warnings.filterwarnings("ignore", category=UserWarning)
-
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_core.runnables import RunnableSequence
 
 # 벡터 저장 위치
 DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
@@ -16,7 +9,7 @@ DB_FAISS_PATH = "./app/chatbot_term/vectorstore"
 # 벡터 DB 로드
 embedding = OpenAIEmbeddings()
 db = FAISS.load_local(DB_FAISS_PATH, embedding, allow_dangerous_deserialization=True)
-retriever = db.as_retriever(search_kwargs={"k": 10})  # 검색 범위 적당히 유지
+retriever = db.as_retriever(search_kwargs={"k": 10})
 
 # 프롬프트 템플릿
 template = """당신은 법률 분야에 전문적인 지식을 가진 AI 어시스턴트입니다.
@@ -43,7 +36,9 @@ RAG 검색 결과:
 
 QA_PROMPT = PromptTemplate(input_variables=["question", "context"], template=template)
 llm = ChatOpenAI(model_name="gpt-3.5-turbo")
-qa_chain = LLMChain(llm=llm, prompt=QA_PROMPT)
+
+# ✅ LLMChain 대체
+qa_chain = QA_PROMPT | llm
 
 # ✅ 최종 함수
 def get_legal_term_answer(query: str) -> str:
@@ -65,7 +60,6 @@ def get_legal_term_answer(query: str) -> str:
             if query.strip() in term:
                 partial_matches.append(doc)
 
-        # 우선순위
         selected = None
         if exact_match:
             selected = exact_match
@@ -75,12 +69,11 @@ def get_legal_term_answer(query: str) -> str:
 
         # GPT fallback
         if not selected:
-            gpt_result = qa_chain.run({"question": query, "context": ""})
+            gpt_result = qa_chain.invoke({"question": query, "context": ""})
             return f"※ 아래 설명은 GPT가 자체적으로 생성한 추론 결과입니다.\n\n{gpt_result}"
 
-        # 선택된 문서의 내용으로 LLM 응답 생성
         context = selected.page_content.strip()
-        return qa_chain.run({"question": query, "context": context})
+        return qa_chain.invoke({"question": query, "context": context})
 
     except Exception as e:
         print(f"[ERROR] get_legal_term_answer 실패: {e}")
