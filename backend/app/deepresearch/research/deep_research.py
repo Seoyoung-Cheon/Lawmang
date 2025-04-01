@@ -60,10 +60,10 @@ def deep_research(
             )
             all_learnings.extend(serp_output.get("learnings", []))
 
-        print("[DEBUG] 최종 결과 learnings:")
-        print(all_learnings)
-        print("[DEBUG] 최종 결과 visited_urls:")
-        print(all_urls)
+        # print("[DEBUG] 최종 결과 learnings:")
+        # print(all_learnings)
+        # print("[DEBUG] 최종 결과 visited_urls:")
+        # print(all_urls)
 
         return ResearchResult(
             learnings=list(set(all_learnings)),
