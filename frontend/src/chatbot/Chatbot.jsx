@@ -142,56 +142,45 @@ const Chatbot = () => {
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
-
           const lines = buffer.split("\n");
-          buffer = lines.pop(); // 남은 데이터 저장
+          buffer = lines.pop();
 
           for (const line of lines) {
             if (!line.trim()) continue;
 
             const parsed = JSON.parse(line);
 
-            // ✅ 로그 메시지 처리
-            if (parsed.type === "log") {
-              setGeneralMessages((prev) => [
-                ...prev,
-                {
-                  text: `💬 ${parsed.message}`,
-                  isUser: false,
-                  timestamp: new Date().toLocaleTimeString(),
-                },
-              ]);
-            }
-
             if (parsed.type === "llm1") {
-              const { initial_response, followup_question, mcq_question } =
+              const { mcq_question, strategy_summary, precedent_summary } =
                 parsed.data;
-
-              setGeneralMessages((prev) => [
-                ...prev,
-                {
-                  text: initial_response,
-                  isUser: false,
-                  timestamp: new Date().toLocaleTimeString(),
-                },
-              ]);
-
-              if (followup_question) {
-                setGeneralMessages((prev) => [
-                  ...prev,
-                  {
-                    text: `🟨 질문 제안: ${followup_question}`,
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString(),
-                  },
-                ]);
-              }
 
               if (mcq_question) {
                 setGeneralMessages((prev) => [
                   ...prev,
                   {
                     text: `🟩 중간 요약: ${mcq_question}`,
+                    isUser: false,
+                    timestamp: new Date().toLocaleTimeString(),
+                  },
+                ]);
+              }
+
+              if (strategy_summary) {
+                setGeneralMessages((prev) => [
+                  ...prev,
+                  {
+                    text: `🧠 전략 요약: ${strategy_summary}`,
+                    isUser: false,
+                    timestamp: new Date().toLocaleTimeString(),
+                  },
+                ]);
+              }
+
+              if (precedent_summary) {
+                setGeneralMessages((prev) => [
+                  ...prev,
+                  {
+                    text: `📚 판례 요약: ${precedent_summary}`,
                     isUser: false,
                     timestamp: new Date().toLocaleTimeString(),
                   },
@@ -267,6 +256,7 @@ const Chatbot = () => {
       }
     } else if (selectedCategory === "legal") {
       setIsLegalTyping(true);
+      // 여기는 기존 코드 유지 (별도 처리 영역)
 
       try {
         const response = await axios.post(

@@ -155,10 +155,9 @@ async def chatbot_loop():
 
         mcq = initial.get("mcq_question")
         if mcq:
-            print("\n🟩 [중간 요약 - 사례 기반 질문]:")
             print(mcq)
         else:
-            print("\n🟩 [중간 요약 - 사례 기반 질문]: 없음 (None or 빈 문자열)")
+            print("\n없음")
 
         advanced = result.get("advanced")
         if advanced and advanced.get("final_answer"):

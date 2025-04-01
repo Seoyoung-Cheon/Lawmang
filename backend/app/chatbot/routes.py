@@ -1,17 +1,24 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
-import asyncio, json
-from app.chatbot.main import load_faiss, llm2_lock
+from pydantic import BaseModel
+import asyncio
+import json
+
+from app.chatbot.main import (
+    load_faiss,
+    llm2_lock,
+    run_initial_controller,
+    run_full_consultation,
+    run_final_answer_generation,
+)
 from app.chatbot.tool_agents.utils.utils import faiss_kiwi
-from app.chatbot.initial_agents.controller import run_initial_controller
-from app.chatbot.tool_agents.controller import run_full_consultation,run_final_answer_generation
 
 router = APIRouter()
 
 
 class QueryRequest(BaseModel):
     query: str
+
 
 @router.post("/search/stream")
 async def chat_stream(request: QueryRequest):
@@ -26,6 +33,7 @@ async def chat_stream(request: QueryRequest):
     stop_event = asyncio.Event()
     template_data = {}
 
+    # ✅ LLM1과 LLM2 병렬 실행
     initial_task = asyncio.create_task(
         run_initial_controller(
             user_query=user_query,
@@ -36,24 +44,22 @@ async def chat_stream(request: QueryRequest):
         )
     )
 
-    build_task = None
-    if not llm2_lock.locked():
-        build_task = asyncio.create_task(
-            run_full_consultation(
-                user_query,
-                faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db),
-                model="gpt-4",
-                build_only=True,
-                stop_event=stop_event,
-            )
+    build_task = asyncio.create_task(
+        run_full_consultation(
+            user_query,
+            faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db),  # 위치 인자
+            "gpt-4",
+            True,
+            stop_event,
         )
+    )
 
     async def event_generator():
         try:
+            # ✅ 먼저 LLM1 응답을 기다려서 즉시 전송
             initial_result = await initial_task
-            raw_initial_response = initial_result.get("initial_response", "")
-            has_yes_signal = "###yes" in raw_initial_response.lower()
 
+            # 외부 출력 제한
             llm1_filtered = {
                 "mcq_question": initial_result.get("mcq_question"),
                 "strategy_summary": initial_result.get("strategy_summary"),
@@ -62,53 +68,58 @@ async def chat_stream(request: QueryRequest):
             }
             yield json.dumps({"type": "llm1", "data": llm1_filtered}) + "\n"
 
-            if has_yes_signal:
-                print("ℹ️ LLM1 신호 감지됨.")
-                if not build_task:
-                    build_task = asyncio.create_task(
-                        run_full_consultation(
-                            user_query,
-                            faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db),
-                            model="gpt-4",
-                            build_only=False,
-                            stop_event=stop_event,
+            # ✅ 조건 판단 후 LLM2 빌드 완료 시 결과 전송
+            if initial_result.get("yes_count", 0) >= 3 and build_task:
+                prepared_data = await build_task
+                if not all(
+                    [
+                        prepared_data.get(k)
+                        for k in ["template", "strategy", "precedent"]
+                    ]
+                ):
+                    yield (
+                        json.dumps(
+                            {"type": "llm2", "error": "⚠️ 전략 또는 판례 생성 실패"}
                         )
+                        + "\n"
                     )
-                if build_task:
-                    prepared_data = await build_task
-                    template = prepared_data.get("template")
-                    strategy = prepared_data.get("strategy")
-                    precedent = prepared_data.get("precedent")
-                    if template and strategy and precedent:
-                        async with llm2_lock:
-                            final_answer = run_final_answer_generation(
-                                template, strategy, precedent, user_query, "gpt-4"
-                            )
-                        advanced_result = {
-                            "template": template,
-                            "strategy": strategy,
-                            "precedent": precedent,
-                            "final_answer": final_answer,
-                            "status": "ok",
+                    return
+
+                async with llm2_lock:
+                    final_answer = run_final_answer_generation(
+                        prepared_data["template"],
+                        prepared_data["strategy"],
+                        prepared_data["precedent"],
+                        user_query,
+                        model="gpt-4",
+                    )
+
+                yield (
+                    json.dumps(
+                        {
+                            "type": "llm2",
+                            "data": {
+                                "final_answer": final_answer,
+                                "final_summary": prepared_data["template"]["summary"],
+                                "strategy_summary": prepared_data["strategy"][
+                                    "final_strategy_summary"
+                                ],
+                                "precedent_summary": prepared_data["precedent"][
+                                    "summary"
+                                ],
+                                "casenote_url": prepared_data["precedent"][
+                                    "casenote_url"
+                                ],
+                            },
                         }
-                        yield (
-                            json.dumps({"type": "llm2", "data": advanced_result}) + "\n"
-                        )
-                    else:
-                        yield (
-                            json.dumps(
-                                {
-                                    "type": "llm2",
-                                    "error": "⚠️ 템플릿/전략/판례 생성 실패",
-                                }
-                            )
-                            + "\n"
-                        )
+                    )
+                    + "\n"
+                )
 
         except Exception as e:
             yield (
                 json.dumps(
-                    {"type": "error", "message": f"스트리밍 도중 오류 발생: {str(e)}"}
+                    {"type": "error", "message": f"❌ 스트리밍 중 오류: {str(e)}"}
                 )
                 + "\n"
             )
