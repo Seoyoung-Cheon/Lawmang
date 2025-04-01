@@ -25,8 +25,8 @@ def clean_json_block(text: str) -> str:
     return re.sub(r"^```(?:json)?\n|\n```$", "", text.strip())
 
 def JSON_llm(user_prompt: str, schema: BaseModel, client, system_prompt: Optional[str] = None, model: Optional[str] = None):
-    print(f"[DEBUG] JSON_llm 내부 model: {model}")
-    print(f"[DEBUG] client 타입: {type(client)}")
+    # print(f"[DEBUG] JSON_llm 내부 model: {model}")
+    # print(f"[DEBUG] client 타입: {type(client)}")
 
     if model is None:
         model = "gpt-4o-mini"
@@ -44,11 +44,11 @@ def JSON_llm(user_prompt: str, schema: BaseModel, client, system_prompt: Optiona
         )
 
         raw_text = response.choices[0].message.content
-        print(f"[DEBUG] raw_text: {raw_text}")
+        # print(f"[DEBUG] raw_text: {raw_text}")
 
         # 마크다운 블럭 제거
         cleaned = re.sub(r"```(?:json)?\n|```", "", raw_text.strip())
-        print(f"[DEBUG] cleaned: {cleaned}")
+        # print(f"[DEBUG] cleaned: {cleaned}")
 
         return schema.model_validate_json(cleaned)
 
