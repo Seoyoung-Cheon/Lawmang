@@ -8,7 +8,7 @@ from app.deepresearch.research.search_result_processor import process_serp_resul
 def deep_research(
     query: str,
     breadth: int = 2,
-    depth: int = 2,
+    depth: int = 1,
     client = None,
     model: str = "gpt-4o-mini",
     search_type: Literal["legal", "tax"] = "legal"
