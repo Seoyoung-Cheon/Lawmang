@@ -95,7 +95,6 @@ uvicorn app.chatbot.app:app --reload
 
 python -m app.chatbot.main
 
-cd Lawmang/backend  # 이걸 프로젝트 루트로 가정할 때
-streamlit run app/chatbot/streamlit_app.py
+
 
 

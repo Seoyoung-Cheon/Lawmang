@@ -152,8 +152,6 @@ async def chatbot_loop():
             continue
 
         initial = result["initial"]
-        print("\n🟦 [초기 응답 - LLM1]:")
-        print(initial.get("initial_response", "응답 없음"))
 
         mcq = initial.get("mcq_question")
         if mcq:

@@ -1,14 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
-from app.chatbot.initial_agents.controller import run_initial_controller
-from app.chatbot.tool_agents.controller import run_full_consultation
-from app.chatbot.tool_agents.executor.normalanswer import run_final_answer_generation
-from app.chatbot.tool_agents.utils.utils import faiss_kiwi
+import asyncio, json
 from app.chatbot.main import load_faiss, llm2_lock
-
-import asyncio
-import json
+from app.chatbot.tool_agents.utils.utils import faiss_kiwi
+from app.chatbot.initial_agents.controller import run_initial_controller
+from app.chatbot.tool_agents.controller import run_full_consultation,run_final_answer_generation
 
 router = APIRouter()
 
@@ -16,102 +13,97 @@ router = APIRouter()
 class QueryRequest(BaseModel):
     query: str
 
-
 @router.post("/search/stream")
-async def streaming_chat(request: QueryRequest):
+async def chat_stream(request: QueryRequest):
+    user_query = request.query.strip()
+    if not user_query:
+        raise HTTPException(status_code=400, detail="질문이 비어 있습니다.")
+
     faiss_db = load_faiss()
     if not faiss_db:
         raise HTTPException(status_code=500, detail="FAISS 로드 실패")
 
-    async def event_stream():
+    stop_event = asyncio.Event()
+    template_data = {}
+
+    initial_task = asyncio.create_task(
+        run_initial_controller(
+            user_query=user_query,
+            faiss_db=faiss_db,
+            current_yes_count=0,
+            template_data=template_data,
+            stop_event=stop_event,
+        )
+    )
+
+    build_task = None
+    if not llm2_lock.locked():
+        build_task = asyncio.create_task(
+            run_full_consultation(
+                user_query,
+                faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db),
+                model="gpt-4",
+                build_only=True,
+                stop_event=stop_event,
+            )
+        )
+
+    async def event_generator():
         try:
-            keywords = faiss_kiwi.extract_top_keywords_faiss(request.query, faiss_db)
+            initial_result = await initial_task
+            raw_initial_response = initial_result.get("initial_response", "")
+            has_yes_signal = "###yes" in raw_initial_response.lower()
 
-            # 🔄 LLM2 백그라운드 빌드
-            llm2_task = asyncio.create_task(
-                run_full_consultation(
-                    user_query=request.query,
-                    search_keywords=keywords,
-                    build_only=True,
-                    stop_event=None,
-                )
-            )
+            llm1_filtered = {
+                "mcq_question": initial_result.get("mcq_question"),
+                "strategy_summary": initial_result.get("strategy_summary"),
+                "precedent_summary": initial_result.get("precedent_summary"),
+                "yes_count": initial_result.get("yes_count"),
+            }
+            yield json.dumps({"type": "llm1", "data": llm1_filtered}) + "\n"
 
-            # ✅ LLM1 실행
-            llm1_result = await run_initial_controller(
-                user_query=request.query,
-                faiss_db=faiss_db,
-                current_yes_count=0,
-                template_data={},
-                stop_event=None,
-            )
-
-            # 1️⃣ 초기 응답 빠르게 출력
-            initial_response = llm1_result.get("initial_response", "").strip()
-            yield (
-                json.dumps({"type": "llm1", "data": {"text": initial_response}}) + "\n"
-            )
-
-            # 2️⃣ 후속 질문 (조금 나중에 append=True)
-            mcq_question = llm1_result.get("mcq_question", "").strip()
-            if mcq_question:
-                await asyncio.sleep(2)
-                yield (
-                    json.dumps(
-                        {"type": "llm1", "data": {"text": mcq_question, "append": True}}
-                    )
-                    + "\n"
-                )
-                # ✅ LLM2 조건 충족 시
-                if llm1_result.get("yes_count", 0) >= 3:
-
-                    # 🔹 로그 메시지: 전략 설계 시작
-                    yield json.dumps({
-                        "type": "log",
-                        "message": "📐 전략 설계 중입니다. 잠시만 기다려 주세요..."
-                    }) + "\n"
-
-                    prepared = await llm2_task
-                    template = prepared.get("template")
-                    strategy = prepared.get("strategy")
-                    precedent = prepared.get("precedent")
-
-                    if not template or not strategy:
-                        yield json.dumps({
-                            "type": "llm2",
-                            "error": "⚠️ 템플릿 또는 전략 생성 실패"
-                        }) + "\n"
-                        return
-
-                    if not precedent:
-                        yield json.dumps({
-                            "type": "llm2",
-                            "error": "⚠️ 판례 검색 실패"
-                        }) + "\n"
-                        return
-
-                    # 🔹 로그 메시지: GPT 응답 시작
-                    yield json.dumps({
-                        "type": "log",
-                        "message": "🤖 고급 응답을 생성하고 있습니다..."
-                    }) + "\n"
-
-                    async with llm2_lock:
-                        final_answer = run_final_answer_generation(
-                            template, strategy, precedent, request.query, model="gpt-4"
+            if has_yes_signal:
+                print("ℹ️ LLM1 신호 감지됨.")
+                if not build_task:
+                    build_task = asyncio.create_task(
+                        run_full_consultation(
+                            user_query,
+                            faiss_kiwi.extract_top_keywords_faiss(user_query, faiss_db),
+                            model="gpt-4",
+                            build_only=False,
+                            stop_event=stop_event,
                         )
-
-                    yield json.dumps({
-                        "type": "llm2",
-                        "data": {
+                    )
+                if build_task:
+                    prepared_data = await build_task
+                    template = prepared_data.get("template")
+                    strategy = prepared_data.get("strategy")
+                    precedent = prepared_data.get("precedent")
+                    if template and strategy and precedent:
+                        async with llm2_lock:
+                            final_answer = run_final_answer_generation(
+                                template, strategy, precedent, user_query, "gpt-4"
+                            )
+                        advanced_result = {
+                            "template": template,
+                            "strategy": strategy,
+                            "precedent": precedent,
                             "final_answer": final_answer,
-                            "final_summary": template.get("summary", ""),
-                            "strategy_summary": strategy.get("final_strategy_summary", ""),
-                            "precedent_summary": precedent.get("summary", ""),
-                            "casenote_url": precedent.get("casenote_url", ""),
-                        },
-                    }) + "\n"
-                
+                            "status": "ok",
+                        }
+                        yield (
+                            json.dumps({"type": "llm2", "data": advanced_result}) + "\n"
+                        )
+                    else:
+                        yield (
+                            json.dumps(
+                                {
+                                    "type": "llm2",
+                                    "error": "⚠️ 템플릿/전략/판례 생성 실패",
+                                }
+                            )
+                            + "\n"
+                        )
 
         except Exception as e:
             yield (
@@ -121,4 +113,4 @@ async def streaming_chat(request: QueryRequest):
                 + "\n"
             )
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
