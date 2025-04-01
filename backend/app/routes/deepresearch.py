@@ -54,7 +54,7 @@ async def structured_research_legal(
         research_results = deep_research(
             query=prompt,
             breadth=2,
-            depth=2,
+            depth=1,
             client=client,
             model="gpt-4o-mini"
         )
@@ -101,7 +101,7 @@ async def structured_research_tax(
         research_results = deep_research(
             query=prompt,
             breadth=2,
-            depth=2,
+            depth=1,
             client=client,
             model="gpt-4o-mini"
         )
