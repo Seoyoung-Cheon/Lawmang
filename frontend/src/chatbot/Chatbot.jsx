@@ -88,25 +88,6 @@ const Chatbot = () => {
     }
   }, [selectedCategory, generalMessages.length, legalMessages.length]);
 
-  const handleCategoryClick = (category) => {
-    if (category === "legal" && !isAuthenticated) {
-      setShowLoginPopup(true);
-      return;
-    }
-    setSelectedCategory(category);
-  };
-
-  const handleLoginClick = () => {
-    setShowLoginPopup(false);
-    navigate("/login");
-  };
-
-  // messages 상태 제거하고 카테고리에 따라 메시지 선택
-  const currentMessages =
-    selectedCategory === "general" ? generalMessages : legalMessages;
-  const setCurrentMessages =
-    selectedCategory === "general" ? setGeneralMessages : setLegalMessages;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim()) return;
@@ -120,130 +101,70 @@ const Chatbot = () => {
     setCurrentMessages((prev) => [...prev, userMessage]);
     setUserInput("");
 
+    // ✅ 카테고리 분기
     if (selectedCategory === "general") {
       setIsGeneralTyping(true);
 
       try {
-        const response = await fetch(
-          "http://localhost:8000/api/chatbot/search/stream",
-          {
+        const res = await fetch("http://localhost:8000/api/chatbot/initial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: userInput }),
+        });
+        const initial = await res.json();
+
+        if (initial.mcq_question) {
+          setGeneralMessages((prev) => [
+            ...prev,
+            {
+              text: `🟩 답변: ${initial.mcq_question}`,
+              isUser: false,
+              timestamp: new Date().toLocaleTimeString(),
+            },
+          ]);
+        }
+
+        if (initial.yes_count >= 1 && initial.yes_count < 3) {
+          await fetch("http://localhost:8000/api/chatbot/prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userInput }),
-          }
-        );
+          });
+        }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop();
-
-          for (const line of lines) {
-            if (!line.trim()) continue;
-
-            const parsed = JSON.parse(line);
-
-            if (parsed.type === "llm1") {
-              const { mcq_question, strategy_summary, precedent_summary } =
-                parsed.data;
-
-              if (mcq_question) {
-                setGeneralMessages((prev) => [
-                  ...prev,
-                  {
-                    text: `🟩 중간 요약: ${mcq_question}`,
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString(),
-                  },
-                ]);
-              }
-
-              if (strategy_summary) {
-                setGeneralMessages((prev) => [
-                  ...prev,
-                  {
-                    text: `🧠 전략 요약: ${strategy_summary}`,
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString(),
-                  },
-                ]);
-              }
-
-              if (precedent_summary) {
-                setGeneralMessages((prev) => [
-                  ...prev,
-                  {
-                    text: `📚 판례 요약: ${precedent_summary}`,
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString(),
-                  },
-                ]);
-              }
+        if (initial.yes_count >= 3) {
+          const advRes = await fetch(
+            "http://localhost:8000/api/chatbot/advanced",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ query: userInput }),
             }
+          );
+          const adv = await advRes.json();
 
-            if (parsed.type === "llm2") {
-              if (parsed.error) {
-                setGeneralMessages((prev) => [
-                  ...prev,
-                  {
-                    text: `❌ 고급 응답 오류: ${parsed.error}`,
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString(),
-                  },
-                ]);
-                continue;
-              }
-
-              const {
-                final_answer,
-                final_summary,
-                strategy_summary,
-                precedent_summary,
-                casenote_url,
-              } = parsed.data;
-
-              const fullAnswer = `
+          const fullAnswer = `
 🚀 [고급 응답]
-📄 요약: ${final_summary}
-🧠 전략: ${strategy_summary}
-📚 판례: ${precedent_summary}
-🔗 링크: ${casenote_url}
+📄 요약: ${adv.template?.summary}
+🧠 전략: ${adv.strategy?.final_strategy_summary}
+📚 판례: ${adv.precedent?.summary}
+🔗 링크: ${adv.precedent?.casenote_url}
 
-🤖 ${final_answer}`.trim();
+🤖 ${adv.final_answer}`.trim();
 
-              setGeneralMessages((prev) => [
-                ...prev,
-                {
-                  text: fullAnswer,
-                  isUser: false,
-                  timestamp: new Date().toLocaleTimeString(),
-                },
-              ]);
-            }
-
-            if (parsed.type === "error") {
-              setGeneralMessages((prev) => [
-                ...prev,
-                {
-                  text: `❌ 서버 오류: ${parsed.message}`,
-                  isUser: false,
-                  timestamp: new Date().toLocaleTimeString(),
-                },
-              ]);
-            }
-          }
+          setGeneralMessages((prev) => [
+            ...prev,
+            {
+              text: fullAnswer,
+              isUser: false,
+              timestamp: new Date().toLocaleTimeString(),
+            },
+          ]);
         }
 
         setIsGeneralTyping(false);
       } catch (error) {
-        console.error("❌ 스트리밍 오류:", error);
+        console.error("❌ LLM 호출 오류:", error);
         setIsGeneralTyping(false);
         setGeneralMessages((prev) => [
           ...prev,
@@ -254,8 +175,12 @@ const Chatbot = () => {
           },
         ]);
       }
-    } else if (selectedCategory === "legal") {
+    }
+
+    // ✅ LEGAL 분기
+    else if (selectedCategory === "legal") {
       setIsLegalTyping(true);
+      // 기존 법률 영역 처리
       // 여기는 기존 코드 유지 (별도 처리 영역)
 
       try {
