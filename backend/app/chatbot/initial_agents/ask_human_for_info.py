@@ -113,14 +113,14 @@ class AskHumanAgent:
         cached_data = retrieve_template_from_memory()
         # 빌드가 완료된 경우에만 (built 플래그가 True) 캐시 사용
         if cached_data and cached_data.get("built", False):
-            print("✅ [캐시된 중간 데이터 사용]")
+            # print("✅ [캐시된 중간 데이터 사용]")
             template_data = cached_data
 
         # llm1의 초기 응답에서 "###yes" 시그널을 검출하여 yes_count 증가
         yes_count_detected = 1 if "###yes" in llm1_answer.lower() else 0
         total_yes_count = current_yes_count + yes_count_detected
 
-        print("\n🤖 AI: 후속 질문을 준비 중입니다...")
+        # print("\n🤖 AI: 후속 질문을 준비 중입니다...")
         mcq_q = await self.generate_mcq_question(
             user_query, llm1_answer, total_yes_count, template_data
         )

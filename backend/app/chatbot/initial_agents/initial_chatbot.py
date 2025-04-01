@@ -74,7 +74,7 @@ class LegalChatbot:
         current_yes_count: int = 0,
         stop_event: Event = None,
     ):
-        print("\n🤖 [Legal AI]: ", end="", flush=True)
+        # print("\n🤖 [Legal AI]: ", end="", flush=True)
 
         query_keywords = faiss_kiwi.extract_keywords(user_query, top_k=5)
         faiss_keywords = faiss_kiwi.extract_top_keywords_faiss(
@@ -112,7 +112,7 @@ class LegalChatbot:
                         stop_event.set()
                     break
 
-        print("\n")
+        # print("\n")
 
         self.memory.save_context(
             {"user_query": user_query}, {"response": full_response}

@@ -23,13 +23,12 @@ async def run_full_consultation(
     build_only: bool = False,
     stop_event: Optional[asyncio.Event] = None,  # ✅ 추가
 ) -> dict:
-    print("✅ [user_query 확인]:", user_query)
-    print("✅ [search_keywords 확인]:", search_keywords)
+
 
     # 캐시 조회: ConversationBufferMemory에서 저장된 TEMPLATE_DATA 메시지 사용
     cached_data = retrieve_template_from_memory()
     if cached_data:
-        print("✅ [캐시된 중간 데이터 사용]")
+
         template = cached_data.get("template")
         strategy = cached_data.get("strategy")
         precedent = cached_data.get("precedent")
@@ -63,15 +62,15 @@ async def run_full_consultation(
     # 1️⃣ Qualifier 실행
     consultation_results, _, _ = await async_search_consultation(search_keywords)
     if stop_event and stop_event.is_set():
-        print("🛑 [STOP EVENT 감지됨 → 초기 중단]")
+
         return {"template": None, "strategy": None, "precedent": None}
 
     best_case = await run_consultation_qualifier(user_query, consultation_results)
     if not consultation_results:
-        print("❌ [run_full_consultation] 검색된 상담 결과 없음")
+
         return {"template": None, "strategy": None, "precedent": None}
     if not all(k in best_case for k in ["title", "question", "answer"]):
-        print("⚠️ [run_full_consultation] 일부 필드 누락 → fallback으로 진행")
+
         title = best_case.get("title", "법률상담")
         question = best_case.get("question", user_query)
         answer = best_case.get(
@@ -83,7 +82,7 @@ async def run_full_consultation(
         answer = best_case["answer"]
 
     if stop_event and stop_event.is_set():
-        print("🛑 [STOP EVENT 감지됨 → 템플릿 생성 전 중단]")
+
         return {"template": None, "strategy": None, "precedent": None}
 
     # 2️⃣ Planner - 템플릿 생성
@@ -95,7 +94,7 @@ async def run_full_consultation(
     )
 
     if stop_event and stop_event.is_set():
-        print("🛑 [STOP EVENT 감지됨 → 전략 생성 후 중단]")
+
         return {"template": None, "strategy": None, "precedent": None}
 
     # 4️⃣ 판례 검색 등 빌드 완료 후

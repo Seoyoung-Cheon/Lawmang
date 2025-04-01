@@ -31,13 +31,13 @@ def load_faiss():
             allow_dangerous_deserialization=True,
         )
     except Exception as e:
-        print(f"❌ FAISS 로드 실패: {e}")
+        # print(f"❌ FAISS 로드 실패: {e}")
         return None
 
 
 async def run_dual_pipeline(user_query: str):
     global yes_count
-    print(f"\n🔍 사용자 질문 수신: {user_query}")
+    # print(f"\n🔍 사용자 질문 수신: {user_query}")
 
     faiss_db = load_faiss()
     template_data = {}
@@ -74,7 +74,7 @@ async def run_dual_pipeline(user_query: str):
     initial_result = await initial_task
     status = initial_result.get("status", "ok")
     if status in ["no_triggered", "nonlegal_skipped"] or stop_event.is_set():
-        print(f"🛑 [빌드 중단] status={status} 또는 no감지 → 판례/전략 중단")
+        # print(f"🛑 [빌드 중단] status={status} 또는 no감지 → 판례/전략 중단")
         if build_task:
             build_task.cancel()
             try:
@@ -88,7 +88,7 @@ async def run_dual_pipeline(user_query: str):
 
     # 3. 초기 응답에 "###yes" 신호가 있으면(LLM1 신호) 이미 시작된 LLM2 빌드 결과를 기다림
     if "###yes" in initial_result.get("initial_response", "").lower():
-        print("ℹ️ LLM1 신호 감지됨. LLM2 빌드 결과를 기다립니다.")
+        # print("ℹ️ LLM1 신호 감지됨. LLM2 빌드 결과를 기다립니다.")
         # 만약 build_task이 없다면, 새로 full build로 실행 (build_only=False)
         if not build_task:
             build_task = create_task(
@@ -136,19 +136,19 @@ async def run_dual_pipeline(user_query: str):
 
 
 async def chatbot_loop():
-    print("✅ [시작] 법률 AI 챗봇")
+    # print("✅ [시작] 법률 AI 챗봇")
     while True:
         user_query = input("\n❓ 질문을 입력하세요 (종료: exit): ")
         if user_query.lower() == "exit":
             break
 
         if llm2_lock.locked():
-            print("⚠️ [고급 응답 생성 중, 잠시만 기다리세요.]")
+            # print("⚠️ [고급 응답 생성 중, 잠시만 기다리세요.]")
             continue
 
         result = await run_dual_pipeline(user_query)
         if "error" in result:
-            print("❌ 실행 실패:", result["error"])
+            # print("❌ 실행 실패:", result["error"])
             continue
 
         initial = result["initial"]

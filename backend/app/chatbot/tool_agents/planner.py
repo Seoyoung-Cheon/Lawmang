@@ -70,10 +70,8 @@ async def generate_response_template(
     try:
         response = llm.invoke(messages)
         result_text = response.content
-        print("✅ [응답 템플릿 결과]:", result_text)
         return json.loads(result_text)
     except Exception as e:
-        print("❌ JSON 파싱 오류:", e)
         return {"error": "GPT 응답 파싱 실패"}
 
 
@@ -142,10 +140,8 @@ async def generate_response_strategy(
     try:
         response = llm.invoke(messages)
         strategy_raw = response.content
-        print("✅ [전략 설계 결과]:", strategy_raw)
         strategy = json.loads(strategy_raw)
     except Exception as e:
-        print("❌ 전략 파싱 실패:", e)
         default_strategy = get_default_strategy_template()
         default_strategy["error"] = "GPT 전략 파싱 실패"
         return default_strategy
@@ -219,7 +215,6 @@ GPT 전략이 부실하거나 중요한 정보를 누락했는지 평가하세�
         response = llm.invoke(messages)
         return json.loads(response.content)
     except Exception as e:
-        print("❌ 전략 평가 파싱 실패:", e)
         return {
             "needs_revision": False,
             "reason": "GPT 응답 파싱 실패",
@@ -272,7 +267,6 @@ GPT가 만든 기존 전략이 너무 모호하거나 핵심 정보를 누락한
         response = llm.invoke(messages)
         return json.loads(response.content)
     except Exception as e:
-        print("❌ 전략 보완 파싱 실패:", e)
         return get_default_strategy_template()
 
 
@@ -293,7 +287,6 @@ async def run_response_strategy_with_limit(
     )
 
     if strategy.get("evaluation", {}).get("needs_revision") is True:
-        print("⚠️ 전략 보완 요청 감지 → 1회에 한해 보완합니다.")
         revised = await revise_strategy_with_feedback(
             original_strategy=strategy,
             tavily_snippets=strategy["evaluation"].get("tavily_snippets", []),

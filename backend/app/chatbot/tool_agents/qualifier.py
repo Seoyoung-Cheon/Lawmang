@@ -59,7 +59,6 @@ async def check_relevance_to_consultations(
 
     response = await llm.ainvoke(messages)
     result_text = response.content.strip().lower()
-    print("✅ [관련성 판단 결과]:", result_text)
     return result_text == "relevant"
 
 
@@ -125,7 +124,6 @@ async def choose_best_consultation(
 
     response = await llm.ainvoke(messages)
     result_text = response.content
-    print("✅ [Best 상담 선택 결과]:", result_text)
 
     if result_text.strip() in ["[]", "[0]"]:
         return {"error": "🙁 관련된 상담이 없습니다.", "status": "irrelevant"}

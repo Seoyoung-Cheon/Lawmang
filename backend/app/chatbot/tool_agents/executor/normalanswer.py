@@ -92,7 +92,6 @@ def run_final_answer_generation(
 ) -> str:
     final_prompt = build_final_answer_prompt(template, strategy, precedent, user_query)
 
-    print("\n🤖 AI 답변:")
     final_answer = ""
 
     # ✅ LangChain ChatOpenAI (Streaming)
@@ -116,8 +115,6 @@ def run_final_answer_generation(
             sys.stdout.write(chunk.content)
             sys.stdout.flush()
             final_answer += chunk.content
-
-    print("\n✅ [최종 LLM 응답 완료]")
 
     # ✅ 메모리에 저장
     memory.save_context(
