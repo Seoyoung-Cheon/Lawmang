@@ -136,7 +136,7 @@ const Chatbot = () => {
           setGeneralMessages((prev) => [
             ...prev,
             {
-              text: `답변: ${initial.candidates[0].content.parts[0].text}`,
+              text: `${initial.candidates[0].content.parts[0].text}`,
               isUser: false,
               timestamp: new Date().toLocaleTimeString(),
             },
