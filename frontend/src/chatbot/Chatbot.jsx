@@ -128,7 +128,7 @@ const Chatbot = () => {
           setGeneralMessages((prev) => [
             ...prev,
             {
-              text: `🟩 답변: ${initial.mcq_question}`,
+              text: `답변: ${initial.mcq_question}`,
               isUser: false,
               timestamp: new Date().toLocaleTimeString(),
             },
