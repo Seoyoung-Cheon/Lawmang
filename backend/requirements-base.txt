@@ -35,7 +35,7 @@ langchain
 langchain-community
 langchain-openai
 tavily-python
-
+elasticsearch[async]
 # ✅ NLP 및 모델 관련
 transformers
 pandas
