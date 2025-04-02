@@ -131,7 +131,7 @@ class QueryRequest(BaseModel):
 
 
 # ✅ 1. LLM1: 초기 응답만
-@router.post("/chatbot/initial")
+@router.post("/initial")
 async def chatbot_initial(request: QueryRequest):
     user_query = request.query.strip()
     if not user_query:
@@ -166,7 +166,7 @@ async def chatbot_initial(request: QueryRequest):
 
 
 # ✅ 2. LLM2 빌드 전용: 전략/판례 캐싱만 수행
-@router.post("/chatbot/prepare")
+@router.post("/prepare")
 async def chatbot_prepare(request: QueryRequest):
     user_query = request.query.strip()
     faiss_db = load_faiss()
@@ -189,7 +189,7 @@ async def chatbot_prepare(request: QueryRequest):
 
 
 # ✅ 3. LLM2 최종 응답: 고급 GPT 실행
-@router.post("/chatbot/advanced")
+@router.post("/advanced")
 async def chatbot_advanced(request: QueryRequest):
     user_query = request.query.strip()
     faiss_db = load_faiss()
