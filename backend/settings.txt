@@ -3,6 +3,7 @@ conda create --prefix C:/conda_envs/lawmang_env python=3.11
 
 - 가상환경 활성화
 conda activate C:/conda_envs/lawmang_env
+conda activate C:/conda_envs/new_lawmang_env
 
 - 패키지 설치
 pip install -r requirements-base.txt
