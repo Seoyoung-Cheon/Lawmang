@@ -27,10 +27,20 @@ async def run_initial_controller(
     updated_yes_count = initial_result.get("yes_count", current_yes_count)
     escalate_directly = initial_result.get("escalate_to_advanced", False)
 
+
     # ✅ 중단 신호 보내기
     if is_no and stop_event:
         stop_event.set()
-        return {"status": "no_triggered", "initial_response": initial_response}
+        template_data["no_flag"] = True  # ✅ optional: ask_human()에서 참고용
+        # ❌ return 하지 않고 계속 진행
+
+    # 이후 반드시 실행됨
+    ask_result = await ask_human_agent.ask_human(
+        user_query=user_query,
+        llm1_answer=initial_response,
+        current_yes_count=updated_yes_count,
+        template_data=template_data,
+    )
 
     if query_type == "nonlegal":
         return {"status": "nonlegal_skipped", "initial_response": initial_response}
@@ -44,7 +54,8 @@ async def run_initial_controller(
         current_yes_count=updated_yes_count,
         template_data=template_data,
     )
-
+    print("✅ ask_result keys:", ask_result.keys())
+    print("✅ mcq_question 내용:", ask_result.get("mcq_question"))
     final_yes_count = ask_result.get("yes_count", updated_yes_count)
     escalate_to_advanced = escalate_directly or final_yes_count >= 3
 

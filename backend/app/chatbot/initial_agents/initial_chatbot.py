@@ -6,8 +6,11 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from asyncio import Event
 
-from app.chatbot.tool_agents.utils.utils import faiss_kiwi, classify_legal_query
-
+from app.chatbot.tool_agents.utils.utils import (
+    faiss_kiwi,
+    classify_legal_query,
+)
+from app.chatbot.tool_agents.tools import async_ES_search
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -18,7 +21,7 @@ def load_llm():
         api_key=OPENAI_API_KEY,
         temperature=0.6,
         max_tokens=512,
-        streaming=True,
+        streaming=False,
     )
 
 
@@ -31,42 +34,74 @@ class LegalChatbot:
         self.faiss_db = faiss_db
         self.prompt_template = PromptTemplate(
             template="""
-당신은 대한민국의 법률 전문가입니다.
-아래 키워드 및 검색 결과를 기반으로, 사용자의 질문에 대해 명확하고 간결한 법률적 답변을 제공하세요.
+        당신은 대한민국의 법률 전문가입니다.  
+        현재 사용자의 질문에 대한 **법률적 타당성, 정보의 명확성, 유사 사례와의 적합성**을 기준으로  
+        '실시간 보고서' 형태로 평가해 주세요.
 
-💬 대화 기록:
-{chat_history}
+        다음 정보를 바탕으로 판단하세요:
 
-❓ 사용자 질문:
-"{user_query}"
+        💬 대화 기록:
+        {chat_history}
 
-🧠 사용자 입력 키워드:
-{query_keywords}
+        ❓ 사용자 질문:
+        "{user_query}"
 
-📚 FAISS 유사 키워드:
-{faiss_keywords}
+        🧠 사용자 입력 키워드:
+        {query_keywords}
 
-📂 질문 유형: {query_type}
+        📚 FAISS 유사 키워드:
+        {faiss_keywords}
 
-📢 지시사항:
-- 질문 유형이 **"legal"** 이면 → 명확한 법률 조항 또는 판례에 기반하여 판단을 내려주세요.
-- 질문 유형이 **"nonlegal"** 이면 → 법적 관련성이 낮음을 알리고, 유사 사례나 관련 조항을 간략히 언급하세요.
-- 아래의 평가 기준에 따라, 질문의 명확성, 법률적 관련성, 그리고 필요한 정보의 완전성을 각각 0(부족)부터 5(매우 충족)까지 점수로 평가한 후,  
-  평가 항목:
-    1. 질문의 명확성
-    2. 법률적 관련성
-    3. 필요한 정보의 완전성
-    
-  총점이 10점 이상이면 마지막 줄에 **"###yes"**를, 그렇지 않으면 **"###no"**를 반드시 붙여서 응답해 주세요.
-""",
+        📂 질문 유형:
+        {query_type}
+
+        📄 유사 상담 검색 결과 (Elasticsearch 기반):
+        {es_context}
+        
+        few shots:  
+        ex:
+        [요약]
+
+        [설명]
+
+        [참고 질문]
+
+        [하이퍼링크]
+
+
+        📢 지시사항:
+        - 아래 형식에 따라 실시간 판단 보고서를 작성하세요.
+        - 반드시 사용자의 질문을 독립적으로 먼저 평가하고, 유사 상담 결과는 **보조 판단 근거로만 사용**합니다.
+        - 단순히 유사한 상담 사례가 있다고 해서 높은 점수를 주지 마세요.
+        - 질문이 법률적이지 않거나 너무 모호하면 낮은 점수를 주고 반드시 `###no`로 끝내세요.
+        - **질문과 유사 사례가 모두 불일치하거나 비법률적일 경우**, 이 상담은 활용할 수 없다고 판단하세요.
+        """,
             input_variables=[
                 "chat_history",
                 "user_query",
                 "query_keywords",
                 "faiss_keywords",
                 "query_type",
+                "es_context",
             ],
         )
+
+
+
+    async def build_es_context(self, user_query: str) -> str:
+        # ✅ ES 결과 없으면 직접 검색
+        es_results = await async_ES_search([user_query])
+
+        if not es_results:
+            return "관련 상담사례가 없습니다."
+
+        es_context = ""
+        for i, item in enumerate(es_results[:1], start=1):  # 상위 3개만
+            es_context += f"\n📌 [{i}번 상담]\n"
+            es_context += f"- 제목(title): {item.get('title', '')}\n"
+            es_context += f"- 질문(question): {item.get('question', '')}\n"
+            es_context += f"- 답변(answer): {item.get('answer', '')}\n"
+        return es_context.strip()
 
     async def generate(
         self,
@@ -74,8 +109,6 @@ class LegalChatbot:
         current_yes_count: int = 0,
         stop_event: Event = None,
     ):
-        # print("\n🤖 [Legal AI]: ", end="", flush=True)
-
         query_keywords = faiss_kiwi.extract_keywords(user_query, top_k=5)
         faiss_keywords = faiss_kiwi.extract_top_keywords_faiss(
             user_query, self.faiss_db, top_k=5
@@ -86,6 +119,10 @@ class LegalChatbot:
         query_type = classify_legal_query(user_query, set(faiss_keywords))
         chat_history = self.memory.load_memory_variables({}).get("chat_history", "")
 
+        # ✅ ES 유사 상담 내용 추출
+        es_context = await self.build_es_context(user_query)
+
+        # ✅ 프롬프트 구성
         prompt = self.prompt_template.format(
             chat_history=chat_history,
             user_query=user_query,
@@ -93,26 +130,14 @@ class LegalChatbot:
             faiss_keywords=", ".join(faiss_keywords),
             legal_score=f"{legal_score:.2f}",
             query_type=query_type,
+            es_context=es_context,
         )
 
-        full_response = ""
-        is_no_detected = False
+        # ✅ 전체 응답을 한 번에 받아옴
+        response = await self.llm.ainvoke(prompt)
+        full_response = response.content.strip()
 
-        async for chunk in self.llm.astream(prompt):
-            content = getattr(chunk, "content", str(chunk))
-            if content:
-                sys.stdout.write(content)
-                sys.stdout.flush()
-                full_response += content
-
-                # 실시간 감지
-                if "###no" in full_response[-10:].lower():
-                    is_no_detected = True
-                    if stop_event:
-                        stop_event.set()
-                    break
-
-        # print("\n")
+        is_no_detected = "###no" in full_response.lower()
 
         self.memory.save_context(
             {"user_query": user_query}, {"response": full_response}

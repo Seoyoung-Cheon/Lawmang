@@ -338,11 +338,23 @@ search_tool = LawGoKRTavilySearch(max_results=1)
 #---------------------------------------------------------------
 
 # ----------------------------------------------------------------
+es: AsyncElasticsearch = None
 def inject_es_client(client: AsyncElasticsearch):
     global es
     es = client
 # ----------------------------------------------------------------
+def init_es_client():
+    """ES 클라이언트를 내부에서 초기화하고 전역에 주입"""
+    global es
+    es = AsyncElasticsearch(
+        hosts=[ES_HOST],
+        basic_auth=(ES_USER, ES_PASSWORD),
+        verify_certs=False,
+    )
+    print("✅ ES 클라이언트 초기화 완료")
 
+init_es_client()
+#----------------------------------------------------------------
 async def async_ES_search(keywords):
     """Elasticsearch 기반 상담 검색 (LLM 입력 최적화)"""
     index_name = "es_legal_consultation"

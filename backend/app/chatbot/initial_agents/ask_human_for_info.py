@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from app.chatbot.tool_agents.tools import LawGoKRTavilySearch
 from app.chatbot.tool_agents.utils.utils import insert_hyperlinks_into_text
 from app.chatbot.memory.global_cache import memory  # ConversationBufferMemory 인스턴스
-from app.chatbot.tool_agents.tools import async_ES_search
+from app.chatbot.initial_agents.initial_chatbot import LegalChatbot
 
 # 글로벌 캐시 기능: 템플릿을 시스템 메시지로 저장하고 조회하는 함수들
 from app.chatbot.memory.global_cache import (
@@ -32,85 +32,15 @@ class AskHumanAgent:
         self.llm = load_llm()
         self.tavily_search = LawGoKRTavilySearch()
 
-# def build_mcq_prompt_full(self, user_query, llm1_answer, template_data, yes_count):
-#     # 저장된 중간 데이터가 있을 경우 이를 사용하여 프롬프트를 구성
-#     template = template_data.get("template", {}) if template_data else {}
-#     strategy = template_data.get("strategy", {}) if template_data else {}
-#     precedent = template_data.get("precedent", {}) if template_data else {}
 
-#     summary_with_links = insert_hyperlinks_into_text(
-#         template.get("summary", ""), template.get("hyperlinks", [])
-#     )
-#     explanation_with_links = insert_hyperlinks_into_text(
-#         template.get("explanation", ""), template.get("hyperlinks", [])
-#     )
-#     hyperlinks_text = "\n".join(
-#         f"- {link['label']}: {link['url']}" for link in template.get("hyperlinks", [])
-#     )
-#     strategy_decision_tree = "\n".join(strategy.get("decision_tree", []))
-#     precedent_summary = precedent.get("summary", "판례 요약 없음")
-#     precedent_link = precedent.get("casenote_url", "링크 없음")
-#     precedent_meta = f"{precedent.get('court', '')} / {precedent.get('j_date', '')} / {precedent.get('title', '')}"
-
-#     # 🔍 ES 결과가 있을 경우 프롬프트에 포함
-#     es_results = template_data.get("es_results", [])
-#     es_context = ""
-#     if es_results:
-#         es_context += "\n[ES 유사 상담]\n"
-#         for i, item in enumerate(es_results, start=1):
-#             es_context += f"\n📌 [{i}번 상담]\n"
-#             es_context += f"- 제목(title): {item.get('title', '')}\n"
-#             es_context += f"- 질문(question): {item.get('question', '')}\n"
-#             es_context += f"- 답변(answer): {item.get('answer', '')}\n"
-
-#     # ConversationBufferMemory 내 대화 히스토리 조회
-#     memory.load_memory_variables({}).get("chat_history", "")
-
-#     prompt = f"""
-# 당신은 법률 상담을 생성하는 고급 AI입니다.
-
-# [사용자 질문]
-# {user_query}
-
-# {es_context}
-
-# [요약]
-# {summary_with_links}
-
-# [설명]
-# {explanation_with_links}
-
-# [참고 질문]
-# {template.get("ref_question", "해당 없음")}
-
-# [하이퍼링크]
-# {hyperlinks_text}
-
-# [전략 요약]
-# {strategy.get("final_strategy_summary", "")}
-
-# [응답 구성 전략]
-# - 말투: {strategy.get("tone", "")}
-# - 흐름: {strategy.get("structure", "")}
-# - 조건 흐름도:
-# {strategy_decision_tree}
-
-# [추천 링크]
-# {json.dumps(strategy.get("recommended_links", []), ensure_ascii=False)}
-
-# [추가된 판례 요약]
-# - {precedent_summary}
-# - 링크: {precedent_link}
-# - 정보: {precedent_meta}
-
-# 🎯 작업:
-# - 이전 대화와 이어지는 위 내용을 반영하여, 사용자가 신뢰할 수 있는 법률 상담을 생성하세요.
-# - 각 항목은 실제 상황을 반영하며, 사용자가 자신의 상황에 맞는 선택지를 이해할 수 있게 구성해야 합니다.
-# """
-#     return prompt
-
-    def build_mcq_prompt_full(self, user_query, llm1_answer, template_data, yes_count):
-        # 저장된 중간 데이터가 있을 경우 이를 사용하여 프롬프트를 구성
+    async def build_mcq_prompt_full(
+        self,
+        user_query,
+        llm1_answer,
+        template_data,
+        yes_count,
+        report: Optional[str] = None,  # ✅ 보고서 추가
+    ):
         template = template_data.get("template", {}) if template_data else {}
         strategy = template_data.get("strategy", {}) if template_data else {}
         precedent = template_data.get("precedent", {}) if template_data else {}
@@ -122,107 +52,177 @@ class AskHumanAgent:
             template.get("explanation", ""), template.get("hyperlinks", [])
         )
         hyperlinks_text = "\n".join(
-            f"- {link['label']}: {link['url']}"
-            for link in template.get("hyperlinks", [])
+            f"- {link['label']}: {link['url']}" for link in template.get("hyperlinks", [])
         )
         strategy_decision_tree = "\n".join(strategy.get("decision_tree", []))
         precedent_summary = precedent.get("summary", "판례 요약 없음")
         precedent_link = precedent.get("casenote_url", "링크 없음")
         precedent_meta = f"{precedent.get('court', '')} / {precedent.get('j_date', '')} / {precedent.get('title', '')}"
 
-        # ConversationBufferMemory 내 대화 히스토리 조회
+
         memory.load_memory_variables({}).get("chat_history", "")
 
         prompt = f"""
-당신은 법률 상담을 생성하는 고급 AI입니다.
+        당신은 법률 상담을 생성하는 고급 AI입니다.
 
+        아래는 1차 판단 결과로 생성된 실시간 보고서입니다.  
+        **이 보고서는 반드시 후속 상담의 핵심 근거로 삼아야 하며**,  
+        요약·설명·전략 등은 모두 이 보고서를 기반으로 작성되어야 합니다.
 
-[사용자 질문]
-{user_query}
+            
 
-[요약]
-{summary_with_links}
+    📝 [실시간 판단 보고서]
+    {report.strip() if report else "보고서 없음"}
 
-[설명]
-{explanation_with_links}
+    [사용자 질문]
+    {user_query}
 
-[참고 질문]
-{template.get("ref_question", "해당 없음")}
+    [요약]
+    {summary_with_links}
 
-[하이퍼링크]
-{hyperlinks_text}
+    [설명]
+    {explanation_with_links}
 
-[전략 요약]
-{strategy.get("final_strategy_summary", "")}
+    [참고 질문]
+    {template.get("ref_question", "해당 없음")}
 
-[응답 구성 전략]
-- 말투: {strategy.get("tone", "")}
-- 흐름: {strategy.get("structure", "")}
+    [하이퍼링크]
+    {hyperlinks_text}
+
+    [전략 요약]
+    {strategy.get("final_strategy_summary", "")}
+
+    [응답 구성 전략]
+    - 말투: {strategy.get("tone", "")}
+    - 흐름: {strategy.get("structure", "")}
+    - 조건 흐름도:
+    {strategy_decision_tree}
+
+    [추천 링크]
+    {json.dumps(strategy.get("recommended_links", []), ensure_ascii=False)}
+
+    [추가된 판례 요약]
+    - {precedent_summary}
+    - 링크: {precedent_link}
+    - 정보: {precedent_meta}
+ 🎯 작업:
+ - 반드시 [실시간 판단 보고서] 내용을 최우선 판단 근거로 삼고, 신뢰할 수 있는 법률 상담을 생성하세요.
+ - 이전 대화와 이어지는 위 내용을 반영하여, 사용자가 신뢰할 수 있는 법률 상담을 생성하세요.
+ - 각 항목은 실제 상황을 반영하며, 사용자가 자신의 상황에 맞는 선택지를 이해할 수 있게 구성해야 합니다.
+ 
+ -------------------------
+📌 법률 상담 요약
+퇴직 시점에 사용하지 않은 연차수당은 퇴직금 산정에 포함되지 않으며, 연차수당은 별도로 청구할 수 있습니다.
+
+-------------------------
+🧾 상세 설명
+근로자가 퇴직하는 경우, 사용하지 않은 연차에 대해서는 연차수당으로 별도 청구할 수 있으며 이는 퇴직금과는 별개의 권리입니다.  
+다만, 퇴직금은 평균임금 기준으로 산정되며, 미사용 연차수당은 평균임금에 영향을 미칠 수 있습니다.  
+법적으로는 「근로기준법 제60조」 및 관련 판례에 따라 별도 정산의 대상입니다.
+
+-------------------------
+📌 참고 질문
+퇴직할 때 연차수당은 퇴직금에 포함되나요?
+
+-------------------------
+🔗 관련 하이퍼링크
+- 근로기준법 제60조: https://www.law.go.kr/근로기준법/제60조
+- 대법원 2020다12345 판결: https://casenote.go.kr/판례/2020다12345
+
+-------------------------
+📊 응답 구성 전략
+- 말투: 전문가형, 단정적 표현 사용
+- 흐름: 질문 → 정답 → 관련 법령 설명
 - 조건 흐름도:
-{strategy_decision_tree}
+  1. 퇴직 → 평균임금 산정 → 연차수당 별도 정산 여부 판단
 
-[추천 링크]
-{json.dumps(strategy.get("recommended_links", []), ensure_ascii=False)}
+-------------------------
+📚 판례 요약
+- 사용하지 않은 연차수당은 퇴직금에 포함되지 않는다고 본 판례
+- 링크: https://casenote.go.kr/판례/2020다12345
+- 정보: 대법원 / 2023.03.10 / 연차수당 및 퇴직금 분리 관련 사건
 
-[추가된 판례 요약]
-- {precedent_summary}
-- 링크: {precedent_link}
-- 정보: {precedent_meta}
+-------------------------
+📌 최종 안내
+※ 본 상담은 [실시간 판단 보고서]의 내용을 중심으로 구성되었습니다.  
+※ 실제 사례에 따라 적용 방식이 달라질 수 있으므로, 개별 상황에 맞는 법률 자문을 추가로 권장합니다.
+-------------------------
 
-🎯 작업:
-- 이전 대화와 이어지는 위 내용을 반영하여, 사용자가 신뢰할 수 있는 법률 상담을 생성하세요.
-- 각 항목은 실제 상황을 반영하며, 사용자가 자신의 상황에 맞는 선택지를 이해할 수 있게 구성해야 합니다.
-"""
+ 
+    """
         return prompt
 
     async def generate_mcq_question(
-        self, user_query, llm1_answer, yes_count=0, template_data=None
+        self,
+        user_query,
+        llm1_answer,
+        yes_count=0,
+        template_data=None,
+        report: Optional[str] = None,
     ):
-        prompt = self.build_mcq_prompt_full(
-            user_query, llm1_answer, template_data or {}, yes_count
+        prompt = await self.build_mcq_prompt_full(
+            user_query,
+            llm1_answer,
+            template_data or {},
+            yes_count,
+            report,  # ✅ 전달
         )
         response = await self.llm.ainvoke(prompt)
         return response.content.strip()
-
+    
+        
     async def ask_human(
-        self, user_query, llm1_answer, current_yes_count=0, template_data=None
+        self,
+        user_query,
+        llm1_answer,
+        current_yes_count=0,
+        template_data=None,
+        initial_response: Optional[str] = None,  # ✅ 보고서 직접 주입
     ):
-        # 캐시된 중간 데이터 조회: ConversationBufferMemory에서 저장된 템플릿 데이터 사용
+        # 캐시된 템플릿 확인
         cached_data = retrieve_template_from_memory()
-        # 빌드가 완료된 경우에만 (built 플래그가 True) 캐시 사용
         if cached_data and cached_data.get("built", False):
-            # print("✅ [캐시된 중간 데이터 사용]")
             template_data = cached_data
 
-        # llm1의 초기 응답에서 "###yes" 시그널을 검출하여 yes_count 증가
+        # YES count 누적
         yes_count_detected = 1 if "###yes" in llm1_answer.lower() else 0
         total_yes_count = current_yes_count + yes_count_detected
 
-        # print("\n🤖 AI: 후속 질문을 준비 중입니다...")
+        # 후속 질문 생성
         mcq_q = await self.generate_mcq_question(
-            user_query, llm1_answer, total_yes_count, template_data
+            user_query,
+            llm1_answer,
+            total_yes_count,
+            template_data,
+            report=initial_response,  # ✅ 전달
         )
 
-        # 두 번째 이후 답변에서는 저장된 템플릿 반영
+        # 템플릿 사용 표기
         if total_yes_count >= 2:
             mcq_q = f"{mcq_q}\n\n[저장된 템플릿 사용됨]"
 
+        # ✅ 보고서가 있으면 붙여서 반환
+        if initial_response:
+            combined = f"{initial_response.strip()}\n\n🧩 [후속 질문 제안]\n{mcq_q.strip()}"
+        else:
+            combined = mcq_q.strip()
+
         return {
             "yes_count": total_yes_count,
-            "mcq_question": mcq_q,
+            "mcq_question": combined,
             "is_mcq": True,
             "load_template_signal": total_yes_count >= 2,
         }
 
 
-def check_user_wants_advanced_answer(user_query: str) -> bool:
-    keywords = [
-        "고급 답변",
-        "상세한 설명",
-        "자세히 알려줘",
-        "gpt-4",
-        "판례까지",
-        "전략도",
-        "고급 AI",
-    ]
-    return any(k in user_query.lower() for k in keywords)
+    def check_user_wants_advanced_answer(user_query: str) -> bool:
+        keywords = [
+            "고급 답변",
+            "상세한 설명",
+            "자세히 알려줘",
+            "gpt-4",
+            "판례까지",
+            "전략도",
+            "고급 AI",
+        ]
+        return any(k in user_query.lower() for k in keywords)

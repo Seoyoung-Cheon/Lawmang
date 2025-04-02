@@ -9,6 +9,9 @@ from app.chatbot.tool_agents.executor.normalanswer import run_final_answer_gener
 from app.chatbot.initial_agents.controller import run_initial_controller
 from app.chatbot.tool_agents.controller import run_full_consultation
 from app.chatbot.tool_agents.utils.utils import faiss_kiwi
+from fastapi import FastAPI
+from app.chatbot.routes import router as chatbot_router
+
 
 # ✅ 락: 중복 실행 방지 (LLM2 관련)
 llm2_lock = Lock()
@@ -18,6 +21,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DB_FAISS_PATH = "./app/chatbot/faiss"
 
+app = FastAPI()
 
 def load_faiss():
     try:
@@ -174,7 +178,8 @@ async def chatbot_loop():
             print("\n🤖 최종 GPT 응답:\n", advanced.get("final_answer", "없음"))
         else:
             print("\n✅ 초기 응답으로 충분합니다.")
-
+            
+app.include_router(chatbot_router, prefix="/api/chatbot")
 
 def main():
     loop = asyncio.new_event_loop()

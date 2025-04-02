@@ -90,7 +90,9 @@ async def run_full_consultation(
 
     # 3️⃣ 전략 생성
     strategy = await run_response_strategy_with_limit(
-        template["explanation"], user_query, template.get("hyperlinks", [])
+        template.get("explanation", ""),  # 🔐 explanation 없을 경우 빈 문자열로 처리
+        user_query,
+        template.get("hyperlinks", []),
     )
 
     if stop_event and stop_event.is_set():
