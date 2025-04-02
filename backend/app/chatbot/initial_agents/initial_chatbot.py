@@ -11,6 +11,7 @@ from app.chatbot.tool_agents.utils.utils import (
     classify_legal_query,
 )
 from app.chatbot.tool_agents.tools import async_ES_search
+
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -57,17 +58,6 @@ class LegalChatbot:
 
         📄 유사 상담 검색 결과 (Elasticsearch 기반):
         {es_context}
-        
-        few shots:  
-        ex:
-        [요약]
-
-        [설명]
-
-        [참고 질문]
-
-        [하이퍼링크]
-
 
         📢 지시사항:
         - 아래 형식에 따라 실시간 판단 보고서를 작성하세요.
@@ -75,6 +65,32 @@ class LegalChatbot:
         - 단순히 유사한 상담 사례가 있다고 해서 높은 점수를 주지 마세요.
         - 질문이 법률적이지 않거나 너무 모호하면 낮은 점수를 주고 반드시 `###no`로 끝내세요.
         - **질문과 유사 사례가 모두 불일치하거나 비법률적일 경우**, 이 상담은 활용할 수 없다고 판단하세요.
+
+        -----------------------------
+
+        📌 [실시간 판단 보고서]
+
+        0. 🔎 사용자 질문 자체의 법률성 판단:
+        - 질문 자체가 법적으로 유의미한가? 명확하고 구체적인가?
+
+        1. 📍 제목:
+        - 본 질문에 적합한 상담 제목을 간결하게 작성하세요.
+
+        2. 👥 사용자 상황과 유사한가?
+        - 유사 사례들과 비교해 사용자 상황이 어느 정도 일치하는지 설명하세요.
+
+        3. 📝 평가 점수:
+        - 질문 명확성 (0~5):
+        - 법률 관련성 (0~5):
+        - 정보 완전성 (0~5):
+        - 총점 (합산):
+
+        4. 📋 중간 요약:
+        - 다음 변호사가 쓸수있게 가능한 법률적 해석, 대응 방향, 혹은 조언을 간략히 3줄 요약 
+
+        마지막 줄에 판단 결과 기입:  
+        ###yes 또는 ###no
+        -----------------------------
         """,
             input_variables=[
                 "chat_history",
@@ -85,8 +101,6 @@ class LegalChatbot:
                 "es_context",
             ],
         )
-
-
 
     async def build_es_context(self, user_query: str) -> str:
         # ✅ ES 결과 없으면 직접 검색
@@ -133,11 +147,22 @@ class LegalChatbot:
             es_context=es_context,
         )
 
-        # ✅ 전체 응답을 한 번에 받아옴
-        response = await self.llm.ainvoke(prompt)
-        full_response = response.content.strip()
+        full_response = ""
+        is_no_detected = False
 
-        is_no_detected = "###no" in full_response.lower()
+        async for chunk in self.llm.astream(prompt):
+            content = getattr(chunk, "content", str(chunk))
+            if content:
+                sys.stdout.write(content)
+                sys.stdout.flush()
+                full_response += content
+
+                # 실시간 감지
+                if "###no" in full_response[-10:].lower():
+                    is_no_detected = True
+                    if stop_event:
+                        stop_event.set()
+                    break
 
         self.memory.save_context(
             {"user_query": user_query}, {"response": full_response}

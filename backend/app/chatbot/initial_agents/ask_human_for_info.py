@@ -32,7 +32,6 @@ class AskHumanAgent:
         self.llm = load_llm()
         self.tavily_search = LawGoKRTavilySearch()
 
-
     async def build_mcq_prompt_full(
         self,
         user_query,
@@ -52,13 +51,13 @@ class AskHumanAgent:
             template.get("explanation", ""), template.get("hyperlinks", [])
         )
         hyperlinks_text = "\n".join(
-            f"- {link['label']}: {link['url']}" for link in template.get("hyperlinks", [])
+            f"- {link['label']}: {link['url']}"
+            for link in template.get("hyperlinks", [])
         )
         strategy_decision_tree = "\n".join(strategy.get("decision_tree", []))
         precedent_summary = precedent.get("summary", "판례 요약 없음")
         precedent_link = precedent.get("casenote_url", "링크 없음")
         precedent_meta = f"{precedent.get('court', '')} / {precedent.get('j_date', '')} / {precedent.get('title', '')}"
-
 
         memory.load_memory_variables({}).get("chat_history", "")
 
@@ -109,46 +108,6 @@ class AskHumanAgent:
  - 반드시 [실시간 판단 보고서] 내용을 최우선 판단 근거로 삼고, 신뢰할 수 있는 법률 상담을 생성하세요.
  - 이전 대화와 이어지는 위 내용을 반영하여, 사용자가 신뢰할 수 있는 법률 상담을 생성하세요.
  - 각 항목은 실제 상황을 반영하며, 사용자가 자신의 상황에 맞는 선택지를 이해할 수 있게 구성해야 합니다.
- 
- -------------------------
-📌 법률 상담 요약
-퇴직 시점에 사용하지 않은 연차수당은 퇴직금 산정에 포함되지 않으며, 연차수당은 별도로 청구할 수 있습니다.
-
--------------------------
-🧾 상세 설명
-근로자가 퇴직하는 경우, 사용하지 않은 연차에 대해서는 연차수당으로 별도 청구할 수 있으며 이는 퇴직금과는 별개의 권리입니다.  
-다만, 퇴직금은 평균임금 기준으로 산정되며, 미사용 연차수당은 평균임금에 영향을 미칠 수 있습니다.  
-법적으로는 「근로기준법 제60조」 및 관련 판례에 따라 별도 정산의 대상입니다.
-
--------------------------
-📌 참고 질문
-퇴직할 때 연차수당은 퇴직금에 포함되나요?
-
--------------------------
-🔗 관련 하이퍼링크
-- 근로기준법 제60조: https://www.law.go.kr/근로기준법/제60조
-- 대법원 2020다12345 판결: https://casenote.go.kr/판례/2020다12345
-
--------------------------
-📊 응답 구성 전략
-- 말투: 전문가형, 단정적 표현 사용
-- 흐름: 질문 → 정답 → 관련 법령 설명
-- 조건 흐름도:
-  1. 퇴직 → 평균임금 산정 → 연차수당 별도 정산 여부 판단
-
--------------------------
-📚 판례 요약
-- 사용하지 않은 연차수당은 퇴직금에 포함되지 않는다고 본 판례
-- 링크: https://casenote.go.kr/판례/2020다12345
-- 정보: 대법원 / 2023.03.10 / 연차수당 및 퇴직금 분리 관련 사건
-
--------------------------
-📌 최종 안내
-※ 본 상담은 [실시간 판단 보고서]의 내용을 중심으로 구성되었습니다.  
-※ 실제 사례에 따라 적용 방식이 달라질 수 있으므로, 개별 상황에 맞는 법률 자문을 추가로 권장합니다.
--------------------------
-
- 
     """
         return prompt
 
