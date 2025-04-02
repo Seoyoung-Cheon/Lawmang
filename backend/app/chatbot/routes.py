@@ -109,23 +109,50 @@
 #     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # ---------------------------------
-# 📄 잠깐 작성
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+import os
+import sys
 import asyncio
-
-from app.chatbot.main import (
-    load_faiss,
-    llm2_lock,
-    run_initial_controller,
-    run_full_consultation,
-    run_final_answer_generation,
-)
+from asyncio import Lock
+from dotenv import load_dotenv
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from app.chatbot.tool_agents.executor.normalanswer import run_final_answer_generation
+from app.chatbot.initial_agents.controller import run_initial_controller
+from app.chatbot.tool_agents.controller import run_full_consultation
 from app.chatbot.tool_agents.utils.utils import faiss_kiwi
+from fastapi import FastAPI
+
+# ✅ 락: 중복 실행 방지 (LLM2 관련)
+llm2_lock = Lock()
+yes_count = 0
+sys.path.append(os.path.abspath("."))
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+DB_FAISS_PATH = "./app/chatbot/faiss"
+
+app = FastAPI()
 
 router = APIRouter()
 yes_count_memory = {}  # 간단한 글로벌 YES 메모리 (세션/유저 구분 가능시 확장)
 
+
+def load_faiss():
+    try:
+        embedding_model = OpenAIEmbeddings(
+            model="text-embedding-ada-002",
+            openai_api_key=OPENAI_API_KEY,
+        )
+        return FAISS.load_local(
+            DB_FAISS_PATH,
+            embedding_model,
+            allow_dangerous_deserialization=True,
+        )
+    except Exception as e:
+        # print(f"❌ FAISS 로드 실패: {e}")
+        return None
 class QueryRequest(BaseModel):
     query: str
 
