@@ -33,32 +33,44 @@ const Chatbot = () => {
   const [isLegalTyping, setIsLegalTyping] = useState(false);
   const [isMemoModalOpen, setIsMemoModalOpen] = useState(false);
 
-  // 메모 모달 상태 감지
+  // ✅ currentMessages, setCurrentMessages 동적 선언
+  const currentMessages =
+    selectedCategory === "general" ? generalMessages : legalMessages;
+  const setCurrentMessages =
+    selectedCategory === "general" ? setGeneralMessages : setLegalMessages;
+
+  // ✅ handleLoginClick 정의
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
+
+  // ✅ handleCategoryClick 정의
+  const handleCategoryClick = (category) => {
+    if (category === "legal" && !isAuthenticated) {
+      setShowLoginPopup(true);
+      return;
+    }
+    setSelectedCategory(category);
+  };
+
   useEffect(() => {
     const handleMemoModalState = (e) => {
       setIsMemoModalOpen(e.detail.isOpen);
     };
-
-    // 이벤트 리스너 등록 전에 기존 리스너 제거
     window.removeEventListener("memoModalState", handleMemoModalState);
     window.addEventListener("memoModalState", handleMemoModalState);
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       window.removeEventListener("memoModalState", handleMemoModalState);
-      // 상태 초기화
       setIsMemoModalOpen(false);
     };
-  }, []); // 빈 의존성 배열로 컴포넌트 마운트 시에만 실행
+  }, []);
 
-  // 로그인 상태 변경 감지하여 법률상담 버튼 비활성화
   useEffect(() => {
     if (!isAuthenticated) {
       setSelectedCategory("general");
     }
   }, [isAuthenticated]);
 
-  // messages 상태가 변경될 때마다 스크롤을 최하단으로 이동
   useEffect(() => {
     const chatContainer = document.querySelector(".messages-container");
     if (chatContainer) {
@@ -66,7 +78,6 @@ const Chatbot = () => {
     }
   }, [generalMessages, legalMessages]);
 
-  // 카테고리 변경 시 초기 메시지 유지를 위한 useEffect
   useEffect(() => {
     if (generalMessages.length === 0) {
       setGeneralMessages([
@@ -101,7 +112,6 @@ const Chatbot = () => {
     setCurrentMessages((prev) => [...prev, userMessage]);
     setUserInput("");
 
-    // ✅ 카테고리 분기
     if (selectedCategory === "general") {
       setIsGeneralTyping(true);
 
@@ -175,20 +185,13 @@ const Chatbot = () => {
           },
         ]);
       }
-    }
-
-    // ✅ LEGAL 분기
-    else if (selectedCategory === "legal") {
+    } else if (selectedCategory === "legal") {
       setIsLegalTyping(true);
-      // 기존 법률 영역 처리
-      // 여기는 기존 코드 유지 (별도 처리 영역)
 
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot_term/legal-term",
-          {
-            question: userInput,
-          }
+          { question: userInput }
         );
 
         const result = response.data.result;

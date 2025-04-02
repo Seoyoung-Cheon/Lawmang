@@ -19,6 +19,17 @@ from app.services.precedent_service import (
 from app.services.precedent_detail_service import fetch_external_precedent_detail
 from app.core.database import execute_sql
 from langchain_community.tools import TavilySearchResults
+from elasticsearch import AsyncElasticsearch
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ES_HOST = os.getenv("ES_HOST")
+ES_USER = os.getenv("ES_USER")
+ES_PASSWORD = os.getenv("ES_PASSWORD")
+
+if not ES_HOST:
+    raise ValueError("❌ ES_HOST 환경변수 누락")
 # ---------------------------------------------------------------
 executor = ThreadPoolExecutor(max_workers=10)
 # ✅ 현재 파일의 상위 경로를 Python 경로에 추가
@@ -327,71 +338,64 @@ search_tool = LawGoKRTavilySearch(max_results=1)
 #---------------------------------------------------------------
 
 # ----------------------------------------------------------------
-
+def inject_es_client(client: AsyncElasticsearch):
+    global es
+    es = client
 # ----------------------------------------------------------------
 
-# async def async_search_precedent(categories, titles, user_input_keywords):
-#     """비동기 SQL 판례 검색 (카테고리 + 제목 + 사용자 입력 키워드 기반)"""
-#     loop = asyncio.get_running_loop()
+async def async_ES_search(keywords):
+    """Elasticsearch 기반 상담 검색 (LLM 입력 최적화)"""
+    index_name = "es_legal_consultation"
 
-#     # ✅ 1. title 및 category를 단어 단위로 변환
-#     def extract_words(text):
-#         return re.findall(r"\b\w+\b", text)
+    print(f"✅ [search_keywords 확인]: {keywords}")
+    print(f"🔍 [ES 검색 시작] 키워드: {keywords}")
 
-#     title_words = set()
-#     category_words = set()
+    must_clauses = [
+        {
+            "multi_match": {
+                "query": kw,
+                "fields": [
+                    "title^2",
+                    "sub_category^1.5",
+                    "question",
+                    "answer",
+                ],
+                "type": "most_fields",
+                "operator": "or",
+            }
+        }
+        for kw in keywords
+    ]
 
-#     for title in titles:
-#         title_words.update(extract_words(title))
-#     for category in categories:
-#         category_words.update(extract_words(category))
+    query_body = {
+        "size": 3,  # 🔒 고정된 갯수로 제한
+        "query": {"bool": {"must": must_clauses}},
+    }
 
-#     formatted_categories = ", ".join(f"'{c}'" for c in category_words)
-#     formatted_titles = ", ".join(f"'{t}'" for t in title_words)
-#     formatted_user_keywords = ", ".join(f"'{kw}'" for kw in user_input_keywords)
+    try:
+        response = await es.search(index=index_name, body=query_body)
+        hits = response["hits"]["hits"]
 
-#     # ✅ 2. SQL 쿼리 수정: 단어 단위 검색 적용
-#     query = f"""
-#         SET pg_trgm.similarity_threshold = 0.2;  -- ✅ 적절한 유사도 기준 조정
+        if not hits:
+            print("⚠️ [ES 검색 결과 없음]")
+            return []
 
-#     WITH filtered_precedents AS (
-#         SELECT id, c_number, c_type, j_date, court, c_name, d_link,
-#             -- ✅ 유사도 평균값 계산 (각 키워드 유사도 합 / 전체 개수)
-#             (
-#                 {"+".join([f"COALESCE(similarity(c_name, '{kw}'), 0)" for kw in user_input_keywords])}
-#                 + {"+".join([f"COALESCE(similarity(c_name, '{t}'), 0)" for t in title_words])}
-#                 + {"+".join([f"COALESCE(similarity(c_name, '{c}'), 0)" for c in category_words])}
-#             ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS avg_score
-#         FROM precedent
-#         WHERE (
-#             -- ✅ 단어 기반 유사도 검색
-#             c_name % ANY(ARRAY[{formatted_user_keywords}])
-#             OR c_name % ANY(ARRAY[{formatted_titles}])
-#             OR c_name % ANY(ARRAY[{formatted_categories}])
-            
-#             -- ✅ 문장 검색 강화 (ILIKE 포함)
-#             OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{kw}%'" for kw in user_input_keywords])}])
-#             OR c_name ILIKE ANY(ARRAY[{", ".join([f"'%{t}%'" for t in title_words])}])
-#         )
-#         ORDER BY avg_score DESC
-#         LIMIT 10
-#     )
-#     SELECT fp.id, fp.c_number, fp.c_type, fp.j_date, fp.court, fp.c_name, fp.d_link,
-#         (
-#             {"+".join([f"COALESCE(similarity(fp.c_name, '{kw}'), 0)" for kw in user_input_keywords])}
-#             + {"+".join([f"COALESCE(similarity(fp.c_name, '{t}'), 0)" for t in title_words])}
-#             + {"+".join([f"COALESCE(similarity(fp.c_name, '{c}'), 0)" for c in category_words])}
-#         ) / ({len(user_input_keywords) + len(title_words) + len(category_words)}) AS final_avg_score
-#     FROM filtered_precedents fp
-#     ORDER BY final_avg_score DESC
-#     LIMIT 5;
-#     """
+        # ✅ LLM 입력용 간결한 구조
+        results = [
+            {
+                "title": hit["_source"].get("title", ""),
+                "question": hit["_source"].get("question", ""),
+                "answer": hit["_source"].get("answer", ""),
+            }
+            for hit in hits
+            if hit["_source"].get("title")
+            and hit["_source"].get("question")
+            and hit["_source"].get("answer")
+        ]
 
-#     print(f"✅ [async_search_precedent] 실행된 쿼리: \n{query}")  # 🔥 쿼리 로그 추가
+        print(f"✅ [ES 결과 {len(results)}건 확보 완료]")
+        return results
 
-#     # ✅ 판례 데이터 검색 실행
-#     precedent_results = await loop.run_in_executor(
-#         executor, execute_sql, query, None, False
-#     )
-
-#     return precedent_results
+    except Exception as e:
+        print(f"❌ [ES 검색 오류]: {e}")
+        return []

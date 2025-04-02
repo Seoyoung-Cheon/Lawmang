@@ -1,5 +1,7 @@
 import os
 import json
+import difflib
+from app.chatbot.tool_agents.tools import async_ES_search
 from langchain_openai import ChatOpenAI
 from typing import List, Dict
 from app.chatbot.tool_agents.tools import LawGoKRTavilySearch
@@ -73,6 +75,76 @@ async def generate_response_template(
         return json.loads(result_text)
     except Exception as e:
         return {"error": "GPT 응답 파싱 실패"}
+
+
+# # ✅ 응답 템플릿 생성
+# async def generate_response_template(
+#     title: str,
+#     question: str,
+#     answer: str,
+#     user_query: str,
+#     es_results: list[dict] = None,  # 🔹 ES 결과 추가
+#     model: str = "gpt-3.5-turbo",
+# ) -> dict:
+#     # 🔹 ES 검색 결과가 있는 경우, 상담 내용 요약 정리
+#     es_context = ""
+#     if es_results:
+#         es_context += "ES에서 검색한 유사 상담 3건:\n"
+#         for i, item in enumerate(es_results, start=1):
+#             es_context += f"\n📌 [{i}번 상담]\n"
+#             es_context += f"- 제목(title): {item.get('title', '')}\n"
+#             es_context += f"- 질문(question): {item.get('question', '')}\n"
+#             es_context += f"- 답변(answer): {item.get('answer', '')}\n"
+
+#     # 🔹 프롬프트 구성
+#     prompt = f"""
+# 당신은 법률 상담 응답 템플릿을 구성하는 AI입니다.
+
+# 사용자의 질문:
+# "{user_query}"
+
+# {es_context}
+
+# 선택된 대표 상담(title):
+# "{title}"
+
+# 상담 질문(question):
+# "{question}"
+
+# 상담 답변(answer):
+# "{answer}"
+
+# --- 작업 지시 ---
+# 1. 사용자가 이해하기 쉽게 핵심 내용을 요약하세요 (summary).
+# 2. 요약을 바탕으로, 상담 답변의 내용을 일반인이 이해할 수 있도록 풀어서 설명하세요 (explanation).
+# 3. 답변과 관련된 법령/판례가 있다면 하이퍼링크 형태로 제공하세요. label과 url을 포함한 리스트 형식 (hyperlinks).
+# 4. 그리고 이 상담에서 사용된 `question`은 참고용 질문이므로 'ref_question'이라는 key로 반환하세요.
+
+# --- 응답 예시 ---
+# {{
+#   "summary": "...",
+#   "explanation": "...",
+#   "hyperlinks": [{{"label": "...", "url": "..."}}],
+#   "ref_question": "..."
+# }}
+# """
+
+#     llm = get_llm(model, temperature=0.3)
+
+#     messages = [
+#         {
+#             "role": "system",
+#             "content": "당신은 법률 응답 템플릿을 생성하는 전문가입니다.",
+#         },
+#         {"role": "user", "content": prompt},
+#     ]
+
+#     try:
+#         response = llm.invoke(messages)
+#         result_text = response.content
+#         return json.loads(result_text)
+#     except Exception as e:
+#         return {"error": "GPT 응답 파싱 실패"}
 
 
 # ✅ 전략 생성
