@@ -27,15 +27,32 @@ async def generate_response_template(
     question: str,
     answer: str,
     user_query: str,
+    es_results: list[dict] = None,
     model: str = "gpt-3.5-turbo",
 ) -> dict:
+    # ✅ es_results가 없으면 직접 호출
+    if es_results is None:
+        es_results = await async_ES_search([user_query])
+
+    # 🔹 ES 상담 내용 추가 구성
+    es_context = ""
+    if es_results:
+        es_context += "ES에서 검색한 유사 상담 3건:\n"
+        for i, item in enumerate(es_results, start=1):
+            es_context += f"\n📌 [{i}번 상담]\n"
+            es_context += f"- 제목(title): {item.get('title', '')}\n"
+            es_context += f"- 질문(question): {item.get('question', '')}\n"
+            es_context += f"- 답변(answer): {item.get('answer', '')}\n"
+
     prompt = f"""
 당신은 법률 상담 응답 템플릿을 구성하는 AI입니다.
 
 사용자의 질문:
 "{user_query}"
 
-상담 주제(title):
+{es_context}
+
+선택된 대표 상담(title):
 "{title}"
 
 상담 질문(question):
@@ -71,9 +88,8 @@ async def generate_response_template(
 
     try:
         response = llm.invoke(messages)
-        result_text = response.content
-        return json.loads(result_text)
-    except Exception as e:
+        return json.loads(response.content)
+    except Exception:
         return {"error": "GPT 응답 파싱 실패"}
 
 
