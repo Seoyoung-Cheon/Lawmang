@@ -98,7 +98,6 @@ const Chatbot = () => {
       ]);
     }
   }, [selectedCategory, generalMessages.length, legalMessages.length]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim()) return;
@@ -116,6 +115,7 @@ const Chatbot = () => {
       setIsGeneralTyping(true);
 
       try {
+        // ✅ LLM1 - 초기 응답 먼저 받음
         const res = await fetch("http://localhost:8000/api/chatbot/initial", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -123,6 +123,7 @@ const Chatbot = () => {
         });
         const initial = await res.json();
 
+        // ✅ mcq 응답 바로 출력
         if (initial.mcq_question) {
           setGeneralMessages((prev) => [
             ...prev,
@@ -134,26 +135,25 @@ const Chatbot = () => {
           ]);
         }
 
+        // ✅ LLM2 prepare는 백그라운드에서 실행
         if (initial.yes_count >= 1 && initial.yes_count < 3) {
-          await fetch("http://localhost:8000/api/chatbot/prepare", {
+          fetch("http://localhost:8000/api/chatbot/prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userInput }),
           });
         }
 
+        // ✅ LLM2 advanced도 백그라운드에서 실행 → 응답 오면 메시지 추가
         if (initial.yes_count >= 3) {
-          const advRes = await fetch(
-            "http://localhost:8000/api/chatbot/advanced",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ query: userInput }),
-            }
-          );
-          const adv = await advRes.json();
-
-          const fullAnswer = `
+          fetch("http://localhost:8000/api/chatbot/advanced", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userInput }),
+          })
+            .then((res) => res.json())
+            .then((adv) => {
+              const fullAnswer = `
 🚀 [고급 응답]
 📄 요약: ${adv.template?.summary}
 🧠 전략: ${adv.strategy?.final_strategy_summary}
@@ -162,14 +162,15 @@ const Chatbot = () => {
 
 🤖 ${adv.final_answer}`.trim();
 
-          setGeneralMessages((prev) => [
-            ...prev,
-            {
-              text: fullAnswer,
-              isUser: false,
-              timestamp: new Date().toLocaleTimeString(),
-            },
-          ]);
+              setGeneralMessages((prev) => [
+                ...prev,
+                {
+                  text: fullAnswer,
+                  isUser: false,
+                  timestamp: new Date().toLocaleTimeString(),
+                },
+              ]);
+            });
         }
 
         setIsGeneralTyping(false);
@@ -186,16 +187,14 @@ const Chatbot = () => {
         ]);
       }
     } else if (selectedCategory === "legal") {
+      // ✅ 법률용어 설명 로직은 동일
       setIsLegalTyping(true);
-
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot_term/legal-term",
           { question: userInput }
         );
-
         const result = response.data.result;
-
         setLegalMessages((prev) => [
           ...prev,
           {
@@ -204,7 +203,6 @@ const Chatbot = () => {
             timestamp: new Date().toLocaleTimeString(),
           },
         ]);
-
         let index = 0;
         const timer = setInterval(() => {
           if (index < result.length) {
@@ -221,7 +219,6 @@ const Chatbot = () => {
             clearInterval(timer);
           }
         }, 20);
-
         setIsLegalTyping(false);
       } catch (error) {
         console.error("API Error:", error);

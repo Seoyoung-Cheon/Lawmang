@@ -18,7 +18,7 @@ def load_llm():
         api_key=OPENAI_API_KEY,
         temperature=0.6,
         max_tokens=512,
-        streaming=True,
+        streaming=False,
     )
 
 
