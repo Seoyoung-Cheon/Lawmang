@@ -117,7 +117,7 @@ const Chatbot = () => {
       try {
         // ✅ LLM1 - 초기 응답 먼저 받음
 
-        const res = await fetch("http://localhost:8000/api/chatbot/chat", {
+        const res = await fetch("/api/chatbot/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -154,7 +154,7 @@ const Chatbot = () => {
 
         // ✅ LLM2 prepare는 백그라운드에서 실행
         if (initial.yes_count >= 1 && initial.yes_count < 3) {
-          fetch("http://localhost:8000/api/chatbot/prepare", {
+          fetch("/api/chatbot/prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userInput }),
@@ -163,7 +163,7 @@ const Chatbot = () => {
 
         // ✅ LLM2 advanced도 백그라운드에서 실행 → 응답 오면 메시지 추가
         if (initial.yes_count >= 3) {
-          fetch("http://localhost:8000/api/chatbot/advanced", {
+          fetch("/api/chatbot/advanced", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userInput }),

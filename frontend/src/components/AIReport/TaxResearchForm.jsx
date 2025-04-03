@@ -30,6 +30,17 @@ const TaxResearchForm = () => {
 
   return (
     <div className="flex flex-col gap-8">
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .loading-icon {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
       <div className="w-full max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -138,9 +149,24 @@ const TaxResearchForm = () => {
               {isLoading ? "분석 중..." : "세무 검토 요청"}
             </button>
             {isLoading && (
-              <p className="text-sm text-gray-500 text-center mt-6">
-                약 1~2분 정도의 시간이 소요될 수 있습니다.
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <p className="text-sm text-gray-500">
+                  약 1~2분 정도의 시간이 소요될 수 있습니다.
+                </p>
+                <svg
+                  className="w-5 h-5 text-Main loading-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
             )}
           </div>
         </form>
