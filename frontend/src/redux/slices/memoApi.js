@@ -1,13 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setMemos } from "./memoSlice";
 
-const BASE_URL = "http://localhost:8000/api/mylog";
-
-
 export const memoApi = createApi({
   reducerPath: "memoApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: BASE_URL,
+    baseUrl: "/api/mylog",
     credentials: 'include',
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");

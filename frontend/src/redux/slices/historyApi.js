@@ -1,13 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setViewedLogs } from "./historySlice";
 
-const BASE_URL = "http://localhost:8000/api/mylog";
-
-
 export const historyApi = createApi({
   reducerPath: "historyApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: BASE_URL,
+    baseUrl: "/api/mylog",
     credentials: 'include',
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");

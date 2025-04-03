@@ -20,7 +20,7 @@ const commonRequestConfig = {
 // 기본 쿼리에 재시도 로직 추가
 const baseQueryWithRetry = retry(
   fetchBaseQuery({ 
-    baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    baseUrl: '',
     credentials: 'include',
     timeout: 120000,
   }),

@@ -1,13 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logout } from "../slices/authSlice";
 
-
-const BASE_URL = "http://localhost:8000/api"; // FastAPI 백엔드 URL
-
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: BASE_URL,
+    baseUrl: "/api",
     credentials: 'include',  // 쿠키 포함
     prepareHeaders: (headers) => {
       const token = document.cookie.match(/access_token=(.*?)(;|$)/)?.[1];
