@@ -133,23 +133,57 @@ const Chatbot = () => {
           initial.candidates &&
           initial.candidates[0]?.content?.parts[0]?.text
         ) {
+          const result = initial.candidates[0].content.parts[0].text;
           setGeneralMessages((prev) => [
             ...prev,
             {
-              text: `${initial.candidates[0].content.parts[0].text}`,
+              text: "",
               isUser: false,
               timestamp: new Date().toLocaleTimeString(),
             },
           ]);
+          let index = 0;
+          const timer = setInterval(() => {
+            if (index < result.length) {
+              setGeneralMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  text: result.slice(0, index + 1),
+                };
+                return updated;
+              });
+              index++;
+            } else {
+              clearInterval(timer);
+            }
+          }, 20);
         } else if (initial.mcq_question) {
+          const result = `답변: ${initial.mcq_question}`;
           setGeneralMessages((prev) => [
             ...prev,
             {
-              text: `답변: ${initial.mcq_question}`,
+              text: "",
               isUser: false,
               timestamp: new Date().toLocaleTimeString(),
             },
           ]);
+          let index = 0;
+          const timer = setInterval(() => {
+            if (index < result.length) {
+              setGeneralMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  text: result.slice(0, index + 1),
+                };
+                return updated;
+              });
+              index++;
+            } else {
+              clearInterval(timer);
+            }
+          }, 20);
         }
 
         // ✅ LLM2 prepare는 백그라운드에서 실행
@@ -182,11 +216,27 @@ const Chatbot = () => {
               setGeneralMessages((prev) => [
                 ...prev,
                 {
-                  text: fullAnswer,
+                  text: "",
                   isUser: false,
                   timestamp: new Date().toLocaleTimeString(),
                 },
               ]);
+              let index = 0;
+              const timer = setInterval(() => {
+                if (index < fullAnswer.length) {
+                  setGeneralMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = {
+                      ...updated[updated.length - 1],
+                      text: fullAnswer.slice(0, index + 1),
+                    };
+                    return updated;
+                  });
+                  index++;
+                } else {
+                  clearInterval(timer);
+                }
+              }, 20);
             });
         }
 
