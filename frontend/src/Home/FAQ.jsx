@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { GrCircleQuestion } from "react-icons/gr";
+import { HiArrowTurnDownRight } from "react-icons/hi2";
 import FAQdata from "../constants/FAQdata";
 
 const FAQ = () => {
@@ -112,7 +113,10 @@ const FAQ = () => {
                       openIndex === index ? "max-h-40 pb-4" : "max-h-0"
                     }`}
                   >
-                    <p className="text-gray-600 ml-8">{faq.answer}</p>
+                    <p className="text-gray-600 ml-4 flex items-start gap-2">
+                      <HiArrowTurnDownRight className="text-Main flex-shrink-0 mt-1" />
+                      <span>{faq.answer}</span>
+                    </p>
                   </div>
                 </div>
               ))}
