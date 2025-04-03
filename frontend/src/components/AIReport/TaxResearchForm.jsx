@@ -15,16 +15,18 @@ const TaxResearchForm = () => {
 
   const [submitTaxResearch, { isLoading }] = useSubmitTaxResearchMutation();
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
   const reportRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     try {
       const response = await submitTaxResearch(formData).unwrap();
       setResult(response);
     } catch (error) {
       console.error("Error:", error);
-      alert("보고서 생성 중 오류가 발생했습니다.");
+      setError(error.message || "보고서 생성 중 오류가 발생했습니다.");
     }
   };
 
@@ -166,6 +168,11 @@ const TaxResearchForm = () => {
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
                 </svg>
+              </div>
+            )}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600">{error}</p>
               </div>
             )}
           </div>

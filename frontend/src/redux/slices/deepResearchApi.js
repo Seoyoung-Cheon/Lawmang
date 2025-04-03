@@ -1,22 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// 공통 에러 처리 함수
-const handleError = async (response) => {
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || '서버 연결에 실패했습니다.');
-  }
-  return response.json();
-};
-
-// 공통 요청 설정
-const commonRequestConfig = {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-};
-
 export const deepResearchApi = createApi({
   reducerPath: 'deepResearchApi',
   baseQuery: fetchBaseQuery({ 
@@ -29,6 +12,7 @@ export const deepResearchApi = createApi({
       }
       return headers;
     },
+    timeout: 300000,
   }),
   tagTypes: ['Research'],
   endpoints: (builder) => ({
@@ -39,6 +23,9 @@ export const deepResearchApi = createApi({
         body: formData,
       }),
       transformErrorResponse: (response) => {
+        if (response.status === 504) {
+          return '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+        }
         return response.data?.detail || '법률 검토 요청 중 오류가 발생했습니다.';
       },
       invalidatesTags: ['Research'],
@@ -51,6 +38,9 @@ export const deepResearchApi = createApi({
         body: formData,
       }),
       transformErrorResponse: (response) => {
+        if (response.status === 504) {
+          return '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+        }
         return response.data?.detail || '세무 검토 요청 중 오류가 발생했습니다.';
       },
       invalidatesTags: ['Research'],
