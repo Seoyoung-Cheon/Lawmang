@@ -258,7 +258,7 @@ const Chatbot = () => {
       setIsLegalTyping(true);
       try {
         const response = await axios.post(
-          "http://localhost:8000/api/chatbot_term/legal-term",
+          "/api/chatbot_term/legal-term",
           { question: userInput }
         );
         const result = response.data.result;
