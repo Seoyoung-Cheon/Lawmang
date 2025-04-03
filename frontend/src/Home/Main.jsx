@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { HiOutlineChevronDoubleDown } from "react-icons/hi2";
 import { FaArrowUp } from "react-icons/fa";
 import mainVideo from "../assets/main_video.mp4";
 import Youtube from "./Youtube";
