@@ -102,7 +102,7 @@ const TaxResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, concern: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32 resize-none"
               placeholder="세무 신고시 우려되는 사항을 설명해주세요"
               required
             />
@@ -133,7 +133,7 @@ const TaxResearchForm = () => {
               onChange={(e) =>
                 setFormData({ ...formData, additional_info: e.target.value })
               }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-Main h-32 resize-none"
               placeholder="기타 참고할 만한 사항을 자유롭게 작성해주세요"
             />
           </div>
@@ -180,43 +180,55 @@ const TaxResearchForm = () => {
       </div>
 
       {result && (
-      <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
-        <div ref={reportRef} style={pdfStyles.container}>
-          {/* 제목 + 버튼 */}
-          <div className="flex justify-between items-center">
-            <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
-              📄 세무 검토 보고서
-            </h2>
-            <button
-              onClick={() => generateTaxPDF(formData, result)}
-              className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
+        <div className="w-full max-w-4xl mx-auto bg-gray-50 rounded-lg p-8">
+          <div ref={reportRef} style={pdfStyles.container}>
+            {/* 제목 + 버튼 */}
+            <div className="flex justify-between items-center">
+              <h2 style={{ ...pdfStyles.title, fontSize: "26px" }}>
+                📄 세무 검토 보고서
+              </h2>
+              <button
+                onClick={() => generateTaxPDF(formData, result)}
+                className="px-4 py-2 bg-Main text-white rounded-lg pdf-download-btn"
+              >
+                PDF 다운로드
+              </button>
+            </div>
+
+            {/* 정보란 */}
+            <div
+              style={{
+                fontSize: "14px",
+                lineHeight: "1.6",
+                marginBottom: "16px",
+              }}
             >
-              PDF 다운로드
-            </button>
-          </div>
+              <p>작성일시: {result.timestamp}</p>
+              <p>신고유형: {formData.report_type}</p>
+              <p>신고기간: {formData.report_period}</p>
+              <p>소득/사업유형: {formData.income_type}</p>
+            </div>
 
-          {/* 정보란 */}
-          <div style={{ fontSize: "14px", lineHeight: "1.6", marginBottom: "16px" }}>
-            <p>작성일시: {result.timestamp}</p>
-            <p>신고유형: {formData.report_type}</p>
-            <p>신고기간: {formData.report_period}</p>
-            <p>소득/사업유형: {formData.income_type}</p>
-          </div>
+            <hr className="my-4 border-gray-300" />
 
-          <hr className="my-4 border-gray-300" />
-
-          {/* 본문 */}
-          <div style={{ fontSize: "15px", lineHeight: "1.8", whiteSpace: "pre-wrap" }}>
-            {result.final_report
-              .replace(/^#+\s/gm, "")
-              .split("\n")
-              .map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
+            {/* 본문 */}
+            <div
+              style={{
+                fontSize: "15px",
+                lineHeight: "1.8",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {result.final_report
+                .replace(/^#+\s/gm, "")
+                .split("\n")
+                .map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 };
