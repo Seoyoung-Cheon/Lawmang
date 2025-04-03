@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 // 공통 에러 처리 함수
 const handleError = async (response) => {
@@ -17,66 +17,41 @@ const commonRequestConfig = {
   },
 };
 
-// 기본 쿼리에 재시도 로직 추가
-const baseQueryWithRetry = retry(
-  fetchBaseQuery({ 
-    baseUrl: '',
-    credentials: 'include',
-    timeout: 120000,
-  }),
-  { 
-    maxRetries: 2,
-    backoff: (attemptNumber) => Math.min(1000 * (2 ** attemptNumber), 30000),
-  }
-);
-
 export const deepResearchApi = createApi({
   reducerPath: 'deepResearchApi',
-  baseQuery: baseQueryWithRetry,
-  tagTypes: ['Research'], // 캐시 무효화를 위한 태그 추가
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: '/api',
+    credentials: 'include',
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ['Research'],
   endpoints: (builder) => ({
     submitLegalResearch: builder.mutation({
       query: (formData) => ({
-        url: '/api/deepresearch/structured-research/legal',
-        ...commonRequestConfig,
+        url: '/deepresearch/structured-research/legal',
+        method: 'POST',
         body: formData,
-        responseHandler: handleError,
       }),
-      // 에러 변환
       transformErrorResponse: (response) => {
         return response.data?.detail || '법률 검토 요청 중 오류가 발생했습니다.';
       },
-      // 요청 취소 설정
-      extraOptions: {
-        maxRetries: 1,
-        timeout: 120000,
-      },
-      // 캐시 설정
       invalidatesTags: ['Research'],
-      // 에러 처리 개선
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('API Request failed:', error);
-          // 여기서 필요한 추가 에러 처리
-        }
-      },
     }),
 
     submitTaxResearch: builder.mutation({
       query: (formData) => ({
-        url: '/api/deepresearch/structured-research/tax',
-        ...commonRequestConfig,
+        url: '/deepresearch/structured-research/tax',
+        method: 'POST',
         body: formData,
-        responseHandler: handleError,
       }),
       transformErrorResponse: (response) => {
         return response.data?.detail || '세무 검토 요청 중 오류가 발생했습니다.';
-      },
-      extraOptions: {
-        maxRetries: 1,
-        timeout: 120000,
       },
       invalidatesTags: ['Research'],
     }),
