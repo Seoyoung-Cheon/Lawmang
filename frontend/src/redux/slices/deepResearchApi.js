@@ -10,11 +10,14 @@ export const deepResearchApi = createApi({
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
       return headers;
     },
-    timeout: 300000,
+    timeout: 600000,
   }),
-  tagTypes: ['Research'],
+  tagTypes: ['LegalResearch', 'TaxResearch'],
   endpoints: (builder) => ({
     submitLegalResearch: builder.mutation({
       query: (formData) => ({
@@ -23,12 +26,12 @@ export const deepResearchApi = createApi({
         body: formData,
       }),
       transformErrorResponse: (response) => {
-        if (response.status === 504) {
+        if (response.status === 504 || response.status === 502) {
           return '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
         }
         return response.data?.detail || '법률 검토 요청 중 오류가 발생했습니다.';
       },
-      invalidatesTags: ['Research'],
+      invalidatesTags: ['LegalResearch'],
     }),
 
     submitTaxResearch: builder.mutation({
@@ -38,12 +41,12 @@ export const deepResearchApi = createApi({
         body: formData,
       }),
       transformErrorResponse: (response) => {
-        if (response.status === 504) {
+        if (response.status === 504 || response.status === 502) {
           return '서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.';
         }
         return response.data?.detail || '세무 검토 요청 중 오류가 발생했습니다.';
       },
-      invalidatesTags: ['Research'],
+      invalidatesTags: ['TaxResearch'],
     }),
   }),
 });

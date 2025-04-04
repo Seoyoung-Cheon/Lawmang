@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSubmitLegalResearchMutation } from "../../redux/slices/deepResearchApi";
 import { pdfStyles } from "./pdfStyle";
 import { generateLegalPDF } from "./pdfGenerator";
 
-const LegalResearchForm = () => {
+const LegalResearchForm = ({ setIsLoading }) => {
   const [formData, setFormData] = useState({
     case_type: "",
     incident_date: "",
@@ -17,6 +17,10 @@ const LegalResearchForm = () => {
   const [submitLegalResearch, { isLoading }] = useSubmitLegalResearchMutation();
   const [result, setResult] = useState(null);
   const reportRef = useRef(null);
+
+  useEffect(() => {
+    setIsLoading(isLoading);
+  }, [isLoading, setIsLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

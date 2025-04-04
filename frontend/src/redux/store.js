@@ -21,7 +21,11 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // RTK Query에 대한 직렬화 검사 무시
-        ignoredActions: ['historyApi/executeQuery/fulfilled', 'memoApi/executeQuery/fulfilled'],
+        ignoredActions: [
+          'historyApi/executeQuery/fulfilled', 
+          'memoApi/executeQuery/fulfilled',
+          'deepResearchApi/executeQuery/fulfilled'
+        ],
       },
     }).concat(
       authApi.middleware,

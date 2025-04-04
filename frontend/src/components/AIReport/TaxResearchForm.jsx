@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSubmitTaxResearchMutation } from "../../redux/slices/deepResearchApi";
 import { pdfStyles } from "./pdfStyle";
 import { generateTaxPDF } from "./pdfGenerator";
 
-const TaxResearchForm = () => {
+const TaxResearchForm = ({ setIsLoading }) => {
   const [formData, setFormData] = useState({
     report_type: "",
     report_period: "",
@@ -16,6 +16,10 @@ const TaxResearchForm = () => {
   const [submitTaxResearch, { isLoading }] = useSubmitTaxResearchMutation();
   const [result, setResult] = useState(null);
   const reportRef = useRef(null);
+
+  useEffect(() => {
+    setIsLoading(isLoading);
+  }, [isLoading, setIsLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

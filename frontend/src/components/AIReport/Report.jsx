@@ -5,6 +5,7 @@ import TaxResearchForm from "./TaxResearchForm";
 
 const Report = () => {
   const [activeTab, setActiveTab] = useState("legal");
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="container min-h-screen">
@@ -25,21 +26,23 @@ const Report = () => {
           <div className="flex gap-2 mb-8">
             <button
               onClick={() => setActiveTab("legal")}
+              disabled={isLoading}
               className={`px-6 py-3 rounded-lg transition-colors ${
                 activeTab === "legal"
                   ? "bg-Main text-white"
                   : "bg-gray-100 hover:bg-gray-200"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               소송/분쟁
             </button>
             <button
               onClick={() => setActiveTab("tax")}
+              disabled={isLoading}
               className={`px-6 py-3 rounded-lg transition-colors ${
                 activeTab === "tax"
                   ? "bg-Main text-white"
                   : "bg-gray-100 hover:bg-gray-200"
-              }`}
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               세무/회계
             </button>
@@ -55,9 +58,9 @@ const Report = () => {
               }}
             >
               {activeTab === "legal" ? (
-                <LegalResearchForm />
+                <LegalResearchForm setIsLoading={setIsLoading} />
               ) : (
-                <TaxResearchForm />
+                <TaxResearchForm setIsLoading={setIsLoading} />
               )}
             </div>
           </div>
