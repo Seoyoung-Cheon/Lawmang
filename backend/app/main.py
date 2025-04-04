@@ -27,6 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# test
+
 # ✅ 라우터 등록
 app.include_router(check.router, prefix="/api/check", tags=["check"])    
 app.include_router(search.router, prefix="/api/search", tags=["search"])
