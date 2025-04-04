@@ -522,6 +522,7 @@ const Chatbot = () => {
           {/* 툴팁 */}
           <div className="absolute bottom-5 right-16 bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             챗봇 열기
+            {/* d */}
           </div>
         </button>
       </div>
