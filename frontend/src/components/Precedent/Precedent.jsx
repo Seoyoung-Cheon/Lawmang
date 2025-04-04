@@ -220,7 +220,7 @@ const Precedent = () => {
           </div>
 
           {/* 카테고리 필터 */}
-          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px]">
+          <div className="flex gap-2 mb-10 flex-wrap w-full max-w-[900px] ml-4">
             {categories.map((category) => (
               <button
                 key={category}
